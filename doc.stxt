@@ -1,0 +1,13 @@
+[Comandos]
+
+
+gpio 4 timeoff 30;gpio 15 set 1;gpio 15 get;set model 15;set mqtt_interval 15;scene sol trigger 15;save
+
+onde:
+gpio 4 timeoff 30; # altera o intervalo de desligamento para 30 segundos
+gpio 15 set 1; # liga o pino 15 -
+gpio 15 get; # le o valor do pino 15
+set model 15; #reset pino 4 para disparar o pino 15
+set mqtt_interval 15; # altera o intermavalo de notificação no servidor
+scene sol trigger 15; #liga o pino 15 com a cena "sol"
+save # grava a configuraçao
