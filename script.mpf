@@ -1,0 +1,3 @@
+open com3
+put boot.py
+ls
