@@ -2,9 +2,9 @@ import os
 
 print('walking')
 
-for file in os.listdir("workSpace"):
+for file in os.listdir("src"):
    if '.py' in file:
-      f = "./workSpace/"+file
+      f = "./src/"+file
       print(f)
 
 print(os.listdir())
