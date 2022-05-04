@@ -1,3 +1,9 @@
 [submodule "micropython"]
 	path = micropython
 	url = https://github.com/micropython/micropython.git
+[submodule "mipy_esp"]
+	path = mipy_esp
+	url = https://github.com/aslake/mipy_esp.git
+[submodule "ampy"]
+	path = ampy
+	url = https://github.com/adafruit/ampy.git
