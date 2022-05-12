@@ -135,21 +135,25 @@ def cv(mqtt_active=False):
                         v = g.gpin(i)
                         o(i, v, md, False, mqtt.tpfx() +
                           '/{}'.format(stype or 'gpio'))
+                        localTrig(i,'gpio',v)  
                         continue
                     elif (md == 3):
-                        o(i, ADCRead(i), md, False, mqtt.tpfx() +
+                        v = ADCRead(i)
+                        o(i, v, md, False, mqtt.tpfx() +
                           '/{}'.format(stype or 'adc'))
-#                        mqtt.p(mqtt.tpfx()+'/{}/{}'.format(stype or 'adc', i),
-#                               machine.ADC(int(i)).read())
+                        localTrig(i,'adc',v)  
                         setSleep(1)
+                        continue
                     elif (md == 5):
                         o(i, getDht11(i), md, False, mqtt.tpfx() +
                           '/{}'.format(stype or 'dht11'))
                         setSleep(1)
+                        continue
                     elif (md == 6):
                         o(i, getDht12(i), md, False, mqtt.tpfx() +
                           '/{}'.format(stype or 'dht12'))
                         setSleep(1)
+                        continue
             if bled:
                 led(1)
                 if nled > 250:
@@ -161,6 +165,29 @@ def cv(mqtt_active=False):
     gc.collect()
     machine.idle()
 
+def localTrig(i: str,stype: str,value: number):
+  # if adc 0 lt 500 then trigger 15 to 1
+    for j in g.config[g.conds]:
+        cmd = j.split(',',6)
+        p = cmd[7]
+        v = cmd[9]
+        if (cmd[0]==stype) and (cmd[1]==i):
+            if (cmd[2]=='lt') and (value<int(cmd[3]) and g.sVlr(p, v)!=v ):
+                g.spin(cmd[4], cmd[5])
+                print('localTrig: {} {} {}'.format(i,stype,value))
+                continue
+            elif (cmd[2]=='gt') and (value>int(cmd[3]) and g.sVlr(p, v)!=v):
+                g.spin(cmd[4], cmd[5])
+                print('localTrig: {} {} {}'.format(i,stype,value))
+
+                continue
+            elif (cmd[2]=='eq') and (value==int(cmd[3]) and g.sVlr(p, v)!=v):
+                g.spin(cmd[4], cmd[5])
+                print('localTrig: {} {} {}'.format(i,stype,value))
+                continue
+            return 'noop'   
+    gc.collect()
+    return 'nok'
 
 def ADCRead(pin: str):
     return machine.ADC(int(pin)).read()

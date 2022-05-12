@@ -7,7 +7,7 @@ _N = None
 def show():
     m = {}
     m['ssid'] = g.config['ssid']
-    m['password'] = g.config['password']
+    #m['password'] = g.config['password']
     m['id'] = g.uid
     m['ip'] = g.ifconfig
     return str(m)

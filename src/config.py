@@ -36,8 +36,9 @@ modes = ['none', 'out', 'in', 'adc', 'pwm',
 _table = ['none', 'monostable_NC', 'bistable_NC',
           'monostable_NO', 'bistable_NO']
 timeOnOff = {}
-mesh = 'mesh/'+uid
+mesh = 'ihomewareGpio/'+uid
 gpio = 'gpio'
+conds = 'conds'
 
 
 def conf():
@@ -59,8 +60,9 @@ def conf():
         gpio_timeoff: {},
         gpio_timeon: {},
         events: {},
+        conds:[],
         'stype': {},
-        'mqtt_host': 'mqtt3.wbagestao.com',
+        'mqtt_host': 'broker.emqx.io',
         'mqtt_name': uid,
         'mqtt_port': 1883,
         'mqtt_user': uid,
@@ -204,7 +206,7 @@ interruptEvent = None
 
 def led(v):
     pin = int(config['led'] or 255)
-    if pin > 16:
+    if pin <= _maxPins:
         return
     machine.Pin(pin, machine.Pin.OUT).value(v)
 
@@ -346,7 +348,7 @@ def model(md: str):
         config[gp_trg_tbl] = {}
         config[gpio_timeoff] = {}
         config[gpio_timeon] = {}
-        return
+        return 'cleared'
 
     n = int(md)
     if n > 4:
@@ -372,3 +374,19 @@ def gVlr(p: str):
         return v
     except:
         return 0
+
+
+
+# if gpio 5 eq 1 then trigger 4 to 0
+# if adc 0 lt 500 then trigger 4 to 1
+# if adc 0 gt 500 then trigger 4 to 0
+# if gpio 5 then trigger 4 
+# p = 5; v = 1; trigger 4 to 0
+def gpioCond(cmd:str):
+    s = cmd.split(' ')
+    ss = '{},{},{},{},{},{}'.format(s[1], s[2], s[3],s[4],s[7],[9])
+    config[conds].append( ss )
+    return config[conds]
+def clearCond():
+    config[conds] = []
+    return 'OK'
