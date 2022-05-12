@@ -1,0 +1,11 @@
+versao: mai/22 
+show [config,gpio,mqtt,help]
+set <var> <n>\n set model [4-15,clear] 
+scene <name> [clear,set <n>,trigger <pin>]
+adc <pin> [get,set <n>]
+gpio <pin> [get,set <n>,switch]
+gpio <pin> mode [in/out/adc/pwm]
+gpio <pin> type <name>
+gpio <pin> [timeoff/timeon <x>]/[trigger <pin> monostable_NC/bistable_NC]
+set sleep <n>|sleep
+if [adc,gpio] 0 gt 500 then trigger 15 to 1

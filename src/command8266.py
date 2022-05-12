@@ -66,8 +66,9 @@ def rcv(c):
 
             if cmd == "show":
                 if cmd1 == 'config':
-                    # import csConfig
-                    return r(g.config)  # r(csConfig.shConfig(True))
+                    import csConfig
+                    #return r(g.config)  # 
+                    r(csConfig.shConfig(True))
                 elif cmd1 == 'mqtt':
                     import configshow
                     return r(configshow.shMqtt())
@@ -100,6 +101,8 @@ def rcv(c):
             elif cmd == 'delay':
                 time.sleep(g.strToNum(cmd1))
             elif cmd == 'gpio':
+                if cmd1 == 'clear':
+                   return r( g.model('clear'))
                 if cmd2 == 'timeoff':
                     return r(g.sTimeOff(p))
                 elif cmd2 == 'timeon':
@@ -154,9 +157,15 @@ def rcv(c):
             elif cmd == 'sleep':
                 r('sleeping')
                 return event.deepsleep(int(cmd1))
-            r('invalido: {}'.format(c))
+            elif cmd == 'clean':
+                g.model('clear')
+                return r(g.clearCond())
+            elif cmd == 'if':
+                return r(g.gpioCond(c))        
+
+            ('invalido cmd:{} -> {}'.format(cmd, c))
         except Exception as e:
-            print('Command {}: {}'.format(c, e))
+            print('Error {}: {}'.format(c, e))
 
     finally:
         pass
