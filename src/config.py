@@ -36,7 +36,7 @@ modes = ['none', 'out', 'in', 'adc', 'pwm',
 _table = ['none', 'monostable_NC', 'bistable_NC',
           'monostable_NO', 'bistable_NO']
 timeOnOff = {}
-mesh = 'ihomewareGpio/'+uid
+mesh = 'ihomeware/'+uid
 gpio = 'gpio'
 conds = 'conds'
 

@@ -20,32 +20,50 @@ python3 -m mpy_cross ./src/wifimgr.py
 python3 -m mpy_cross ./src/umqtt_simple.py
 
 echo flashing....
-esptool.py --chip auto --after no_reset_stub  --baud 460800 write_flash -z 0x0000 ./bin/esp8266.bin 
+#esptool.py --chip auto --after no_reset_stub  --baud 460800 write_flash -z 0x0000 ./bin/esp8266.bin 
+esptool.py  --baud 1000000 write_flash --flash_size=4MB -fm dio 0 bin/esp8266.bin
 
 echo sending src ...
 echo boot.py
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/boot.py
+ampy -d 0.5 --port /dev/ttyUSB0 --baud 115200 put ./src/boot.py
 echo command32
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/command32.mpy	
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/command32.mpy	
 echo commandutils
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/commandutils.mpy	
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/command8266.mpy
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/config.mpy
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/commandutils.mpy	
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/command8266.mpy
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/config.mpy
+echo .
 
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/configshow.mpy
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/configshow.mpy
+echo .
 
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/csConfig.mpy
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/csGpio.mpy
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/csHelp.mpy
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/csConfig.mpy
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/csGpio.mpy
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/csHelp.mpy
+echo .
 
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/configutils.mpy	
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/event.mpy
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/eventutils.mpy
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/main.py
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/app.mpy
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/mqtt.mpy	
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/ntp.mpy
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/server.mpy
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/wifimgr.mpy
-ampy -d 0.5 --port /dev/ttyUSB1 put ./src/umqtt_simple.mpy
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/configutils.mpy	
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/event.mpy
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/eventutils.mpy
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/main.py
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/app.mpy
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/mqtt.mpy	
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/ntp.mpy
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/server.mpy
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/wifimgr.mpy
+echo .
+ampy -d 0.5 --port /dev/ttyUSB0 put ./src/umqtt_simple.mpy
+echo  fim
 
