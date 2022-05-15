@@ -130,29 +130,6 @@ def cv(mqtt_active=False):
         print('{} {}'.format('event.cv: ', e))
     gc.collect()
     machine.idle()
-def localTrig(i: str,stype: str,value: number):
-  # if adc 0 lt 500 then trigger 15 to 1
-    for j in g.config[g.conds]:
-        cmd = j.split(',',6)
-        p = cmd[7]
-        v = cmd[9]
-        if (cmd[0]==stype) and (cmd[1]==i):
-            if (cmd[2]=='lt') and (value<int(cmd[3]) and g.sVlr(p, v)!=v ):
-                g.spin(cmd[4], cmd[5])
-                print('localTrig: {} {} {}'.format(i,stype,value))
-                continue
-            elif (cmd[2]=='gt') and (value>int(cmd[3]) and g.sVlr(p, v)!=v):
-                g.spin(cmd[4], cmd[5])
-                print('localTrig: {} {} {}'.format(i,stype,value))
-
-                continue
-            elif (cmd[2]=='eq') and (value==int(cmd[3]) and g.sVlr(p, v)!=v):
-                g.spin(cmd[4], cmd[5])
-                print('localTrig: {} {} {}'.format(i,stype,value))
-                continue
-            return 'noop'   
-    gc.collect()
-    return 'nok'
 def ADCRead(pin: str):
     return machine.ADC(int(pin)).read()
 def getDht11(pin: str):
@@ -177,4 +154,28 @@ def interruptTrigger(pin: machine.Pin):
     if p >= 0:
         o(p, pin.value(), None, _T)
     gc.collect()
+
+def localTrig(i: str,stype: str,value: int):
+  # if adc 0 lt 500 then trigger 15 to 1
+    for j in g.config[g.conds]:
+        cmd = j.split(',',6)
+        c = cmd[2]
+        a = int(cmd[3])
+        p = cmd[4]
+        v = int(cmd[5])
+        vo = int(g.gpin(p))
+        if (cmd[0]==stype) and (cmd[1]==i and (vo!=v)):  
+            rsp = None;
+            if (c=='lt') and (value < a):
+                rsp = g.spin(p, v)
+            elif (c=='gt') and (value > a):
+                rsp = g.spin(p, v)
+            elif (c=='eq') and (value == a):
+                rsp = g.spin(p,v)
+            if (rsp != None):
+                mqtt.p(mqtt.tpfx() +'/{}'.format(stype )+'/' + p, g.gpin(p) )    
+            continue   
+    gc.collect()
+    return 'nok'
+
 g.irqEvent(interruptTrigger)

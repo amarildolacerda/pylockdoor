@@ -187,6 +187,7 @@ def spin(pin: str, value) -> str:
         v = sToInt(value, value)
         p = initPin(pin, machine.Pin.OUT)
         p.value(v)
+        sVlr(pin, v)
         timeOnOff[pin] = time.ticks_ms()
     except Exception as e:
         print('Error spin:{} pin: {} value: {} '.format(e, pin, value))
@@ -283,7 +284,7 @@ def gVlr(p: str):
 # p = 5; v = 1; trigger 4 to 0
 def gpioCond(cmd:str):
     s = cmd.split(' ')
-    ss = '{},{},{},{},{},{}'.format(s[1], s[2], s[3],s[4],s[7],[9])
+    ss = '{},{},{},{},{},{}'.format(s[1], s[2], s[3],s[4],s[7],s[9])
     config[conds].append( ss )
     return config[conds]
 def clearCond():
