@@ -15,7 +15,6 @@ python -m mpy_cross src/config.py
 python -m mpy_cross src/configshow.py
 python -m mpy_cross src/csConfig.py
 python -m mpy_cross src/csGpio.py
-python -m mpy_cross src/csHelp.py
 python -m mpy_cross src/configutils.py
 python -m mpy_cross src/event.py
 python -m mpy_cross src/eventutils.py
@@ -50,7 +49,6 @@ ampy  --port %1 put configshow.mpy
 
 ampy  --port %1 put csConfig.mpy
 ampy  --port %1 put csGpio.mpy
-ampy  --port %1 put csHelp.mpy
 
 ampy  --port %1 put configutils.mpy	
 ampy  --port %1 put event.mpy

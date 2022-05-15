@@ -162,8 +162,9 @@ def localTrig(i: str,stype: str,value: int):
         c = cmd[2]
         a = int(cmd[3])
         p = cmd[4]
-        v = int(cmd[5])
-        vo = int(g.gpin(p))
+        v = g.strToNum(cmd[5])
+        vo = g.strToNum(g.gpin(p))
+        print(j,i,c,a,p,v,vo,stype,value)
         if (cmd[0]==stype) and (cmd[1]==i and (vo!=v)):  
             rsp = None;
             if (c=='lt') and (value < a):

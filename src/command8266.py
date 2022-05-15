@@ -41,10 +41,6 @@ def rcv(c):
     cmd2 = ''
     try:
         try:
-            if c == 'reset factory':
-                g.reset_factory()
-                machine.reset()
-                return k
             p = c.split(' ', 5)
             cmd = p[0]
             if (len(p) > 1):
@@ -52,11 +48,13 @@ def rcv(c):
             if (len(p) > 2):
                 cmd2 = p[2]
 
+            if cmd == 'reset' and cmd1 == 'factory':
+                g.reset_factory()
+                machine.reset()
+                return k
             if cmd == "show":
                 if cmd1 == 'config':
-                    import csConfig
-                    #return r(g.config)  # 
-                    r(csConfig.shConfig(True))
+                    return r(g.config)
                 elif cmd1 == 'mqtt':
                     import configshow
                     return r(configshow.shMqtt())
@@ -64,8 +62,7 @@ def rcv(c):
                     import csGpio
                     return r(csGpio.shGpio())
                 elif cmd1 == 'help':
-                    import csHelp
-                    return r(csHelp.shHelp())
+                    return r(g.readLines('help.tmpl'))
                 elif cmd1 == 'scene':
                     import configshow
                     return r(configshow.shScene())

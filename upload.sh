@@ -9,7 +9,6 @@ python3 -m mpy_cross ./src/config.py
 python3 -m mpy_cross ./src/configshow.py
 python3 -m mpy_cross ./src/csConfig.py
 python3 -m mpy_cross ./src/csGpio.py
-python3 -m mpy_cross ./src/csHelp.py
 python3 -m mpy_cross ./src/configutils.py
 python3 -m mpy_cross ./src/event.py
 python3 -m mpy_cross ./src/eventutils.py
@@ -42,8 +41,6 @@ echo .
 ampy -d 0.5 --port /dev/ttyUSB0 put ./src/csConfig.mpy
 echo .
 ampy -d 0.5 --port /dev/ttyUSB0 put ./src/csGpio.mpy
-echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/csHelp.mpy
 echo .
 
 ampy -d 0.5 --port /dev/ttyUSB0 put ./src/configutils.mpy	

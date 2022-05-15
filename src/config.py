@@ -290,3 +290,6 @@ def gpioCond(cmd:str):
 def clearCond():
     config[conds] = []
     return 'OK'
+def readLines(nome:str):
+    with open(nome, 'r') as f:
+        return f.readlines()
