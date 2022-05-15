@@ -1,6 +1,6 @@
 import machine
 import time 
-import utime
+#import utime
 try:
     import usocket as socket
 except:
@@ -31,3 +31,4 @@ def settime():
      tm = tm[0:3] + (0,) + tm[3:6] + (0,)
      rtc = machine.RTC()
      rtc.datetime(tm)
+     return
