@@ -42,14 +42,12 @@ conds = 'conds'
 
 
 def conf():
-    #w = '123456780'
     w = '3938373635'
     return {
         'sleep': 0,
         'led': 255,
         'locked': 0,
-        #'ssid': 'ihomeware',
-        'ssid':'micasa',
+        'ssid': 'micasa',
         'password': w,
 
         'ap_ssid': 'hm_{}'.format(uid),
