@@ -164,8 +164,8 @@ def localTrig(i: str,stype: str,value: int):
         p = cmd[4]
         v = g.strToNum(cmd[5])
         vo = g.strToNum(g.gpin(p))
-        print(j,i,c,a,p,v,vo,stype,value)
-        if (cmd[0]==stype) and (cmd[1]==i and (vo!=v)):  
+       # print('if {} {} {} {} then trigger {} to {} when {} != {}'.format(cmd[0],i,c,a,p,v,vo,v))
+        if (cmd[0]==stype) and (cmd[1]==i and (vo != v)):  
             rsp = None;
             if (c=='lt') and (value < a):
                 rsp = g.spin(p, v)
@@ -173,8 +173,10 @@ def localTrig(i: str,stype: str,value: int):
                 rsp = g.spin(p, v)
             elif (c=='eq') and (value == a):
                 rsp = g.spin(p,v)
+            elif (c=='ne') and (value != a):
+                rsp = g.spin(p,v)
             if (rsp != None):
-                mqtt.p(mqtt.tpfx() +'/{}'.format(stype )+'/' + p, g.gpin(p) )    
+                mqtt.p(mqtt.tpfx() +'/gpio/' + p, g.gpin(p) )    
             continue   
     gc.collect()
     return 'nok'
