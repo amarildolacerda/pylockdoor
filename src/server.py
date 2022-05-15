@@ -6,26 +6,19 @@ import command8266 as cmd
 import time
 import errno
 import machine
-
-
 callback = None
 callbackFeed = None
 lock = False
-
-
 class TCPServer:
     def __main__(self):
         self.conn = None
         pass
-
     def callback(self, cb):
         global callback
         callback = cb
-
     def feed(self, cb):
         global callbackFeed
         callbackFeed = cb
-
     def start(self, add='0.0.0.0', port=7777):
         self.client = None
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,20 +30,15 @@ class TCPServer:
         self.conn.listen(1)
         self.conn.setsockopt(socket.SOL_SOCKET, 20, accept_telnet_connect)
         print("Escutando em ", self.addr)
-
     def close(self):
         if (self.conn != None):
             self.conn.close()
         self.conn = None
-
     def checkTimeout(self, conn_lst, dif):
         d = time.ticks_diff(time.ticks_ms(), conn_lst)
         return (d > dif)
-
     def wait_msg(self):
         pass
-
-
 def accept_telnet_connect(sck):
     global callback, lock, callbackFeed
     if lock:
@@ -66,7 +54,6 @@ def accept_telnet_connect(sck):
         data = ''
         bts = b''
         is_telnet = False
-        print('conectou')
         while True:
             try:
                 if callbackFeed:
@@ -82,7 +69,6 @@ def accept_telnet_connect(sck):
                     is_telnet = True
                     client.send('cmd:\r\n')
                     continue
-
                 bts += res
                 if (len(res) == 1):
                     continue
@@ -95,7 +81,6 @@ def accept_telnet_connect(sck):
             except Exception as e:
                 print(e)
                 continue
-
     except Exception as x:
         print('telnet:', x)
     finally:

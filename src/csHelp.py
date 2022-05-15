@@ -1,7 +1,6 @@
 import config as g
-
-
 def shHelp():
-    # return content of file help.tmpl
-    with open('help.tmpl', 'r') as f:
+    readLines('help.tmpl')
+def readLines(nome:str):
+    with open(nome, 'r') as f:
         return f.readlines()

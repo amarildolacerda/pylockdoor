@@ -13,46 +13,31 @@ try:
     defineEsp32 = _T
 except:
     defineEsp32 = _F
-
 wlan_ap = None
 wlan_sta = network.WLAN(network.STA_IF)
 #wlan_ap = network.WLAN(network.AP_IF)
 server_socket = _N
-
 conn_lst = time.ticks_ms()
-
 c_ssid = None
 c_pass = None
 c_id = None
-
-
 def getConfig():
     global c_ssid, c_pass, c_id
     c_ssid = g.config['ssid']
     c_pass = g.config['password']
     c_id = g.config['mqtt_prefix']
-
-
 def setConfig(s, p):
     global c_id
     g.config['ssid'] = s
     g.config['password'] = p
     g.config['mqtt_prefix'] = c_id
     getConfig()
-
-
 def isconnected():
     return wlan_sta.isconnected()
-
-
 def ifconfig():
     global wlan_sta
     return wlan_sta.ifconfig()
-
-
 suspendreset = False
-
-
 def timerReset(x):
     global suspendreset, conn_lst
     if suspendreset:
@@ -61,18 +46,12 @@ def timerReset(x):
         return
     print('timerReset')
     machine.reset()
-
-
 def checkTimeout(tm, dif):
     d = time.ticks_diff(time.ticks_ms(), tm)
     return (d > dif)
-
-
 def timerFeed():
     global conn_lst
     conn_lst = time.ticks_ms()
-
-
 def get_connection():
     global wlan_sta
     global c_ssid, c_pass
@@ -86,8 +65,6 @@ def get_connection():
         getConfig()
         wlan_sta.active(_T)
         networks = wlan_sta.scan()
-        # AUTHMODE = {0: "open", 1: "WEP", 2: "WPA-PSK",
-        #            3: "WPA2-PSK", 4: "WPA/WPA2-PSK"}
         for ssid, bssid, channel, rssi, authmode, hidden in sorted(networks, key=lambda x: x[3], reverse=_T):
             ssid = ssid.decode('utf-8')
             encrypted = authmode > 0
@@ -111,8 +88,6 @@ def get_connection():
     if connected:
         return wlan_sta
     return _N
-
-
 def do_connect(ssid, password):
     global wlan_sta
     connected = False
@@ -132,24 +107,18 @@ def do_connect(ssid, password):
     else:
         print('\nFalhou: ' + ssid)
     return connected
-
-
 def send_header(client, status_code=200, content_length=_N):
     client.sendall("HTTP/1.0 {} OK\r\n".format(status_code))
     client.sendall("Content-Type: text/html; charset=utf-8\r\n")
     if content_length is not _N:
         client.sendall("Content-Length: {}\r\n".format(content_length))
     client.sendall("\r\n")
-
-
 def send_response(client, payload, status_code=200):
     content_length = len(payload)
     send_header(client, status_code, content_length)
     if content_length > 0:
         client.sendall(payload)
     client.close()
-
-
 def handle_root(client):
     try:
         global wlan_sta, c_ssid, c_pass, c_id
@@ -192,8 +161,6 @@ def handle_root(client):
     """.format(c_ssid, c_pass, c_id))
     finally:
         client.close()
-
-
 def handle_configure(client, request):
     global c_id
     match = ure.search("ssid=([^&]*)&password=(.*)&id=([^&]*)", request)
@@ -241,19 +208,13 @@ def handle_configure(client, request):
         except:
             pass
         return _F
-
-
 def handle_not_found(client, url):
     send_response(client, "Não encontrado: {}".format(url), status_code=404)
-
-
 def stop():
     global server_socket
     if server_socket:
         server_socket.close()
         server_socket = _N
-
-
 def start(port=80):
     global server_socket, suspendreset, wlan_sta, wlan_ap
     if not g.config['locked']:
@@ -270,15 +231,12 @@ def start(port=80):
     ap_ssid = g.config['ap_ssid']
     ap_password = g.config['ap_password']
     wlan_ap.config(essid=ap_ssid, password=ap_password, authmode=3)
-
     server_socket = socket.socket()
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(addr)
     server_socket.listen(5)
-
     print('WiFi: ' + ap_ssid + ' Pass: ' +
           ap_password+'  http://192.168.4.1')
-
     suspendreset = False
     try:
         while _T:

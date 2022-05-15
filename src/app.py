@@ -20,35 +20,28 @@ try:
     import gc
     import server
     import ntp
-
     wlan = _N
     wdt = _N
     telnet = _N
-
     def wdt_feed():
         wifimgr.timerFeed()
-
     def connectWifi():
         global wlan
         wlan = wifimgr.get_connection()
         g.ifconfig = wlan.ifconfig()
         return wlan.isconnected()
-
     def mqtt_rcv(_t, _p):
         t = _t.decode('utf-8')
         p = _p.decode('utf-8')
-        #print([t, p])
         try:
             cmds = p.split(';')
             for item in cmds:
                 cm.tpRcv(t, item)
                 machine.idle()
                 gc.collect()
-
         except OSError as e:
             mqtt.p('Invalid', 0)
             pass
-
     def mqttConnect(ip=''):
         try:
             mqtt.topic = mqtt.tpfx()
@@ -60,8 +53,7 @@ try:
             mqtt.sb(mqtt.topic_command_in())
             mqtt.p(mqtt.tpfx()+'/ip', ip)
         except OSError as e:
-            print(e)
-
+            p(e)
     def loop():
         mqtt.disp()
         while _T:
@@ -69,10 +61,8 @@ try:
                 gpioLoopCallback()
             except:
                 pass
-
     wdt = None
     errCount = 0
-
     def gpioLoopCallback():
         global errCount
         try:
@@ -86,28 +76,23 @@ try:
                         errCount = 0
                 except:
                     errCount = errCount + 1
-                    print('Reconectando MQTT...')
+                    p('Reconectando MQTT...')
                     if errCount > 10:
                         machine.reset()
                     mqttConnect(wlan.ifconfig()[0])
             gc.collect()
         except Exception as e:
             pass
-
     def telnetCallback(data):
         return cm.rcv(data)
-
     def p(x):
         print(x)
-
     def timerLoop(x):
         wifimgr.timerReset(True)
         ev.cv(False)
         gc.collect()
         machine.idle()
-
     timer = None
-
     def init():
         global timer
         ev.init()
@@ -115,15 +100,12 @@ try:
         timer = machine.Timer(-1)
         timer.init(mode=machine.Timer.PERIODIC,
                    period=500, callback=timerLoop)
-
     def run():
         if machine.reset_cause() == machine.DEEPSLEEP_RESET:
             print('0.woke from a deep sleep')
             ev.setSleep(-1)
-
         try:
             init()
-#     time.sleep(0.5)
             connectWifi()
             try:
                 ntp.settime()

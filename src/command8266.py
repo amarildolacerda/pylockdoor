@@ -6,10 +6,7 @@ import time
 _N = None
 _g = 'get'
 _s = 'set'
-
 sendCB = None
-
-
 def r(p):
     global sendCB
     try:
@@ -19,10 +16,7 @@ def r(p):
             sendCB(p+'\r\n')
     finally:
         return p
-
-
 def rPin(pin, p):
-
     global sendCB
     try:
         if (p != _N):
@@ -31,20 +25,14 @@ def rPin(pin, p):
             sendCB(p+'\r\n')
     finally:
         return p
-
-
 def gpwm(p):
     p(g.config['pwm_duty'][int(p[1])])
-
-
 def tpRcv(t, p):
     _c = t.split('/')
     _p = p
     if _c[0] == 'scene':
         _p = 'scene '+_c[1]+' set '+_p
     rcv(_p)
-
-
 def rcv(c):
     k = 'OK'
     c = c.strip()
@@ -126,7 +114,6 @@ def rcv(c):
                                 import event
                                 event.setSleep(1)
                             return rsp
-
                         elif cmd2 == 'mode':
                             return g.sMde(cmd1, p[3])
                         elif cmd2 == 'trigger':
@@ -162,19 +149,13 @@ def rcv(c):
                 return r(g.clearCond())
             elif cmd == 'if':
                 return r(g.gpioCond(c))        
-
             ('invalido cmd:{} -> {}'.format(cmd, c))
         except Exception as e:
             print('Error {}: {}'.format(c, e))
-
     finally:
         pass
-
-
 def sadc(p):
     pass
-
-
 def gadc(p):
     pin = int(p[1])
     v = machine.ADC(pin).read()

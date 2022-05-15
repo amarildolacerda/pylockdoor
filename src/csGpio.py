@@ -1,6 +1,4 @@
 import config as g
-
-
 def shGpioP(i):
     try:
         s = ''
@@ -24,8 +22,6 @@ def shGpioP(i):
     except:
         pass
     return s
-
-
 def shGpio():
     m = {}
     for i in g.config[g.gp_mde]:
