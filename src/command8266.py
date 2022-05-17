@@ -62,7 +62,7 @@ def rcv(c):
                     import csGpio
                     return r(csGpio.shGpio())
                 elif cmd1 == 'help':
-                    return r(g.readLines('help.tmpl'))
+                    return r(g.readFile('help.tmpl'))
                 elif cmd1 == 'scene':
                     import configshow
                     return r(configshow.shScene())

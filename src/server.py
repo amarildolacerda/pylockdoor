@@ -74,6 +74,7 @@ def accept_telnet_connect(sck):
                     continue
                 data = bts.decode('utf-8')
                 if data in ['exit', 'quit']:
+                    client.close()
                     return None
                 bts = b''
                 cmd.sendCB = client.send

@@ -61,13 +61,15 @@ ampy  --port %1 put server.mpy
 ampy  --port %1 put wifimgr.mpy
 ampy  --port %1 put umqtt_simple.mpy
 ampy  --port %1 put help.tmpl
+ampy  --port %1 put wssid.html
+ampy --port %1 put wfalhou.html
 
 cd ..
 goto :fim
 
 :so
 rem ampy  --port %1 rm ".\src\%2"
-ampy  --port %1 put .\src\%2
+ampy -d 0.5 --port %1 put .\src\%2
 
 
 :fim

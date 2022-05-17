@@ -125,40 +125,7 @@ def handle_root(client):
         wlan_sta.active(_T)
         ssids = sorted(ssid.decode('utf-8') for ssid, *_ in wlan_sta.scan())
         send_header(client)
-        client.sendall("""\
-        <html>
-            <h1 style="color: #5e9ca0; text-align: center;">
-                <span style="color: #ff0000;">
-                    Rede Wi-Fi
-                </span>
-            </h1>
-            <form action="configure" method="post">
-                <table style="margin-left: auto; margin-right: auto;">
-                    <tbody>
-    """)
-        client.sendall("""\
-                        <tr>
-                            <td>ssid:</td>
-                            <td><input name="ssid" value="{}" /></td>
-                        </tr>
-                        <tr>
-                            <td>pass:</td>
-                            <td><input name="password" type="password" value="{}" /></td>
-                        </tr>
-                        <tr>
-                            <td>prefix:</td>
-                            <td><input name="id" value="{}" /></td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p style="text-align: center;">
-                    <input type="submit" value="Submit" />
-                </p>
-            </form>
-            <hr />
-        </html>
-        
-    """.format(c_ssid, c_pass, c_id))
+        client.sendall(g.readFile('wssid.html').format(c_ssid, c_pass, c_id))
     finally:
         client.close()
 def handle_configure(client, request):
@@ -189,21 +156,7 @@ def handle_configure(client, request):
         return _T
     else:
         try:
-            r = """\
-            <html>
-                <center>
-                    <h1 style="color: #5e9ca0; text-align: center;">
-                        <span style="color: #ff0000;">
-                            Falhou.
-                        </span>
-                    </h1>
-                    <br><br>
-                    <form>
-                        <input type="button" value="Voltar!" onclick="history.back()"></input>
-                    </form>
-                </center>
-            </html>
-            """
+            r = g.readFile('wfalhou.html')
             send_response(client, r)
         except:
             pass
