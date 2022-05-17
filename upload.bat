@@ -61,6 +61,7 @@ ampy  --port %1 put server.mpy
 ampy  --port %1 put wifimgr.mpy
 ampy  --port %1 put umqtt_simple.mpy
 ampy  --port %1 put help.tmpl
+ampy  --port %1 put commandutils.mpy
 ampy  --port %1 put wssid.html
 ampy --port %1 put wfalhou.html
 

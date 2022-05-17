@@ -4,6 +4,8 @@ import config as g
 import gc
 import machine
 from umqtt_simple import MQTTClient
+import commandutils as u
+
 _N = None
 _T = True
 _F = False
@@ -79,10 +81,10 @@ def sdRsp(sValue, aRetained=0):
     usnd = time.ticks_ms()
     p(trsp(), str(sValue), aRetained)
 def account(account):
-    p(tpfx()+'/account', account)
+    send('account', account)
 def p(t, p, aRetained=0):
     global mqttResetCount
-    print(t, ':', p)
+    print(u.now(), t, ':', p)
     try:
         if mq != _N:
             mq.publish(t, str(p), aRetained)
@@ -92,6 +94,10 @@ def p(t, p, aRetained=0):
     except Exception as e:
         print('mqtt: {}'.format(e))
         return 0  # falhou
+def send(aTopic, aMessage):
+    p(tpfx()+'/'+aTopic, aMessage)
+def error(aMessage):
+    send('error', aMessage or '?')    
 def sdOut(p, v):
     p(tCmdOut()+'/0', 'x')
 def sb(aSubTopic):

@@ -3,6 +3,7 @@ import config as g
 import mqtt
 import machine
 import time
+import gc
 _N = None
 _g = 'get'
 _s = 'set'
@@ -52,17 +53,17 @@ def rcv(c):
                 g.reset_factory()
                 machine.reset()
                 return k
+            if cmd == 'help' :
+               return  r(g.readFile('help.tmpl'))
             if cmd == "show":
                 if cmd1 == 'config':
-                    return r(g.config)
+                    return r(str(g.config))
                 elif cmd1 == 'mqtt':
                     import configshow
                     return r(configshow.shMqtt())
                 elif cmd1 == "gpio":
                     import csGpio
                     return r(csGpio.shGpio())
-                elif cmd1 == 'help':
-                    return r(g.readFile('help.tmpl'))
                 elif cmd1 == 'scene':
                     import configshow
                     return r(configshow.shScene())
@@ -148,7 +149,7 @@ def rcv(c):
                 return r(g.gpioCond(c))        
             ('invalido cmd:{} -> {}'.format(cmd, c))
         except Exception as e:
-            print('Error {}: {}'.format(c, e))
+            mqtt.error('Error {}: {}'.format(c, e))
     finally:
         pass
 def sadc(p):

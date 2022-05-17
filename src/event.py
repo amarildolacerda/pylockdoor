@@ -154,17 +154,14 @@ def interruptTrigger(pin: machine.Pin):
     if p >= 0:
         o(p, pin.value(), None, _T)
     gc.collect()
-
 def localTrig(i: str,stype: str,value: int):
-  # if adc 0 lt 500 then trigger 15 to 1
     for j in g.config[g.conds]:
         cmd = j.split(',',6)
         c = cmd[2]
         a = int(cmd[3])
         p = cmd[4]
-        v = g.strToNum(cmd[5])
+        v = g.strToNum(cmd[5] or str(value))
         vo = g.strToNum(g.gpin(p))
-       # print('if {} {} {} {} then trigger {} to {} when {} != {}'.format(cmd[0],i,c,a,p,v,vo,v))
         if (cmd[0]==stype) and (cmd[1]==i and (vo != v)):  
             rsp = None;
             if (c=='lt') and (value < a):

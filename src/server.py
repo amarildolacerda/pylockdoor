@@ -46,16 +46,14 @@ def accept_telnet_connect(sck):
     try:
         lock = True
         client, addr = sck.accept()
-        client.setblocking(True)
-        # client.sendall(bytes([255, 251, 34]))  # allow line mode
-        # client.sendall(bytes([255, 251, 1]))  # turn off local echo
+        client.setblocking(False)
         client.send('OK\r\n')
         time.sleep(1)
         data = ''
         bts = b''
-        is_telnet = False
         while True:
             try:
+                cmd.sendCB = client.send
                 if callbackFeed:
                     callbackFeed()
                 res = client.recv(32)
@@ -65,19 +63,23 @@ def accept_telnet_connect(sck):
                 machine.idle()
                 continue
             try:
+                if (len(res)==0):
+                    client.close()
+                    return None
+              
                 if res[0] > 0xd0:
-                    is_telnet = True
                     client.send('cmd:\r\n')
                     continue
-                bts += res
+                bts += (res or '')
                 if (len(res) == 1):
                     continue
                 data = bts.decode('utf-8')
-                if data in ['exit', 'quit']:
+                if data.startswith('exit'):
                     client.close()
                     return None
                 bts = b''
-                cmd.sendCB = client.send
+                cmd.sendCB = None
+                #cmd.rcv(data)
                 client.send(cmd.rcv(data)+'\r\n')
             except Exception as e:
                 print(e)
