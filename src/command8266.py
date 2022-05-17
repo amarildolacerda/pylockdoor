@@ -63,6 +63,7 @@ def rcv(c):
                     return r(configshow.shMqtt())
                 elif cmd1 == "gpio":
                     import csGpio
+                    
                     return r(csGpio.shGpio())
                 elif cmd1 == 'scene':
                     import configshow
