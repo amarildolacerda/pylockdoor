@@ -187,7 +187,7 @@ def spin(pin: str, value) -> str:
         v = sToInt(value, value)
         p = initPin(pin, machine.Pin.OUT)
         p.value(v)
-        sVlr(pin, v)
+        #sVlr(pin, v)
         timeOnOff[pin] = time.ticks_ms()
     except Exception as e:
         print('Error spin:{} pin: {} value: {} '.format(e, pin, value))

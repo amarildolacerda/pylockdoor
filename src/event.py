@@ -65,12 +65,9 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
 def deepsleep(n):
     rtc = machine.RTC()
     rtc.irq(trigger=rtc.ALARM0, wake=machine.DEEPSLEEP)
-# check if the device woke from a deep sleep
     if machine.reset_cause() == machine.DEEPSLEEP_RESET:
         print('iniciando deep sleep')
-# set RTC.ALARM0 to fire after 10 seconds (waking the device)
     rtc.alarm(rtc.ALARM0, n*1000)
-# put the device to sleep
     machine.deepsleep()
 def o(p: str, v, mode: int, force=_F, topic: str = None):
     try:
@@ -78,6 +75,7 @@ def o(p: str, v, mode: int, force=_F, topic: str = None):
             checkTimer(1, p, v, mode, g.config[g.gpio_timeoff], force)
         key = str(p)
         x = g.gVlr(p)
+        print('key',key,'pin',p,'v',v,'x',x,'mode',mode,'topic',topic)
         if force or (v - x) != 0:
             g.sVlr(p, v)
             g.trigg(p, v)
