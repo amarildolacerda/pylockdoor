@@ -197,7 +197,7 @@ def gpin(p1: str) -> int:
         p = initPin(p1, machine.Pin.OUT)
         return p.value()
     except Exception as e:
-        print('{} {}'.format('gpin: ', e))
+        print('{} {} {}'.format('gpin: ',p1, e))
 def initPin(pin: str, tp):
     global pins
     try:
@@ -284,7 +284,8 @@ def gVlr(p: str):
 # p = 5; v = 1; trigger 4 to 0
 def gpioCond(cmd:str):
     s = cmd.split(' ')
-    ss = '{},{},{},{},{},{}'.format(s[1], s[2], s[3],s[4],s[7],s[9])
+    cmd = s[6][0]
+    ss = '{},{},{},{},{},{},{}'.format(s[1], s[2], s[3],s[4],cmd,s[7],s[9])
     config[conds].append( ss )
     return config[conds]
 def clearCond():
