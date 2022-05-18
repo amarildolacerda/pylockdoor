@@ -24,43 +24,57 @@ esptool.py  --baud 1000000 write_flash --flash_size=4MB -fm dio 0 bin/esp8266.bi
 
 echo sending src ...
 echo boot.py
-ampy -d 0.5 --port /dev/ttyUSB0 --baud 115200 put ./src/boot.py
-echo command32
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/command32.mpy	
-echo commandutils
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/commandutils.mpy	
+
+cd src
+
+ampy -d 0.5 --port /dev/ttyUSB0 put boot.py
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/command8266.mpy
+ampy  --port /dev/ttyUSB0 put command32.mpy	
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/config.mpy
+ampy  --port /dev/ttyUSB0 put commandutils.mpy	
+echo .
+ampy  --port /dev/ttyUSB0 put command8266.mpy
+echo .
+ampy  --port /dev/ttyUSB0 put config.mpy
 echo .
 
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/configshow.mpy
+ampy  --port /dev/ttyUSB0 put configshow.mpy
 echo .
 
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/csConfig.mpy
+ampy  --port /dev/ttyUSB0 put csConfig.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/csGpio.mpy
+ampy  --port /dev/ttyUSB0 put csGpio.mpy
 echo .
 
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/configutils.mpy	
+ampy  --port /dev/ttyUSB0 put configutils.mpy	
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/event.mpy
+ampy  --port /dev/ttyUSB0 put event.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/eventutils.mpy
+ampy  --port /dev/ttyUSB0 put eventutils.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/main.py
+ampy  --port /dev/ttyUSB0 put main.py
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/app.mpy
+ampy  --port /dev/ttyUSB0 put app.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/mqtt.mpy	
+ampy  --port /dev/ttyUSB0 put mqtt.mpy	
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/ntp.mpy
+ampy  --port /dev/ttyUSB0 put ntp.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/server.mpy
+ampy  --port /dev/ttyUSB0 put server.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/wifimgr.mpy
+ampy  --port /dev/ttyUSB0 put wifimgr.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/umqtt_simple.mpy
+ampy  --port /dev/ttyUSB0 put umqtt_simple.mpy
+echo .
+ampy  --port /dev/ttyUSB0 put help.tmpl
+echo .
+ampy  --port /dev/ttyUSB0 put commandutils.mpy
+echo .
+ampy  --port /dev/ttyUSB0 put wssid.html
+echo .
+ampy --port /dev/ttyUSB0 put wfalhou.html
+echo .
+cd ..
+
 echo  fim
 
