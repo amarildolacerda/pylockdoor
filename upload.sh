@@ -19,7 +19,7 @@ python3 -m mpy_cross ./src/wifimgr.py
 python3 -m mpy_cross ./src/umqtt_simple.py
 
 echo flashing....
-#esptool.py --chip auto --after no_reset_stub  --baud 460800 write_flash -z 0x0000 ./bin/esp8266.bin 
+esptool.py --chip auto erase_flash
 esptool.py  --baud 1000000 write_flash --flash_size=4MB -fm dio 0 bin/esp8266.bin
 
 echo sending src ...

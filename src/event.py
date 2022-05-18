@@ -75,7 +75,6 @@ def o(p: str, v, mode: int, force=_F, topic: str = None):
             checkTimer(1, p, v, mode, g.config[g.gpio_timeoff], force)
         key = str(p)
         x = g.gVlr(p)
-        print('key',key,'pin',p,'v',v,'x',x,'mode',mode,'topic',topic)
         if force or (v - x) != 0:
             g.sVlr(p, v)
             g.trigg(p, v)
@@ -195,13 +194,13 @@ def localTrig(i: str,stype: str,value: int):
             if (cmd[0]==stype)  and (cmd[1]==i and (vo != v)):  
                 rsp = None;
                 if (c=='lt') and (value < a):
-                    rsp = g.spin(p, v)
+                    rsp = g.spin(p, v, True)
                 elif (c=='gt') and (value > a):
-                    rsp = g.spin(p, v)
+                    rsp = g.spin(p, v,True)
                 elif (c=='eq') and (value == a):
-                    rsp = g.spin(p,v)
+                    rsp = g.spin(p,v, True)
                 elif (c=='ne') and (value != a):
-                    rsp = g.spin(p,v)
+                    rsp = g.spin(p,v, True)
                 if (rsp != None):
                     mqtt.p(mqtt.tpfx() +'/gpio/' + p, g.gpin(p) )    
             continue   
