@@ -33,10 +33,12 @@ def tpRcv(t, p):
     _p = p
     if _c[0] == 'scene':
         _p = 'scene '+_c[1]+' set '+_p
+    if (len(_c) > 1) and (_c[1] == 'alive'):
+       return show()
     rcv(_p)
 def rcv(c):
     k = 'OK'
-    c = c.replace('{uid}',g.uid).strip()
+    c = c.replace('{uid}',g.uid)
     cmd = ''
     cmd1 = ''
     cmd2 = ''
@@ -69,10 +71,10 @@ def rcv(c):
                     import configshow
                     return r(configshow.shScene())
                 elif cmd1 == 'stats':
-                    return mqtt.sendStatus(True)
-                import configshow as cs
-                return r(cs.show())
-
+                    return r(mqtt.sendStatus(True))
+                
+                show()
+               
             elif cmd == 'save':
                 return r(g.save())
             elif cmd == 'reset':
@@ -154,6 +156,9 @@ def rcv(c):
             mqtt.error('Error {}: {}'.format(c, e))
     finally:
         pass
+def show():
+    import configshow as cs
+    return r(cs.show())
 def sadc(p):
     pass
 def gadc(p):
