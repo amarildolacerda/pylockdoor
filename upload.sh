@@ -27,52 +27,52 @@ echo boot.py
 
 cd src
 
-ampy -d 0.5 --port /dev/ttyUSB0 put boot.py
+ampy -d 1.0 --port $1 put boot.py
 echo .
-ampy  --port /dev/ttyUSB0 put command32.mpy	
+ampy  --port $1 put command32.mpy	
 echo .
-ampy  --port /dev/ttyUSB0 put commandutils.mpy	
+ampy  --port $1 put commandutils.mpy	
 echo .
-ampy  --port /dev/ttyUSB0 put command8266.mpy
+ampy  --port $1 put command8266.mpy
 echo .
-ampy  --port /dev/ttyUSB0 put config.mpy
-echo .
-
-ampy  --port /dev/ttyUSB0 put configshow.mpy
+ampy  --port $1 put config.mpy
 echo .
 
-ampy  --port /dev/ttyUSB0 put csConfig.mpy
-echo .
-ampy  --port /dev/ttyUSB0 put csGpio.mpy
+ampy  --port $1 put configshow.mpy
 echo .
 
-ampy  --port /dev/ttyUSB0 put configutils.mpy	
+ampy  --port $1 put csConfig.mpy
 echo .
-ampy  --port /dev/ttyUSB0 put event.mpy
+ampy  --port $1 put csGpio.mpy
 echo .
-ampy  --port /dev/ttyUSB0 put eventutils.mpy
+
+ampy  --port $1 put configutils.mpy	
 echo .
-ampy  --port /dev/ttyUSB0 put main.py
+ampy  --port $1 put event.mpy
 echo .
-ampy  --port /dev/ttyUSB0 put app.mpy
+ampy  --port $1 put eventutils.mpy
 echo .
-ampy  --port /dev/ttyUSB0 put mqtt.mpy	
+ampy  --port $1 put main.py
 echo .
-ampy  --port /dev/ttyUSB0 put ntp.mpy
+ampy  --port $1 put app.mpy
 echo .
-ampy  --port /dev/ttyUSB0 put server.mpy
+ampy  --port $1 put mqtt.mpy	
 echo .
-ampy  --port /dev/ttyUSB0 put wifimgr.mpy
+ampy  --port $1 put ntp.mpy
 echo .
-ampy  --port /dev/ttyUSB0 put umqtt_simple.mpy
+ampy  --port $1 put server.mpy
 echo .
-ampy  --port /dev/ttyUSB0 put help.tmpl
+ampy  --port $1 put wifimgr.mpy
 echo .
-ampy  --port /dev/ttyUSB0 put commandutils.mpy
+ampy  --port $1 put umqtt_simple.mpy
 echo .
-ampy  --port /dev/ttyUSB0 put wssid.html
+ampy  --port $1 put help.tmpl
 echo .
-ampy --port /dev/ttyUSB0 put wfalhou.html
+ampy  --port $1 put commandutils.mpy
+echo .
+ampy  --port $1 put wssid.html
+echo .
+ampy --port $1 put wfalhou.html
 echo .
 cd ..
 

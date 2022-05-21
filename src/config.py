@@ -264,7 +264,7 @@ def model(md: str):
     if n > 4:
         sTrg([gpio, '4',  trigger, md, _table[2]])
         sMde(md, 'out')
-        return sTimeOff([gpio, md, gpio_timeoff, 0.3])
+        return sTimeOff([gpio, md, gpio_timeoff, 3600])
 def gVlrs():
     return gp_vlr
 def sVlr(p: str, v):

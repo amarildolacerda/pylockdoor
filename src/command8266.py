@@ -36,7 +36,7 @@ def tpRcv(t, p):
     rcv(_p)
 def rcv(c):
     k = 'OK'
-    c = c.strip()
+    c = c.replace('{uid}',g.uid).strip()
     cmd = ''
     cmd1 = ''
     cmd2 = ''
@@ -87,6 +87,7 @@ def rcv(c):
                 return g.sEvent(p)
             elif cmd == 'delay':
                 time.sleep(g.strToNum(cmd1))
+                return cmd1
             elif cmd == 'gpio':
                 if cmd1 == 'clear':
                    return r( g.model('clear'))
