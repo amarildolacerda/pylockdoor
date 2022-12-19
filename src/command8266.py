@@ -71,8 +71,8 @@ def cmmd(c):
                return  r(g.readFile('help.tmpl'))
             if cmd=='whoiam' :
                 return r(dumps(uname()),'/whoiam')
-            if cmd =='cwd':
-                return r(dumps(listdir()),'/cwd')      
+            if cmd =='ls':
+                return r(dumps(listdir()),'/ls')      
             if cmd == "show":
                 if cmd1 == 'config':
                     return r(str(g.config))

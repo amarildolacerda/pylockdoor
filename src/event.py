@@ -1,7 +1,8 @@
-import gc
-import time
+from gc import collect
+from time import ticks_diff, ticks_ms
 
-import machine
+from machine import (ADC, DEEPSLEEP, DEEPSLEEP_RESET, RTC, Pin, idle,
+                     reset_cause)
 
 import command8266 as ev
 import config as g
@@ -10,7 +11,7 @@ import mqtt
 _N = None
 _T = True
 _F = False
-utm = time.ticks_ms()
+utm = ticks_ms()
 nled = 0
 go_sleep = 0
 def init():
@@ -21,7 +22,7 @@ def led(v):
     pin = int(g.config['led'] or 255)
     if pin > 16:
         return
-    machine.Pin(pin, machine.Pin.OUT).value(v)
+    Pin(pin, Pin.OUT).value(v)
 def spin(p1: str, p3) -> str:
     return g.spin(p1, p3)
 def p(pin: str, msg: str):
@@ -48,7 +49,7 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
                     m = g.timeOnOff[key] or 0
                 except:
                     m = 0
-                if (m == 0) or (time.ticks_diff(time.ticks_ms(), m) > t*1000):
+                if (m == 0) or (ticks_diff(ticks_ms(), m) > t*1000):
                     g.spin(p, 1-seFor)
                     return True
         if (go_sleep > 1):
@@ -58,17 +59,17 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
             if go_sleep > 60:
                 go_sleep = 0
                 if (g.config['sleep'] > 0):
-                    gc.collect()
-                    machine.idle()
+                    collect()
+                    idle()
                     deepsleep(g.config['sleep'])
     except Exception as e:
         print('Erro Time seFor {} em {}: {} [{},{}] {}'.format(
             seFor, key, p, m, t, e))
     return False
 def deepsleep(n):
-    rtc = machine.RTC()
-    rtc.irq(trigger=rtc.ALARM0, wake=machine.DEEPSLEEP)
-    if machine.reset_cause() == machine.DEEPSLEEP_RESET:
+    rtc = RTC()
+    rtc.irq(trigger=rtc.ALARM0, wake=DEEPSLEEP)
+    if reset_cause() == DEEPSLEEP_RESET:
         print('iniciando deep sleep')
     rtc.alarm(rtc.ALARM0, n*1000)
     #machine.deepsleep()
@@ -85,12 +86,12 @@ def o(p: str, v, mode: int, force=_F, topic: str = None):
             mqtt.p((topic or mqtt.tCmdOut())+'/' + p, v)
     except Exception as e:
         print('{} {}'.format('event.switch: ', e))
-    machine.idle()
+    idle()
 def cv(mqtt_active=False):
     global utm, nled, go_sleep
     try:
-        t = time.ticks_ms()
-        if time.ticks_diff(t, utm) > g.config["interval"]*1000:
+        t = ticks_ms()
+        if ticks_diff(t, utm) > g.config["interval"]*1000:
             nled += 1
             bled = (nled % 30 == 0)
             if bled:
@@ -131,32 +132,32 @@ def cv(mqtt_active=False):
 
     except Exception as e:
         print('{} {}'.format('event.cv: ', e))
-    gc.collect()
-    machine.idle()
+    collect()
+    idle()
 def ADCRead(pin: str):
-    return machine.ADC(int(pin)).read()
+    return ADC(int(pin)).read()
 def getDht11(pin: str):
     import dht
-    d = dht.DHT11(machine.Pin(int(pin)))
+    d = dht.DHT11(Pin(int(pin)))
     d.measure()
     d.temperature()  # eg. 23 (°C)
     d.humidity()
     return {"temp": d.temperature(), "hum": d.humidity()}
 def getDht12(pin: str):
     import dht
-    d = dht.DHT12(machine.Pin(int(pin)))
+    d = dht.DHT12(Pin(int(pin)))
     d.measure()
     d.temperature()  # eg. 23 (°C)
     d.humidity()
     return {"temp": d.temperature(), "hum": d.humidity()}
-def interruptTrigger(pin: machine.Pin):
+def interruptTrigger(pin: Pin):
     p = -1
     for key in g.pins:
         if g.pins[key] == pin:
             p = int(key)
     if p >= 0:
         o(p, pin.value(), None, _T)
-    gc.collect()
+    collect()
   
 sv = {"none":None}  
 def localTrig(i: str,stype: str,value: int):
@@ -208,7 +209,7 @@ def localTrig(i: str,stype: str,value: int):
                 if (rsp != None):
                     mqtt.p(mqtt.tpfx() +'/gpio/' + p, g.gpin(p) )    
             continue   
-    gc.collect()
+    collect()
     return 'nok'
 
 g.irqEvent(interruptTrigger)
