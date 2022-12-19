@@ -1,3 +1,6 @@
+from os import uname
+
 import app
-import machine
+
+print('\r\n',uname())
 app.run()

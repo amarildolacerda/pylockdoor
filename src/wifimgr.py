@@ -1,13 +1,17 @@
-import configshow as show
-import config as g
-import machine
-import time
-import ure
 import socket
+import time
+
+import machine
 import network
+import ure
+
+import config as g
+import configshow as show
+
 _N = None
 _F = False
 _T = True
+wdt = None
 try:
     import esp32
     defineEsp32 = _T
@@ -15,7 +19,6 @@ except:
     defineEsp32 = _F
 wlan_ap = None
 wlan_sta = network.WLAN(network.STA_IF)
-#wlan_ap = network.WLAN(network.AP_IF)
 server_socket = _N
 conn_lst = time.ticks_ms()
 c_ssid = None
@@ -40,6 +43,8 @@ def ifconfig():
 suspendreset = False
 def timerReset(x):
     global suspendreset, conn_lst
+    if wdt:
+        machine.WDT.feed()
     if suspendreset:
         return
     if (not checkTimeout(conn_lst, 60000)):
@@ -52,6 +57,8 @@ def checkTimeout(tm, dif):
 def timerFeed():
     global conn_lst
     conn_lst = time.ticks_ms()
+    if wdt:
+        machine.WDT.feed()
 def get_connection():
     global wlan_sta
     global c_ssid, c_pass
@@ -59,12 +66,14 @@ def get_connection():
         return wlan_sta
     connected = _F
     try:
-        time.sleep(3)
+        timerFeed()
         if wlan_sta.isconnected():
             return wlan_sta
         getConfig()
+        timerFeed()
         wlan_sta.active(_T)
         networks = wlan_sta.scan()
+        timerFeed()
         for ssid, bssid, channel, rssi, authmode, hidden in sorted(networks, key=lambda x: x[3], reverse=_T):
             ssid = ssid.decode('utf-8')
             encrypted = authmode > 0
@@ -77,17 +86,19 @@ def get_connection():
                 if ssid == c_ssid:
                     connected = do_connect(c_ssid, _N)
             if connected:
+                timerFeed() 
                 if (wlan_ap):
                     wlan_ap.active(_F)
                 print('Conectou:', ssid)
                 break
     except Exception as e:
         print(e)
-    if not connected:
-        connected = start()
+    #start()
     if connected:
-        return wlan_sta
-    return _N
+       return wlan_sta
+    else: return _N   
+
+
 def do_connect(ssid, password):
     global wlan_sta
     connected = False
@@ -168,14 +179,15 @@ def stop():
     if server_socket:
         server_socket.close()
         server_socket = _N
+
 def start(port=80):
     global server_socket, suspendreset, wlan_sta, wlan_ap
-    if not g.config['locked']:
-        import server
-        server.TCPServer().start()
-    if g.config['locked'] == 1:
-        print('locked')
-        machine.reset()
+    #if not g.config['locked']:
+    #    import server
+    #    server.TCPServer().start()
+    #if g.config['locked'] == 1:
+    #    print('locked')
+    #    machine.reset()
     wlan_ap = network.WLAN(network.AP_IF)
     addr = socket.getaddrinfo('0.0.0.0', port)[0][-1]
     stop()
@@ -191,6 +203,7 @@ def start(port=80):
     print('WiFi: ' + ap_ssid + ' Pass: ' +
           ap_password+'  http://192.168.4.1')
     suspendreset = False
+    timerFeed()
     try:
         while _T:
             client, addr = server_socket.accept()
@@ -199,6 +212,7 @@ def start(port=80):
                 try:
                     while "\r\n\r\n" not in request:
                         request += client.recv(512)
+                    print(request)    
                 except OSError:
                     pass
                 if "HTTP" not in request:  # skip invalid requests

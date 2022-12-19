@@ -1,10 +1,12 @@
-import time
-import configshow as show
-import config as g
 import gc
+import time
+
 import machine
-from umqtt_simple import MQTTClient
+
 import commandutils as u
+import config as g
+import configshow as show
+from umqtt_simple import MQTTClient
 
 _N = None
 _T = True
@@ -28,8 +30,8 @@ def interval():
     return g.config['mqtt_interval']
 def tpfx():
     return g.config['mqtt_prefix']
-def trsp():
-    return tpfx()+'/response'
+def trsp(response='/response'):
+    return tpfx()+response
 def topic_topology():
     return tpfx()+'/topology'
 def topic_status():
@@ -75,11 +77,11 @@ def sdPinRsp(pin, sValue, aRetained=0):
     if sValue == _N:
         return
     p((tpfx()+"/out/status/{}").format(pin), str(sValue), aRetained)
-def sdRsp(sValue, aRetained=0):
+def sdRsp(sValue, aRetained=0, response='/response'):
     if sValue == _N:
         return
     usnd = time.ticks_ms()
-    p(trsp(), str(sValue), aRetained)
+    p(trsp(response), str(sValue), aRetained)
 def account(account):
     send('account', account)
 def p(t, p, aRetained=0):

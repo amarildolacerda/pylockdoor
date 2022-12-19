@@ -1,7 +1,13 @@
 import time
+
+import machine
+
 import mqtt
 import wifimgr
-import machine
+
+#from machine import idle, reset, Timer
+
+
 _N = None
 _T = True
 _F = False
@@ -12,16 +18,17 @@ except:
     defineEsp32 = _F
     import esp
 try:
+    import gc
+
     import network
+
     import command8266 as cm
-    import event as ev
     import config as g
     import configshow as show
-    import gc
-    import server
+    import event as ev
     import ntp
+    import server
     wlan = _N
-    wdt = _N
     telnet = _N
     def wdt_feed():
         wifimgr.timerFeed()
@@ -34,11 +41,7 @@ try:
         t = _t.decode('utf-8')
         p = _p.decode('utf-8')
         try:
-            cmds = p.split(';')
-            for item in cmds:
-                cm.tpRcv(t, item)
-                machine.idle()
-                gc.collect()
+            cm.tpRcv(t,p)
         except OSError as e:
             mqtt.p('Invalid', 0)
             pass
@@ -61,7 +64,6 @@ try:
                 gpioLoopCallback()
             except:
                 pass
-    wdt = None
     errCount = 0
     def gpioLoopCallback():
         global errCount
@@ -104,6 +106,7 @@ try:
         if machine.reset_cause() == machine.DEEPSLEEP_RESET:
             print('0.woke from a deep sleep')
             ev.setSleep(-1)
+            
         try:
             init()
             connectWifi()
@@ -111,6 +114,7 @@ try:
                 ntp.settime()
             except:
                 pass
+
             telnet = None
             mqttConnect(wlan.ifconfig()[0])
             if (g.config['locked'] == 0):
@@ -119,6 +123,7 @@ try:
                 telnet.callback(telnetCallback)
                 telnet.feed(gpioLoopCallback)
                 telnet.start()
+            wifimgr.start()    
             print('Mem Loop free: {} allocated: {}'.format(
                 gc.mem_free(), gc.mem_alloc()))
             loop()
@@ -134,7 +139,7 @@ try:
             if (wlan is not None):
                 wlan.close()
 except Exception as e:
-    print('encerrando....')
+    print('... encerrando')
     print(e)
     time.sleep(30)
     machine.reset()

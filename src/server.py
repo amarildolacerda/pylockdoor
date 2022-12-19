@@ -2,10 +2,15 @@ try:
     import usocket as socket
 except:
     import socket
-import command8266 as cmd
-import time
+
 import errno
-import machine
+import time
+from os import listdir
+
+from machine import idle
+
+import command8266 as cmd
+
 callback = None
 callbackFeed = None
 lock = False
@@ -19,6 +24,7 @@ class TCPServer:
     def feed(self, cb):
         global callbackFeed
         callbackFeed = cb
+        
     def start(self, add='0.0.0.0', port=7777):
         self.client = None
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,19 +33,24 @@ class TCPServer:
         self.conn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.conn.setblocking(True)
         self.conn.bind(self.addr)
-        self.conn.listen(1)
+        self.conn.listen(5)
         self.conn.setsockopt(socket.SOL_SOCKET, 20, accept_telnet_connect)
         print("Escutando em ", self.addr)
     def close(self):
         if (self.conn != None):
             self.conn.close()
         self.conn = None
+
+
+
     def checkTimeout(self, conn_lst, dif):
         d = time.ticks_diff(time.ticks_ms(), conn_lst)
         return (d > dif)
     def wait_msg(self):
         pass
 def accept_telnet_connect(sck):
+    #from binascii import hexlify
+    from json import dumps
     global callback, lock, callbackFeed
     if lock:
         return
@@ -47,45 +58,45 @@ def accept_telnet_connect(sck):
         lock = True
         client, addr = sck.accept()
         client.setblocking(False)
-        client.send('OK\r\n')
-        time.sleep(1)
+        #client.send(os.uname)
+        client.send('ok\r\n')
         data = ''
         bts = b''
+        print('Conectou:',addr[0])
         while True:
             try:
                 cmd.sendCB = client.send
                 if callbackFeed:
                     callbackFeed()
                 res = client.recv(32)
+                #print(res,'=>', hexlify(res))
             except OSError as e:
                 if e.errno in [errno.ECONNABORTED, errno.ECONNRESET, errno.ENOTCONN]:
                     return None
-                machine.idle()
+                idle()
                 continue
-            try:
-                if (len(res)==0):
-                    client.close()
-                    return None
-              
-                if res[0] > 0xd0:
-                    client.send('cmd:\r\n')
+            if res:
+                try:
+                    #print(res[0])
+                    if res[0] == 0x08 and len(bts)>0:
+                        bts = bts[:-1]
+                        continue
+                    if (res[:-1]) not in [b'\r',b'\n'] :
+                        bts += (res or '')
+                        continue
+                    data = bts.decode('utf-8')
+                    bts = b''
+                    if data.startswith('exit'):
+                        client.close()
+                        return None
+                    cmd.sendCB = None
+                    client.send(cmd.rcv(data))
+                except Exception as e:
+                    print(e)
                     continue
-                bts += (res or '')
-                if (len(res) == 1):
-                    continue
-                data = bts.decode('utf-8')
-                if data.startswith('exit'):
-                    client.close()
-                    return None
-                bts = b''
-                cmd.sendCB = None
-                #cmd.rcv(data)
-                client.send(cmd.rcv(data)+'\r\n')
-            except Exception as e:
-                print(e)
-                continue
     except Exception as x:
         print('telnet:', x)
     finally:
         lock = False
         cmd.sendCB = None
+        print('saiu:', addr[0]);

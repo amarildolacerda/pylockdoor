@@ -1,18 +1,23 @@
 
+from gc import collect
+from json import dumps
+from os import listdir, uname
+from time import sleep
+
+import machine
+
 import config as g
 import mqtt
-import machine
-import time
-import gc
+
 _N = None
 _g = 'get'
 _s = 'set'
 sendCB = None
-def r(p):
+def r(p, response='/response'):
     global sendCB
     try:
         if (p != _N):
-            mqtt.sdRsp(p)
+            mqtt.sdRsp(p,0,response)
         if sendCB:
             sendCB(p+'\r\n')
     finally:
@@ -30,11 +35,20 @@ def gpwm(p):
     p(g.config['pwm_duty'][int(p[1])])
 def tpRcv(t, p):
     _c = t.split('/')
-    _p = p
     if _c[0] == 'scene':
-        _p = 'scene '+_c[1]+' set '+_p
-    rcv(_p)
+        return cmd('scene '+_c[1]+' set '+p)
+    return rcv(p)    
 def rcv(c):
+    cmds = c.split(';')
+    r = ''
+    for item in cmds:
+        print(item)
+        r += (cmmd(item) or '') + '\r\n'
+        machine.idle()
+        collect()
+    return r
+
+def cmmd(c):
     k = 'OK'
     c = c.strip()
     cmd = ''
@@ -55,6 +69,10 @@ def rcv(c):
                 return k
             if cmd == 'help' :
                return  r(g.readFile('help.tmpl'))
+            if cmd=='whoiam' :
+                return r(dumps(uname()),'/whoiam')
+            if cmd =='cwd':
+                return r(dumps(listdir()),'/cwd')      
             if cmd == "show":
                 if cmd1 == 'config':
                     return r(str(g.config))
@@ -86,7 +104,7 @@ def rcv(c):
             elif cmd == g.events:  # scene
                 return g.sEvent(p)
             elif cmd == 'delay':
-                time.sleep(g.strToNum(cmd1))
+                sleep(g.strToNum(cmd1))
             elif cmd == 'gpio':
                 if cmd1 == 'clear':
                    return r( g.model('clear'))

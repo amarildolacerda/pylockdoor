@@ -1,2 +1,1 @@
-import esp
-esp.osdebug(None)
+# boot.py -- run on boot-up
