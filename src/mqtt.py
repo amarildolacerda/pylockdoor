@@ -40,6 +40,8 @@ def tCmdOut():
     return tpfx()+'/gpio'
 def topic_command_in():
     return g.config['mqtt_prefix']+'/in'
+def topic_alive():
+    return tpfx().split('/')[0]+'/alive'    
 def debug(txt):
     g.debug(txt)
 def create(client_id, mqtt_server, mqtt_user, mqtt_password):
@@ -106,6 +108,8 @@ def sb(aSubTopic):
     if mq != _N:
         mq.subscribe(aSubTopic)
         mq.subscribe(g.events+'/+')
+        mq.subscribe(topic_alive())
+
 def callback(aCallback):
     if mq != _N:
         mq.set_callback(aCallback)

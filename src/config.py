@@ -35,15 +35,15 @@ mesh = 'ihomeware/'+uid
 gpio = 'gpio'
 conds = 'conds'
 def conf():
-    w = '3938373635'
+    
     return {
         'sleep': 0,
         'led': 255,
         'locked': 0,
         'ssid': 'micasa',
-        'password': w,
+        'password': '3938373635',
         'ap_ssid': 'hm_{}'.format(uid),
-        'ap_password': w,
+        'ap_password': '123456780',
         gp_mde: {},
         gp_trg: {},
         gp_trg_tbl: {},
@@ -181,13 +181,14 @@ def trigg(p: str, v):
                 spin(t, v)
     except Exception as e:
         print('Error trigger:{} pin: {} '.format(e, p))
-def spin(pin: str, value) -> str:
+def spin(pin: str, value, pers = False) -> str:
     global timeOnOff
     try:
         v = sToInt(value, value)
         p = initPin(pin, machine.Pin.OUT)
         p.value(v)
-        sVlr(pin, v)
+        if pers:
+            sVlr(pin, v)
         timeOnOff[pin] = time.ticks_ms()
     except Exception as e:
         print('Error spin:{} pin: {} value: {} '.format(e, pin, value))
@@ -263,7 +264,7 @@ def model(md: str):
     if n > 4:
         sTrg([gpio, '4',  trigger, md, _table[2]])
         sMde(md, 'out')
-        return sTimeOff([gpio, md, gpio_timeoff, 0.3])
+        return sTimeOff([gpio, md, gpio_timeoff, 3600])
 def gVlrs():
     return gp_vlr
 def sVlr(p: str, v):

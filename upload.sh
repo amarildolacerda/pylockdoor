@@ -19,48 +19,62 @@ python3 -m mpy_cross ./src/wifimgr.py
 python3 -m mpy_cross ./src/umqtt_simple.py
 
 echo flashing....
-#esptool.py --chip auto --after no_reset_stub  --baud 460800 write_flash -z 0x0000 ./bin/esp8266.bin 
+esptool.py --chip auto erase_flash
 esptool.py  --baud 1000000 write_flash --flash_size=4MB -fm dio 0 bin/esp8266.bin
 
 echo sending src ...
 echo boot.py
-ampy -d 0.5 --port /dev/ttyUSB0 --baud 115200 put ./src/boot.py
-echo command32
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/command32.mpy	
-echo commandutils
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/commandutils.mpy	
+
+cd src
+
+ampy -d 1.0 --port $1 put boot.py
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/command8266.mpy
+ampy  --port $1 put command32.mpy	
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/config.mpy
+ampy  --port $1 put commandutils.mpy	
+echo .
+ampy  --port $1 put command8266.mpy
+echo .
+ampy  --port $1 put config.mpy
 echo .
 
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/configshow.mpy
+ampy  --port $1 put configshow.mpy
 echo .
 
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/csConfig.mpy
+ampy  --port $1 put csConfig.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/csGpio.mpy
+ampy  --port $1 put csGpio.mpy
 echo .
 
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/configutils.mpy	
+ampy  --port $1 put configutils.mpy	
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/event.mpy
+ampy  --port $1 put event.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/eventutils.mpy
+ampy  --port $1 put eventutils.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/main.py
+ampy  --port $1 put main.py
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/app.mpy
+ampy  --port $1 put app.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/mqtt.mpy	
+ampy  --port $1 put mqtt.mpy	
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/ntp.mpy
+ampy  --port $1 put ntp.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/server.mpy
+ampy  --port $1 put server.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/wifimgr.mpy
+ampy  --port $1 put wifimgr.mpy
 echo .
-ampy -d 0.5 --port /dev/ttyUSB0 put ./src/umqtt_simple.mpy
+ampy  --port $1 put umqtt_simple.mpy
+echo .
+ampy  --port $1 put help.tmpl
+echo .
+ampy  --port $1 put commandutils.mpy
+echo .
+ampy  --port $1 put wssid.html
+echo .
+ampy --port $1 put wfalhou.html
+echo .
+cd ..
+
 echo  fim
 
