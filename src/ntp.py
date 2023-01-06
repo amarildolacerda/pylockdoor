@@ -1,6 +1,7 @@
-import machine
-import time 
+
 import utime
+from machine import RTC
+
 try:
     import usocket as socket
 except:
@@ -24,10 +25,10 @@ def gettime():
     val = struct.unpack("!I", msg[40:44])[0]
     return val - NTP_DELTA
 def getRTCNow():
-   return machine.RTC().datetime()
+   return RTC().datetime()
 def settime():
      t = gettime()
      tm = utime.localtime(t)
      tm = tm[0:3] + (0,) + tm[3:6] + (0,)
-     rtc = machine.RTC()
+     rtc = RTC()
      rtc.datetime(tm)

@@ -1,6 +1,8 @@
-import machine
+from time import ticks_diff, ticks_ms
+
+from machine import Pin, unique_id
 from ubinascii import hexlify
-import time
+
 _N = None
 _T = True
 _F = False
@@ -18,7 +20,7 @@ onoff = 7
 inited = _F
 ifconfig = None
 _changed = _F
-uid = '{}'.format(hexlify(machine.unique_id()).decode('utf-8'))
+uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
 pins = {}
 gp = 'g_'
 trigger = 'tr'
@@ -132,7 +134,7 @@ def sToInt(p3, v):
     return v
 def checkTimeout(conn_lst, dif):
     try:
-        d = time.ticks_diff(time.ticks_ms(), conn_lst)
+        d = ticks_diff(ticks_ms(), conn_lst)
         return (d > dif)
     except:
         return _F
@@ -149,7 +151,7 @@ def led(v):
     pin = int(config['led'] or 255)
     if pin <= _maxPins:
         return
-    machine.Pin(pin, machine.Pin.OUT).value(v)
+    Pin(pin, Pin.OUT).value(v)
 def sEvent(p):
     try:
         event = p[1]
@@ -185,17 +187,17 @@ def spin(pin: str, value, pers = False) -> str:
     global timeOnOff
     try:
         v = sToInt(value, value)
-        p = initPin(pin, machine.Pin.OUT)
+        p = initPin(pin, Pin.OUT)
         p.value(v)
         if pers:
             sVlr(pin, v)
-        timeOnOff[pin] = time.ticks_ms()
+        timeOnOff[pin] = ticks_ms()
     except Exception as e:
         print('Error spin:{} pin: {} value: {} '.format(e, pin, value))
     return str(value)
 def gpin(p1: str) -> int:
     try:
-        p = initPin(p1, machine.Pin.OUT)
+        p = initPin(p1, Pin.OUT)
         return p.value()
     except Exception as e:
         print('{} {} {}'.format('gpin: ',p1, e))
@@ -203,9 +205,9 @@ def initPin(pin: str, tp):
     global pins
     try:
         if not pin in pins.keys():
-            pins[pin] = machine.Pin(int(pin), tp)
-            if tp == machine.Pin.IN:
-                pins[pin].irq(trigger=machine.Pin.IRQ_RISING,
+            pins[pin] = Pin(int(pin), tp)
+            if tp == Pin.IN:
+                pins[pin].irq(trigger=Pin.IRQ_RISING,
                               handler=interruptEvent)
         return pins[pin]
     except Exception as e:
@@ -216,7 +218,7 @@ def irqEvent(proc):
     interruptEvent = proc
     for p in config[gp_mde]:
         if gMde(p) == constPinIN:
-            initPin(p, machine.Pin.IN)
+            initPin(p, Pin.IN)
 def strToNum(v):
     try:
         f = float(v)

@@ -4,7 +4,7 @@ from json import dumps
 from os import listdir, uname
 from time import sleep
 
-import machine
+from machine import ADC, idle, reset
 
 import config as g
 import mqtt
@@ -44,7 +44,7 @@ def rcv(c):
     for item in cmds:
         print(item)
         r += (cmmd(item) or '') + '\r\n'
-        machine.idle()
+        idle()
         collect()
     return r
 
@@ -65,7 +65,7 @@ def cmmd(c):
 
             if cmd == 'reset' and cmd1 == 'factory':
                 g.reset_factory()
-                machine.reset()
+                reset()
                 return k
             if cmd == 'help' :
                return  r(g.readFile('help.tmpl'))
@@ -94,7 +94,7 @@ def cmmd(c):
             elif cmd == 'save':
                 return r(g.save())
             elif cmd == 'reset':
-                machine.reset()
+                reset()
             elif cmd == 'dht11':
                 import event
                 r(event.getDht11(cmd1))
@@ -175,6 +175,6 @@ def sadc(p):
     pass
 def gadc(p):
     pin = int(p[1])
-    v = machine.ADC(pin).read()
+    v = ADC(pin).read()
     g.sVlr(p[1], v)
     return str(v)

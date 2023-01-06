@@ -1,14 +1,15 @@
-from machine import RTC
-import gc
-import config as g
+from gc import mem_alloc, mem_free
+
 import commandutils as u
+import config as g
+
 _N = None
 def show():
     m = {}
     m['time'] = u.now()
     m['ssid'] = g.config['ssid']
-    m['free'] =gc.mem_free()
-    m['alloc'] = gc.mem_alloc()
+    m['free']  = mem_free()
+    m['alloc'] = mem_alloc()
     m['id'] = g.uid
     m['ip'] = g.ifconfig
     return str(m)

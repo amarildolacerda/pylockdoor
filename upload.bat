@@ -6,23 +6,42 @@ if "%2"=="ls" goto :fim
 if "%2"=="upload" goto :upload
 
 echo compilando....
-python -m mpy_cross src/app.py
-python -m mpy_cross src/boot.py
-python -m mpy_cross src/command32.py
-python -m mpy_cross src/command8266.py
-python -m mpy_cross src/commandutils.py
-python -m mpy_cross src/config.py
-python -m mpy_cross src/configshow.py
-python -m mpy_cross src/csConfig.py
-python -m mpy_cross src/csGpio.py
-python -m mpy_cross src/configutils.py
-python -m mpy_cross src/event.py
-python -m mpy_cross src/eventutils.py
-python -m mpy_cross src/mqtt.py
-python -m mpy_cross src/ntp.py
-python -m mpy_cross src/server.py
-python -m mpy_cross src/wifimgr.py
-python -m mpy_cross src/umqtt_simple.py
+
+mpy-cross src/app.py
+
+mpy-cross src/boot.py
+
+mpy-cross src/command32.py
+
+mpy-cross src/command8266.py
+
+mpy-cross src/commandutils.py
+
+mpy-cross src/config.py
+
+mpy-cross src/configshow.py
+
+mpy-cross src/csConfig.py
+
+mpy-cross src/csGpio.py
+
+mpy-cross src/configutils.py
+
+mpy-cross src/event.py
+
+mpy-cross src/eventutils.py
+
+mpy-cross src/mqtt.py
+
+mpy-cross src/ntp.py
+
+mpy-cross src/server.py
+
+mpy-cross src/wifimgr.py
+
+mpy-cross src/umqtt_simple.py
+
+mpy-cross src/alexaserver.py
 
 
 
@@ -39,7 +58,7 @@ goto :so
 :todos
 :upload
 cd src
-ampy -d 0.5 --port %1 put boot.py
+ampy -d 1 --port %1 put boot.py
 ampy  --port %1 put command32.mpy	
 ampy  --port %1 put commandutils.mpy	
 ampy  --port %1 put command8266.mpy
@@ -64,6 +83,9 @@ ampy  --port %1 put help.tmpl
 ampy  --port %1 put commandutils.mpy
 ampy  --port %1 put wssid.html
 ampy --port %1 put wfalhou.html
+ampy --port %1 put alexaserver.mpy
+ampy --port %1 put alexa_description.xml
+ampy --port %1 put alexa_search.html
 
 cd ..
 goto :fim

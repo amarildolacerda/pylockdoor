@@ -33,9 +33,12 @@ class TCPServer:
         self.conn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.conn.setblocking(True)
         self.conn.bind(self.addr)
-        self.conn.listen(5)
-        self.conn.setsockopt(socket.SOL_SOCKET, 20, accept_telnet_connect)
-        print("Escutando em ", self.addr)
+        try:
+            self.conn.listen(1)
+            self.conn.setsockopt(socket.SOL_SOCKET, 20, accept_telnet_connect)
+            print("Term ", self.addr)
+        except:
+            pass    
     def close(self):
         if (self.conn != None):
             self.conn.close()
@@ -49,7 +52,6 @@ class TCPServer:
     def wait_msg(self):
         pass
 def accept_telnet_connect(sck):
-    #from binascii import hexlify
     from json import dumps
     global callback, lock, callbackFeed
     if lock:
@@ -58,18 +60,16 @@ def accept_telnet_connect(sck):
         lock = True
         client, addr = sck.accept()
         client.setblocking(False)
-        #client.send(os.uname)
         client.send('ok\r\n')
         data = ''
         bts = b''
-        print('Conectou:',addr[0])
+        print('term:',addr[0])
         while True:
             try:
                 cmd.sendCB = client.send
                 if callbackFeed:
                     callbackFeed()
                 res = client.recv(32)
-                #print(res,'=>', hexlify(res))
             except OSError as e:
                 if e.errno in [errno.ECONNABORTED, errno.ECONNRESET, errno.ENOTCONN]:
                     return None
@@ -77,7 +77,6 @@ def accept_telnet_connect(sck):
                 continue
             if res:
                 try:
-                    #print(res[0])
                     if res[0] == 0x08 and len(bts)>0:
                         bts = bts[:-1]
                         continue
@@ -99,4 +98,4 @@ def accept_telnet_connect(sck):
     finally:
         lock = False
         cmd.sendCB = None
-        print('saiu:', addr[0]);
+

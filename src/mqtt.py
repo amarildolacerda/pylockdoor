@@ -1,7 +1,6 @@
-import gc
-import time
+from time import ticks_diff, ticks_ms
 
-import machine
+from machine import reset
 
 import commandutils as u
 import config as g
@@ -21,7 +20,7 @@ mq = _N
 host = ""
 ssid = ""
 connected = _F
-started_in = time.ticks_ms()
+started_in = ticks_ms()
 def hostname():
     return g.config['ap_ssid']
 def deviceId():
@@ -51,24 +50,24 @@ def create(client_id, mqtt_server, mqtt_user, mqtt_password):
     mq = MQTTClient(client_id, mqtt_server, 0, mqtt_user,
                     mqtt_password)  # create a mqtt client
     return mq
-usnd = time.ticks_ms()
+usnd = ticks_ms()
 mqttResetCount = 0
 def sendStatus(force=False):
     global usnd, mqttResetCount
     try:
         if (mq == _N):
             return
-        d = time.ticks_diff(time.ticks_ms(), usnd)
+        d = ticks_diff(ticks_ms(), usnd)
         n = interval()
         if (not force) and (d < (n or 15)*1000):
             return
-        usnd = time.ticks_ms()
+        usnd = ticks_ms()
         global host
         rsp = p(topic_topology(), show.show(), 0)
         mqttResetCount += (1-rsp)
 
         if (mqttResetCount > 0):
-            machine.reset()
+            reset()
 
         if defineEsp32:
             p(tpfx()+'/sensor/temp',
@@ -82,7 +81,7 @@ def sdPinRsp(pin, sValue, aRetained=0):
 def sdRsp(sValue, aRetained=0, response='/response'):
     if sValue == _N:
         return
-    usnd = time.ticks_ms()
+    usnd = ticks_ms()
     p(trsp(response), str(sValue), aRetained)
 def account(account):
     send('account', account)

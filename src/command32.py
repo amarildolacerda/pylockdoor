@@ -1,10 +1,12 @@
 _N = None
 _g = 'get'
 _s = 'set'
-import gc
+from gc import collect
+
 import command8266 as esp8266
 import mqtt
-gc.collect()
+
+collect()
 ultimo = 0
 def cv(mqtt_active=False):
     return esp8266.cv(mqtt_active)

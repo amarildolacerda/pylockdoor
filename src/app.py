@@ -1,12 +1,11 @@
-import time
+from gc import collect, mem_alloc, mem_free
+from time import sleep
 
-import machine
+from machine import DEEPSLEEP_RESET, Timer, idle, reset, reset_cause
 
 import mqtt
 import wifimgr
-
-#from machine import idle, reset, Timer
-
+from alexaserver import AlexaRun
 
 _N = None
 _T = True
@@ -80,9 +79,9 @@ try:
                     errCount = errCount + 1
                     p('Reconectando MQTT...')
                     if errCount > 10:
-                        machine.reset()
+                        reset()
                     mqttConnect(wlan.ifconfig()[0])
-            gc.collect()
+            collect()
         except Exception as e:
             pass
     def telnetCallback(data):
@@ -92,54 +91,58 @@ try:
     def timerLoop(x):
         wifimgr.timerReset(True)
         ev.cv(False)
-        gc.collect()
-        machine.idle()
+        collect()
+        idle()
     timer = None
     def init():
         global timer
         ev.init()
         g.start()
-        timer = machine.Timer(-1)
-        timer.init(mode=machine.Timer.PERIODIC,
-                   period=500, callback=timerLoop)
-    def run():
-        if machine.reset_cause() == machine.DEEPSLEEP_RESET:
-            print('0.woke from a deep sleep')
-            ev.setSleep(-1)
-            
-        try:
-            init()
-            connectWifi()
-            try:
-                ntp.settime()
-            except:
-                pass
-
-            telnet = None
+        timer = Timer(-1)
+        timer.init(mode=Timer.PERIODIC,
+                   period=1000, callback=timerLoop)
+    def bind():
+            global telnet, wlan
+            if not connectWifi():
+               reset()
+            try: ntp.settime()
+            except: pass
             mqttConnect(wlan.ifconfig()[0])
+           # AlexaRun(wlan.ifconfig()[0])
             if (g.config['locked'] == 0):
-                gc.collect()
+                collect()
                 telnet = server.TCPServer()
                 telnet.callback(telnetCallback)
                 telnet.feed(gpioLoopCallback)
                 telnet.start()
             wifimgr.start()    
+    def run():
+        global telnet
+        if reset_cause() == DEEPSLEEP_RESET:
+            print('0.woke from a deep sleep')
+            ev.setSleep(-1)
+          
+        try:
+            init()
+            bind()
             print('Mem Loop free: {} allocated: {}'.format(
-                gc.mem_free(), gc.mem_alloc()))
+                mem_free(), mem_alloc()))
             loop()
         except KeyboardInterrupt as e:
             pass
         except Exception as e:
             print(e)
-            machine.reset()
+            reset()
         finally:
             if (telnet is not None):
                 telnet.close()
             mqtt.dcnt()
-            if (wlan is not None):
+            try:
                 wlan.close()
+            except:
+                pass    
 except Exception as e:
     print('... encerrando')
     print(e)
-    time.sleep(30)
-    machine.reset()
+    sleep(30)
+    reset()

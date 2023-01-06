@@ -1,14 +1,18 @@
+from gc import mem_alloc, mem_free
+
 from machine import RTC
-import gc
+
 import config as g
+
+
 def getRTCNow():
     return RTC().datetime()
 def shConfig(x=False):
     m = {}
     try:
         m['ip'] = g.ifconfig
-        m['free'] = gc.mem_free()
-        m['alloc'] = gc.mem_alloc()
+        m['free'] = mem_free()
+        m['alloc'] = mem_alloc()
         m['time'] = str(getRTCNow())
         if not x:
             m.pop('password')
