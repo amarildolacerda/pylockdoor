@@ -36,7 +36,7 @@ class TCPServer:
         try:
             self.conn.listen(1)
             self.conn.setsockopt(socket.SOL_SOCKET, 20, accept_telnet_connect)
-            print("Term ", self.addr)
+            print("\r\nTerm {}".format( self.addr))
         except:
             pass    
     def close(self):

@@ -40,7 +40,7 @@ class AlexaUDPServer:
                 collect()
                 sleep(1)
                 if (callbackFn):
-                   callbackFn(self.timeout)
+                   callbackFn(self.timer)
                 if not self.checkTimeout(self.timer, 120000): break   
                 pass   
         self.sock.close()     

@@ -73,9 +73,9 @@ def get_connection():
                 if (wlan_ap):
                     wlan_ap.active(_F)
                 print('Conectou:{}'.format( ssid))
+                timerFeed()    
     except Exception as e:
         print(e)
-    timerFeed()    
     if not connected:
         connected = start()
     if connected:
@@ -90,17 +90,10 @@ def do_connect(ssid, password):
     print('Conectando em: {}'.format(  ssid))
     wlan_sta.connect(ssid, password)
     for retry in range(100):
-        connected = wlan_sta.isconnected()
-        if connected:
-            break
+        if wlan_sta.isconnected(): break
         time.sleep(0.2)
         print('.', end='')
-    if connected:
-        print('\nOK: '.format( wlan_sta.ifconfig()))
-    else:
-        print('\nFalhou: {}'.format( ssid))
-    timerFeed()    
-    return connected
+    return wlan_sta.isconnected()
 def send_header(client, status_code=200, content_length=_N):
     client.sendall("HTTP/1.0 {} OK\r\n".format(status_code))
     client.sendall("Content-Type: text/html; charset=utf-8\r\n")
@@ -168,7 +161,6 @@ def start(port=80):
         import server
         server.TCPServer().start()
     if g.config['locked'] == 1:
-        print('locked')
         return
     wlan_ap = network.WLAN(network.AP_IF)
     addr = socket.getaddrinfo("0.0.0.0", port)[0][-1]
