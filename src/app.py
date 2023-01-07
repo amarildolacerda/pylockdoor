@@ -32,8 +32,9 @@ try:
     telnet = _N
     def connectWifi():
         global wlan
-        wlan = wifimgr.get_connection()
-        g.ifconfig = wlan.ifconfig()
+        if not wlan:
+            wlan = wifimgr.get_connection()
+            g.ifconfig = wlan.ifconfig()
         return wlan.isconnected()
     def mqtt_rcv(_t, _p):
         t = _t.decode('utf-8')
@@ -70,7 +71,7 @@ try:
         try:
           try:  
             inLoop = True
-            if connectWifi():
+            if wlan.isconnected():
                 try:
                     wifimgr.timerFeed()
                     mqtt.check_msg()
@@ -98,6 +99,7 @@ try:
     def timerLoop(x):
         gpioLoopCallback()
         idle()
+        return True
     timer = None
     def init():
         global timer
@@ -113,7 +115,7 @@ try:
             try: ntp.settime()
             except: pass
             mqttConnect(wlan.ifconfig()[0])
-           # AlexaRun(wlan.ifconfig()[0])
+            AlexaRun(wlan.ifconfig()[0], timerLoop)
             if (g.config['locked'] == 0):
                 collect()
                 telnet = server.TCPServer()

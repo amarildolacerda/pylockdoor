@@ -3,14 +3,15 @@ from time import ticks_diff, ticks_ms
 
 from machine import (ADC, DEEPSLEEP, DEEPSLEEP_RESET, RTC, Pin, idle,
                      reset_cause)
+from micropython import const
 
 import command8266 as ev
 import config as g
 import mqtt
 
-_N = None
-_T = True
-_F = False
+_N = const(None)
+_T = const(True)
+_F = const(False)
 utm = ticks_ms()
 nled = 0
 go_sleep = 0
@@ -178,11 +179,11 @@ def localTrig(i: str,stype: str,value: int):
                 va = g.strToNum('{}'.format(a))
                 if (c == 'eq' and vo == va):
                     rsp = 'eq'
-                if (c == 'lt' and vo < va):
+                elif (c == 'lt' and vo < va):
                     rsp = 'lt'
-                if (c == 'gt' and vo > va):
+                elif (c == 'gt' and vo > va):
                     rsp = 'gt'        
-                if (c == 'ne' and vo != va):
+                elif (c == 'ne' and vo != va):
                     rsp = 'ne'
 
                 if (rsp != None):

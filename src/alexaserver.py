@@ -1,4 +1,8 @@
+import time
+from gc import collect
+
 import usocket as socket
+from machine import idle, sleep
 
 
 def readFile(nome:str):
@@ -13,49 +17,46 @@ class AlexaUDPServer:
     def __init__(self, port=1900):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind(('', port))
-        self.sock.setblocking(False)
+        self.sock.bind(("", port))
+        print('biding')
+        self.sock.setblocking(0)
+        print('blocking 0')
+        self.timer = time.ticks_ms()
 
-    def accept_connection(self):
+    def listen(self, ip_address, callbackFn):
+        #self.sock.listen(1)
+        print('listen')
         while True:
             try:
-                data, addr = self.sock.recvfrom(1024)
-                print('alexa',data)
+                print('accept')
+                conn, addr = self.sock.accept()
+                data = conn.recv(1024)
+                print('recv:',data)
                 if data.startswith(b'M-SEARCH * HTTP/1.1'):
-                   self.sock.sendto(readFile('alexa_search.html').format(ip=ip_address), addr)
-                pass 
+                   conn.sendto(readFile('alexa_search.html').format(ip=ip_address), addr)
+                   break
             except :
-                pass    
+                idle()
+                collect()
+                sleep(1)
+                if (callbackFn):
+                   callbackFn(self.timeout)
+                if not self.checkTimeout(self.timer, 120000): break   
+                pass   
+        self.sock.close()     
         pass
 
-    def run(self, ip_address):
+    def run(self, ip_address,callbackFn):
         print('Alexa binding')
-        #self.sock.listen(1)
-        #print('b1')
-        #self.sock.setsockopt(socket.SOL_SOCKET, 20, accept_alexa_connect)
-        #self.accept_connection()
-        #print('b2')
+        self.listen(ip_address,callbackFn)
 
-    def get_msg(self):
-        if self.sock:
-            data, addr = self.sock.recv()
-            if not data:
-                return None
-            print(addr[0],data)
-            pass    
 
-def accept_alexa_connect(client): 
-        client, addr = client.accept()
-        while True:
-          try:  
-            data, addr = client.recvfrom( 1024)
-            print('alexa',data)
-            if data.startswith(b'M-SEARCH * HTTP/1.1'):
-                client.sendto(readFile('alexa_search.html').format(ip=ip_address), addr)
-          except Exception as e:
-            pass
-               
-def AlexaRun(ip_address):
+    def checkTimeout(tm, dif):
+        d = time.ticks_diff(time.ticks_ms(), tm)
+        return (d > dif)
+
+
+def AlexaRun(ip_address, callbackFn):
    server = AlexaUDPServer(1900)
-   server.run(ip_address)
+   server.run(ip_address,callbackFn)
    return server
