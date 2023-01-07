@@ -4,13 +4,14 @@ import time
 import machine
 import network
 import ure
+from micropython import const
 
 import config as g
 import configshow as show
 
-_N = None
-_F = False
-_T = True
+_N = const(None)
+_F = const(False)
+_T = const(True)
 try:
     import esp32
     defineEsp32 = _T
@@ -18,7 +19,7 @@ except:
     defineEsp32 = _F
 wlan_ap = None
 wlan_sta = network.WLAN(network.STA_IF)
-#wlan_ap = network.WLAN(network.AP_IF)
+wlan_ap = network.WLAN(network.AP_IF)
 server_socket = _N
 conn_lst = time.ticks_ms()
 c_ssid = None
@@ -47,8 +48,8 @@ def timerReset(x):
         return
     if (not checkTimeout(conn_lst, 60000)):
         return
-    print('timerReset:', conn_lst)
-    time.sleep(5)
+    print(b'timerReset:', conn_lst)
+    time.sleep(10)
     machine.reset()
 def checkTimeout(tm, dif):
     d = time.ticks_diff(time.ticks_ms(), tm)
@@ -68,23 +69,11 @@ def get_connection():
         getConfig()
         timerFeed()    
         wlan_sta.active(_T)
-        networks = wlan_sta.scan()
-        for ssid, bssid, channel, rssi, authmode, hidden in sorted(networks, key=lambda x: x[3], reverse=_T):
-            ssid = ssid.decode('utf-8')
-            encrypted = authmode > 0
-            if encrypted:
-                if ssid == c_ssid:
-                    connected = do_connect(c_ssid, c_pass)
-                else:
-                    pass
-            else:
-                if ssid == c_ssid:
-                    connected = do_connect(c_ssid, _N)
-            if connected:
+        connected = do_connect(c_ssid, c_pass)
+        if connected:
                 if (wlan_ap):
                     wlan_ap.active(_F)
-                print('Conectou:', ssid)
-                break
+                print(b'Conectou:', ssid)
     except Exception as e:
         print(e)
     timerFeed()    
@@ -99,18 +88,18 @@ def do_connect(ssid, password):
     wlan_sta.active(_T)
     if wlan_sta.isconnected():
         return _N
-    print('Conectando em: %s' % ssid)
+    print(b'Conectando em: %s' % ssid)
     wlan_sta.connect(ssid, password)
-    for retry in range(100):
+    for retry in range(50):
         connected = wlan_sta.isconnected()
         if connected:
             break
-        time.sleep(0.2)
+        time.sleep(0.4)
         print('.', end='')
     if connected:
-        print('\nOK: ', wlan_sta.ifconfig())
+        print(b'\nOK: ', wlan_sta.ifconfig())
     else:
-        print('\nFalhou: ' + ssid)
+        print(b'\nFalhou: ' + ssid)
     timerFeed()    
     return connected
 def send_header(client, status_code=200, content_length=_N):
@@ -148,15 +137,15 @@ def handle_configure(client, request):
     if len(ssid) == 0:
         send_response(client, "SSID ?", status_code=400)
         return _F
-    print('Testing...')
+    print(b'Testing...')
     if do_connect(ssid, password):
         try:
             setConfig(ssid, password)
             g.save()
-            send_response(client, '<html>Conectou. Reiniciando</html>')
+            send_response(client, '<html>Conectou. reiniciando</html>')
             time.sleep(0.3)
         except Exception as x:
-            print('Conectou: ', x)
+            print(b'Conectou: ', x)
             time.sleep(0.3)
         machine.reset()
         return _T
@@ -193,7 +182,7 @@ def start(port=80):
     server_socket = socket.socket()
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(addr)
-    server_socket.listen(5)
+    server_socket.listen(1)
     print('WiFi: ' + ap_ssid + ' Pass: ' +
           ap_password+'  http://192.168.4.1')
     suspendreset = False

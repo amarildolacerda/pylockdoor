@@ -2,14 +2,15 @@ from gc import collect, mem_alloc, mem_free
 from time import sleep
 
 from machine import DEEPSLEEP_RESET, Timer, idle, reset, reset_cause
+from micropython import const
 
 import mqtt
 import wifimgr
 from alexaserver import AlexaRun
 
-_N = None
-_T = True
-_F = False
+_N = const(None)
+_T = const(True)
+_F = const(False)
 try:
     import esp32
     defineEsp32 = _T
@@ -29,8 +30,6 @@ try:
     import server
     wlan = _N
     telnet = _N
-    def wdt_feed():
-        wifimgr.timerFeed()
     def connectWifi():
         global wlan
         wlan = wifimgr.get_connection()
@@ -64,12 +63,16 @@ try:
             except:
                 pass
     errCount = 0
+    inLoop = False
     def gpioLoopCallback():
-        global errCount
+        global errCount, inLoop
+        if inLoop: return
         try:
+          try:  
+            inLoop = True
             if connectWifi():
                 try:
-                    wdt_feed()
+                    wifimgr.timerFeed()
                     mqtt.check_msg()
                     ev.cv(mqtt.connected)
                     if mqtt.connected:
@@ -81,6 +84,10 @@ try:
                     if errCount > 10:
                         reset()
                     mqttConnect(wlan.ifconfig()[0])
+            else: ev.cv(False)
+          finally:
+            wifimgr.timerReset(True)
+            inLoop = False    
             collect()
         except Exception as e:
             pass
@@ -89,9 +96,7 @@ try:
     def p(x):
         print(x)
     def timerLoop(x):
-        wifimgr.timerReset(True)
-        ev.cv(False)
-        collect()
+        gpioLoopCallback()
         idle()
     timer = None
     def init():
