@@ -30,6 +30,7 @@ class AlexaUDPServer:
             try:
                 print('accept')
                 conn, addr = self.sock.accept()
+                print('accepted')
                 data = conn.recv(1024)
                 print('recv:',data)
                 if data.startswith(b'M-SEARCH * HTTP/1.1'):
@@ -46,12 +47,12 @@ class AlexaUDPServer:
         self.sock.close()     
         pass
 
-    def run(self, ip_address,callbackFn):
+    def run(self, ip_address, callbackFn):
         print('Alexa binding')
         self.listen(ip_address,callbackFn)
 
 
-    def checkTimeout(tm, dif):
+    def checkTimeout(self, tm, dif):
         d = time.ticks_diff(time.ticks_ms(), tm)
         return (d > dif)
 
