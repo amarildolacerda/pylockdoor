@@ -42,6 +42,7 @@ mpy-cross src/wifimgr.py
 mpy-cross src/umqtt_simple.py
 
 mpy-cross src/alexaserver.py
+mpy-cross src/broadcast.py
 
 
 
@@ -81,8 +82,9 @@ ampy  --port %1 put wifimgr.mpy
 ampy  --port %1 put umqtt_simple.mpy
 ampy  --port %1 put help.tmpl
 ampy  --port %1 put commandutils.mpy
-ampy  --port %1 put wssid.html
-ampy --port %1 put wfalhou.html
+echo ampy  --port %1 put wssid.html
+echo ampy --port %1 put wfalhou.html
+echo ampy --port %1 put broadcast.mpy
 ampy --port %1 put alexaserver.mpy
 echo ampy --port %1 put alexa_description.xml
 ampy --port %1 put alexa_search.html

@@ -94,60 +94,19 @@ def do_connect(ssid, password):
         time.sleep(0.2)
         print('.', end='')
     return wlan_sta.isconnected()
-def send_header(client, status_code=200, content_length=_N):
+def _send_header(client, status_code, content_length, contentType):
     client.sendall("HTTP/1.0 {} OK\r\n".format(status_code))
-    client.sendall("Content-Type: text/html; charset=utf-8\r\n")
+    client.sendall("Content-Type: {}; charset=utf-8\r\n".format(contentType))
     if content_length is not _N:
         client.sendall("Content-Length: {}\r\n".format(content_length))
     client.sendall("\r\n")
-def send_response(client, payload, status_code=200):
+def send_response(client, payload, status_code=200, contentType='text/html'):
     content_length = len(payload)
-    send_header(client, status_code, content_length)
+    _send_header(client, status_code, content_length)
     if content_length > 0:
         client.sendall(payload)
     client.close()
-def handle_root(client):
-    try:
-        global wlan_sta, c_ssid, c_pass, c_id
-        wlan_sta.active(_T)
-        ssids = sorted(ssid.decode('utf-8') for ssid, *_ in wlan_sta.scan())
-        send_header(client)
-        client.sendall(g.readFile('wssid.html').format(c_ssid, c_pass, c_id))
-    finally:
-        client.close()
-def handle_configure(client, request):
-    global c_id
-    match = ure.search("ssid=([^&]*)&password=(.*)&id=([^&]*)", request)
-    if match is _N:
-        send_response(client, "Params", status_code=400)
-        return _F
-    ssid = match.group(1).decode(
-        "utf-8").replace("%3F", "?").replace("%21", "!")
-    password = match.group(2).decode(
-        "utf-8").replace("%3F", "?").replace("%21", "!")
-    c_id = match.group(3).decode("utf-8").replace("%2F", "/")
-    if len(ssid) == 0:
-        send_response(client, "SSID ?", status_code=400)
-        return _F
-    print("Testing...")
-    if do_connect(ssid, password):
-        try:
-            setConfig(ssid, password)
-            g.save()
-            send_response(client, '<html>Conectou. reiniciando</html>')
-            time.sleep(0.3)
-        except Exception as x:
-            print("Conectou: ", x)
-            time.sleep(0.3)
-        machine.reset()
-        return _T
-    else:
-        try:
-            r = g.readFile('wfalhou.html')
-            send_response(client, r)
-        except:
-            pass
-        return _F
+    collect()
 def handle_not_found(client, url):
     send_response(client, "Não encontrado: {}".format(url), status_code=404)
 def stop():
@@ -155,7 +114,7 @@ def stop():
     if server_socket:
         server_socket.close()
         server_socket = _N
-def start(port=80):
+def start(port=8080):
     global server_socket, suspendreset, wlan_sta, wlan_ap
     if not g.config['locked']:
         import server
@@ -174,7 +133,7 @@ def start(port=80):
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(addr)
     server_socket.listen(1)
-    print("ssid: {} pass {} -> http://192.168.4.1".format( ap_ssid,ap_password))
+    print("ssid: {} pass {} ".format( ap_ssid,ap_password))
     suspendreset = False
     try:
         while _T:
@@ -190,14 +149,11 @@ def start(port=80):
                     continue
                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP",
                                  request).group(1).decode("utf-8").rstrip("/")
+                print(request)                 
                 if url == "":
-                    handle_root(client)
-                elif url == "configure":
-                    try:
-                        suspendreset = True
-                        handle_configure(client, request)
-                    finally:
-                        suspendreset = False
+                    handle_not_found(client, url)
+                elif url.startswith('description.xml') :
+                    send_response(client, readFile('alexa_description.xml').format(g.config['mqtt_name'] ),200,'application/xml' )
                 else:
                     handle_not_found(client, url)
             except KeyboardInterrupt as e:
