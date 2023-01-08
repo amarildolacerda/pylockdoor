@@ -115,13 +115,13 @@ try:
             try: ntp.settime()
             except: pass
             mqttConnect(wlan.ifconfig()[0])
-            AlexaRun(wlan.ifconfig()[0], timerLoop)
             if (g.config['locked'] == 0):
                 collect()
                 telnet = server.TCPServer()
                 telnet.callback(telnetCallback)
                 telnet.feed(gpioLoopCallback)
                 telnet.start()
+            AlexaRun(wlan.ifconfig()[0], timerLoop)
             wifimgr.start()    
     def run():
         global telnet
