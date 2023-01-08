@@ -34,8 +34,7 @@ class AlexaUDPServer:
         self.timer = time.ticks_ms()
     def response_search(self,addr,ip_address):
          collect()
-         self.sock.sendto(
-             self.sock.sendto(readFile('alexa_search.html').format(ip_address), addr))
+         self.sock.sendto(readFile('alexa_search.html').format(ip_address), addr)
     def listen(self, ip_address, callbackFn):
         self.sock.setblocking(1)
         while True:
@@ -47,7 +46,7 @@ class AlexaUDPServer:
                     if data.startswith(b'NOTIFY'): pass
                     elif data.startswith(b'M-SEARCH'):
                         self.response_search(addr,ip_address)
-                    
+                        break
                 if (callbackFn):
                    callbackFn(self.timer)
             except Exception as e:
