@@ -84,7 +84,7 @@ ampy  --port %1 put commandutils.mpy
 ampy  --port %1 put wssid.html
 ampy --port %1 put wfalhou.html
 ampy --port %1 put alexaserver.mpy
-ampy --port %1 put alexa_description.xml
+echo ampy --port %1 put alexa_description.xml
 ampy --port %1 put alexa_search.html
 
 cd ..

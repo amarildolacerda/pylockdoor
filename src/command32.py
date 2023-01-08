@@ -1,6 +1,8 @@
+from micropython import const
+
 _N = None
-_g = 'get'
-_s = 'set'
+_g = const('get')
+_s = const('set')
 from gc import collect
 
 import command8266 as esp8266

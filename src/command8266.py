@@ -5,13 +5,14 @@ from os import listdir, uname
 from time import sleep
 
 from machine import ADC, idle, reset
+from micropython import const
 
 import config as g
 import mqtt
 
 _N = None
-_g = 'get'
-_s = 'set'
+_g = const('get')
+_s = const('set')
 sendCB = None
 def r(p, response='/response'):
     global sendCB
