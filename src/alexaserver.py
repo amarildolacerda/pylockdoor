@@ -33,7 +33,7 @@ class AlexaUDPServer:
        
         try:
             self.sock.bind((self.ip, port))
-            self.mreq = struct.pack('4sl',inet_aton(self.ip),INADDR_ANY)
+            self.mreq = struct.pack("4sl",inet_aton(self.ip),INADDR_ANY)
             self.sock.setsockopt(
                         socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, self.mreq
                     )
