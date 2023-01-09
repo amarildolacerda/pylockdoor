@@ -103,7 +103,8 @@ def send_response(client, payload, status_code=200, contentType='text/html'):
     _send_header(client, status_code, content_length, contentType)
     if content_length > 0:
         client.sendall(payload)
-    time.sleep(0.1)    
+    machine.idle()   
+    time.sleep(0.2) 
     client.close()
 def handle_not_found(client, url):
     send_response(client, "{}".format(url), 404)
@@ -121,6 +122,7 @@ def accept_http(sock):
                         break
                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP",
                                  request).group(1).decode("utf-8").rstrip("/")
+                collect()
                 if url.startswith('description.xml') :
                        send_response(client,  
 readFile('alexa_description.xml').format(g.config['mqtt_name'], g.uid) 
