@@ -98,13 +98,12 @@ def _send_header(client, status_code, content_length, contentType):
     client.sendall("\r\n")
 
 def send_response(client, payload, status_code=200, contentType='text/html'):
-    print(payload)
     content_length = len(payload)
     _send_header(client, status_code, content_length, contentType)
     if content_length > 0:
         client.sendall(payload)
     machine.idle()   
-    time.sleep(0.2) 
+    time.sleep(0.5) 
     client.close()
 def handle_not_found(client, url):
     send_response(client, "{}".format(url), 404)
