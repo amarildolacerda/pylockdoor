@@ -35,12 +35,12 @@ def rPin(pin, p):
 def gpwm(p):
     p(g.config['pwm_duty'][int(p[1])])
 def tpRcv(t, p):
-    _c = const(t.split('/'))
+    _c = t.split('/')
     if _c[0] == 'scene':
         return cmd('scene '+_c[1]+' set '+p)
     return rcv(p)    
 def rcv(c):
-    cmds = const(c.split(';'))
+    cmds = c.split(';')
     r = ''
     for item in cmds:
         print(item)
@@ -56,8 +56,8 @@ def cmmd(c):
     cmd2 = ''
     try:
         try:
-            p = const(c.split(' ', 5))
-            cmd = const(p[0])
+            p = c.split(' ', 5)
+            cmd = p[0]
             if (len(p) > 1):
                 cmd1 = p[1]
             if (len(p) > 2):

@@ -114,7 +114,7 @@ try:
                 telnet.callback(telnetCallback)
                 telnet.feed(gpioLoopCallback)
                 telnet.start()
-            wifimgr.start()    
+            wifimgr.start(8080)    
             AlexaRun(wlan.ifconfig()[0], timerLoop)
     def run():
         global telnet

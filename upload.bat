@@ -41,7 +41,6 @@ mpy-cross src/wifimgr.py
 mpy-cross src/umqtt_simple.py
 
 mpy-cross src/alexaserver.py
-mpy-cross src/broadcast.py
 
 
 

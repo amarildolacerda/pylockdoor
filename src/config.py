@@ -1,19 +1,18 @@
 from time import ticks_diff, ticks_ms
 
 from machine import Pin, unique_id
-from micropython import const
 from ubinascii import hexlify
 
 _N = None
-_T = const(True)
-_F = const(False)
+_T = True
+_F = False
 _cf = 'config.json'
 try:
     import esp32
-    _maxPins = const(40)
+    _maxPins = 40
     defineEsp32 = _T
 except:
-    _maxPins = consts(16)
+    _maxPins = 16
     defineEsp32 = _F
 constPinOUT = 1
 constPinIN = 2
@@ -23,20 +22,20 @@ ifconfig = None
 _changed = _F
 uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
 pins = {}
-gp = const('g_')
-trigger = const('tr')
-gp_trg = const(gp+trigger)
-gp_trg_tbl = const(gp_trg+'_tab')
-gpio_timeoff = const('toff')
-gpio_timeon = const('ton')
-gp_mde = const(gp+'mode')
-events = const('scene')
-modes = const(['none','out','in','adc','pwm','dht11','dht12'])
-_table = const(['none','monostable_NC','bistable_NC','monostable_NO', 'bistable_NO'])
+gp = 'g_'
+trigger = 'tr'
+gp_trg = gp+trigger
+gp_trg_tbl = gp_trg+'_tab'
+gpio_timeoff = 'toff'
+gpio_timeon = 'ton'
+gp_mde = gp+'mode'
+events = 'scene'
+modes = ['none','out','in','adc','pwm','dht11','dht12']
+_table = ['none','monostable_NC','bistable_NC','monostable_NO', 'bistable_NO']
 timeOnOff = {}
 mesh = 'ihomeware/'+uid
-gpio = const('gpio')
-conds = consts('conds')
+gpio = 'gpio'
+conds = 'conds'
 def conf():
     
     return {
