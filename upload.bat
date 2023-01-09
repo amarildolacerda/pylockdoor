@@ -25,7 +25,6 @@ mpy-cross src/csConfig.py
 
 mpy-cross src/csGpio.py
 
-mpy-cross src/configutils.py
 
 mpy-cross src/event.py
 
@@ -70,7 +69,6 @@ ampy  --port %1 put configshow.mpy
 ampy  --port %1 put csConfig.mpy
 ampy  --port %1 put csGpio.mpy
 
-ampy  --port %1 put configutils.mpy	
 ampy  --port %1 put event.mpy
 ampy  --port %1 put eventutils.mpy
 ampy  --port %1 put main.py
@@ -86,7 +84,7 @@ echo ampy  --port %1 put wssid.html
 echo ampy --port %1 put wfalhou.html
 echo ampy --port %1 put broadcast.mpy
 ampy --port %1 put alexaserver.mpy
-echo ampy --port %1 put alexa_description.xml
+ampy --port %1 put alexa_description.xml
 ampy --port %1 put alexa_search.html
 
 cd ..

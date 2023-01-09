@@ -35,12 +35,12 @@ def rPin(pin, p):
 def gpwm(p):
     p(g.config['pwm_duty'][int(p[1])])
 def tpRcv(t, p):
-    _c = t.split('/')
+    _c = const(t.split('/'))
     if _c[0] == 'scene':
         return cmd('scene '+_c[1]+' set '+p)
     return rcv(p)    
 def rcv(c):
-    cmds = c.split(';')
+    cmds = const(c.split(';'))
     r = ''
     for item in cmds:
         print(item)
@@ -48,7 +48,6 @@ def rcv(c):
         idle()
         collect()
     return r
-
 def cmmd(c):
     k = 'OK'
     c = c.strip()
@@ -57,23 +56,18 @@ def cmmd(c):
     cmd2 = ''
     try:
         try:
-            p = c.split(' ', 5)
-            cmd = p[0]
+            p = const(c.split(' ', 5))
+            cmd = const(p[0])
             if (len(p) > 1):
                 cmd1 = p[1]
             if (len(p) > 2):
                 cmd2 = p[2]
-
             if cmd == 'reset' and cmd1 == 'factory':
                 g.reset_factory()
                 reset()
                 return k
             if cmd == 'help' :
                return  r(g.readFile('help.tmpl'))
-            if cmd=='whoiam' :
-                return r(dumps(uname()),'/whoiam')
-            if cmd =='ls':
-                return r(dumps(listdir()),'/ls')      
             if cmd == "show":
                 if cmd1 == 'config':
                     return r(str(g.config))
@@ -82,7 +76,6 @@ def cmmd(c):
                     return r(configshow.shMqtt())
                 elif cmd1 == "gpio":
                     import csGpio
-                    
                     return r(csGpio.shGpio())
                 elif cmd1 == 'scene':
                     import configshow

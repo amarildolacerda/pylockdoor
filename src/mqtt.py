@@ -10,12 +10,6 @@ from umqtt_simple import MQTTClient
 _N = None
 _T = True
 _F = False
-try:
-    import esp32
-    defineEsp32 = _T
-except:
-    defineEsp32 = _F
-    import esp
 mq = _N
 host = ""
 ssid = ""
@@ -47,8 +41,7 @@ def create(client_id, mqtt_server, mqtt_user, mqtt_password):
     global mq
     if (mq != _N):
         return mq
-    mq = MQTTClient(client_id, mqtt_server, 0, mqtt_user,
-                    mqtt_password)  # create a mqtt client
+    mq = MQTTClient(client_id, mqtt_server, 0, mqtt_user,mqtt_password)
     return mq
 usnd = ticks_ms()
 mqttResetCount = 0
@@ -65,11 +58,9 @@ def sendStatus(force=False):
         global host
         rsp = p(topic_topology(), show.show(), 0)
         mqttResetCount += (1-rsp)
-
         if (mqttResetCount > 0):
             reset()
-
-        if defineEsp32:
+        if g.defineEsp32:
             p(tpfx()+'/sensor/temp',
               str(round((esp32.raw_temperature() - 32) / 1.8, 1)), 1)
     except:

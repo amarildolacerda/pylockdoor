@@ -281,11 +281,6 @@ def gVlr(p: str):
         return v
     except:
         return 0
-# if gpio 5 eq 1 then trigger 4 to 0
-# if adc 0 lt 500 then trigger 4 to 1
-# if adc 0 gt 500 then trigger 4 to 0
-# if gpio 5 then trigger 4 
-# p = 5; v = 1; trigger 4 to 0
 def gpioCond(cmd:str):
     s = cmd.split(' ')
     cmd = s[6][0]

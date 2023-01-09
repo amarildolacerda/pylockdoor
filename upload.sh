@@ -9,7 +9,6 @@ python3 -m mpy_cross ./src/config.py
 python3 -m mpy_cross ./src/configshow.py
 python3 -m mpy_cross ./src/csConfig.py
 python3 -m mpy_cross ./src/csGpio.py
-python3 -m mpy_cross ./src/configutils.py
 python3 -m mpy_cross ./src/event.py
 python3 -m mpy_cross ./src/eventutils.py
 python3 -m mpy_cross ./src/mqtt.py
@@ -46,7 +45,6 @@ echo .
 ampy  --port $1 put csGpio.mpy
 echo .
 
-ampy  --port $1 put configutils.mpy	
 echo .
 ampy  --port $1 put event.mpy
 echo .

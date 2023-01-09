@@ -50,7 +50,6 @@ class AlexaDiscovery:
                 if timeout and self.checkTimeout(self.timer, timeout): break
         self.sock.setblocking(0)    
         self.sock.close() 
-        print("fechou alexa discovery") 
     def checkTimeout(self, tm, dif):
         d = time.ticks_diff(time.ticks_ms(), tm)
         return (d > dif)
@@ -64,11 +63,13 @@ class AlexaDiscovery:
     def do_receive_event(self, data:str, addr):
         if data.startswith(b"M-SEARCH"):
             self.sendto(addr, self.readFile("alexa_search.html").format(self.http_address))
-            return False
+            return True
         return True 
     def do_no_data_event(self, data)        :
-        return self.callbackFn(data)
+        if self.callbackFn:
+           return self.callbackFn(data)
+
 def AlexaRun(ip_address, callbackFn):
-   server = AlexaDiscovery(ip_address, 1900, callbackFn)
-   server.listen(120000)
+   server = AlexaDiscovery(ip_address, 1900, None)
+   server.listen(None)
    return server

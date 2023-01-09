@@ -1,15 +1,9 @@
 <?xml version="1.0"?>
 <root xmlns="urn:schemas-upnp-org:device-1-0">
-  <specVersion>
-    <major>1</major>
-    <minor>0</minor>
-  </specVersion>
   <device>
     <deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>
-    <friendlyName>{}</friendlyName>
-    <manufacturer>ihomeware</manufacturer>
-    <modelName>meshup</modelName>
-    <UDN>uuid:1234-5678-9012-3456</UDN>
+    <friendlyName>{0}</friendlyName>
+    <UDN>uuid:{1}</UDN>
     <serviceList>
       <service>
         <serviceType>urn:schemas-upnp-org:service:Basic:1</serviceType>
@@ -19,6 +13,5 @@
         <SCPDURL>/description.xml</SCPDURL>
       </service>
     </serviceList>
-    <presentationURL>/index.html</presentationURL>
   </device>
 </root>

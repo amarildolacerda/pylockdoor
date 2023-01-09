@@ -1,5 +1,6 @@
 import socket
 import time
+from gc import collect
 
 import machine
 import network
@@ -12,13 +13,8 @@ import configshow as show
 _N = const(None)
 _F = const(False)
 _T = const(True)
-try:
-    import esp32
-    defineEsp32 = _T
-except:
-    defineEsp32 = _F
 wlan_sta = network.WLAN(network.STA_IF)
-wlan_ap = network.WLAN(network.AP_IF)
+wlan_ap =  network.WLAN(network.AP_IF)
 server_socket = _N
 conn_lst = time.ticks_ms()
 c_ssid = None
@@ -35,6 +31,7 @@ def setConfig(s, p):
     g.config['password'] = p
     g.config['mqtt_prefix'] = c_id
     getConfig()
+
 def isconnected():
     return wlan_sta.isconnected()
 def ifconfig():
@@ -47,7 +44,6 @@ def timerReset(x):
         return
     if (not checkTimeout(conn_lst, 60000)):
         return
-    print('timerReset: {}'.format( conn_lst))
     time.sleep(10)
     machine.reset()
 def checkTimeout(tm, dif):
@@ -70,10 +66,10 @@ def get_connection():
         wlan_sta.active(_T)
         connected = do_connect(c_ssid, c_pass)
         if connected:
-                if (wlan_ap):
+               if (wlan_ap):
                     wlan_ap.active(_F)
-                print('Conectou:{}'.format( ssid))
-                timerFeed()    
+               print('Conectou:{}'.format( c_ssid))
+               timerFeed()    
     except Exception as e:
         print(e)
     if not connected:
@@ -87,7 +83,6 @@ def do_connect(ssid, password):
     wlan_sta.active(_T)
     if wlan_sta.isconnected():
         return _N
-    print('Conectando em: {}'.format(  ssid))
     wlan_sta.connect(ssid, password)
     for retry in range(100):
         if wlan_sta.isconnected(): break
@@ -101,12 +96,13 @@ def _send_header(client, status_code, content_length, contentType):
         client.sendall("Content-Length: {}\r\n".format(content_length))
     client.sendall("\r\n")
 def send_response(client, payload, status_code=200, contentType='text/html'):
+    print(payload)
     content_length = len(payload)
-    _send_header(client, status_code, content_length)
+    _send_header(client, status_code, content_length, contentType)
     if content_length > 0:
         client.sendall(payload)
+    time.sleep(0.1)    
     client.close()
-    collect()
 def handle_not_found(client, url):
     send_response(client, "Não encontrado: {}".format(url), status_code=404)
 def stop():
@@ -114,53 +110,50 @@ def stop():
     if server_socket:
         server_socket.close()
         server_socket = _N
-def start(port=8080):
-    global server_socket, suspendreset, wlan_sta, wlan_ap
-    if not g.config['locked']:
-        import server
-        server.TCPServer().start()
-    if g.config['locked'] == 1:
-        return
-    wlan_ap = network.WLAN(network.AP_IF)
-    addr = socket.getaddrinfo("0.0.0.0", port)[0][-1]
-    stop()
-    wlan_sta.active(_T)
-    wlan_ap.active(_T)
-    ap_ssid = g.config["ap_ssid"]
-    ap_password = g.config["ap_password"]
-    wlan_ap.config(essid=ap_ssid, password=ap_password, authmode=3)
-    server_socket = socket.socket()
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind(addr)
-    server_socket.listen(1)
-    print("ssid: {} pass {} ".format( ap_ssid,ap_password))
-    suspendreset = False
+def readFile(nome:str):  
+        with open(nome, 'r') as f:
+            return f.read()
+def accept_http(sock):
     try:
         while _T:
-            client, addr = server_socket.accept()
+            client, addr = sock.accept()
             try:
+                collect()
                 request = b""
-                try:
-                    while "\r\n\r\n" not in request:
-                        request += client.recv(512)
-                except OSError:
-                    pass
+                request = client.recv(64)
                 if "HTTP" not in request:  # skip invalid requests
-                    continue
+                        break
                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP",
                                  request).group(1).decode("utf-8").rstrip("/")
-                print(request)                 
-                if url == "":
-                    handle_not_found(client, url)
-                elif url.startswith('description.xml') :
-                    send_response(client, readFile('alexa_description.xml').format(g.config['mqtt_name'] ),200,'application/xml' )
+                if url.startswith('description.xml') :
+                       collect()
+                       send_response(client,  
+readFile('alexa_description.xml').format(g.config['mqtt_name'], g.uid) 
+,200,'application/xml' )
                 else:
-                    handle_not_found(client, url)
+                       handle_not_found(client, url)
+                break
+            except OSError as e:
+                if client: client.close()
+                return None
             except KeyboardInterrupt as e:
+                if client: client.close()
                 return None
             except Exception as x:
                 print(x)
                 continue
     finally:
-        wdt = _N
-        tmr = _N
+           pass
+def start(port=8080):
+    global server_socket, suspendreset, wlan_sta
+    addr = socket.getaddrinfo("0.0.0.0", port)[0][-1]
+    wlan_sta.active(_T)
+    wlan_ap.active(_T)
+    ap_ssid = const(g.config["ap_ssid"])
+    ap_password = const(g.config["ap_password"])
+    server_socket = socket.socket()
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind(addr)
+    server_socket.listen(1)
+    server_socket.setsockopt(socket.SOL_SOCKET, 20, accept_http)
+ 

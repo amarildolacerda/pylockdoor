@@ -17,14 +17,12 @@ lock = False
 class TCPServer:
     def __main__(self):
         self.conn = None
-        pass
     def callback(self, cb):
         global callback
         callback = cb
     def feed(self, cb):
         global callbackFeed
         callbackFeed = cb
-        
     def start(self, add='0.0.0.0', port=7777):
         self.client = None
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -43,9 +41,6 @@ class TCPServer:
         if (self.conn != None):
             self.conn.close()
         self.conn = None
-
-
-
     def checkTimeout(self, conn_lst, dif):
         d = time.ticks_diff(time.ticks_ms(), conn_lst)
         return (d > dif)
@@ -98,4 +93,3 @@ def accept_telnet_connect(sck):
     finally:
         lock = False
         cmd.sendCB = None
-

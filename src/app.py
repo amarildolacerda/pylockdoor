@@ -12,12 +12,6 @@ _N = const(None)
 _T = const(True)
 _F = const(False)
 try:
-    import esp32
-    defineEsp32 = _T
-except:
-    defineEsp32 = _F
-    import esp
-try:
     import gc
 
     import network
@@ -49,9 +43,9 @@ try:
             mqtt.topic = mqtt.tpfx()
             mqtt.host = g.config['mqtt_host']
             mqtt.create(g.uid, g.config['mqtt_host'],
-                        g.config['mqtt_user'], g.config['mqtt_password'])  # create a mqtt client
-            mqtt.callback(mqtt_rcv)  # set callback
-            mqtt.cnt()  # connect mqtt
+                        g.config['mqtt_user'], g.config['mqtt_password'])
+            mqtt.callback(mqtt_rcv)
+            mqtt.cnt()
             mqtt.sb(mqtt.topic_command_in())
             mqtt.p(mqtt.tpfx()+'/ip', ip)
         except OSError as e:
@@ -81,7 +75,6 @@ try:
                         errCount = 0
                 except:
                     errCount = errCount + 1
-                    p('Reconectando MQTT...')
                     if errCount > 10:
                         reset()
                     mqttConnect(wlan.ifconfig()[0])
@@ -90,6 +83,7 @@ try:
             wifimgr.timerReset(True)
             inLoop = False    
             collect()
+            idle()
         except Exception as e:
             pass
     def telnetCallback(data):
@@ -98,7 +92,6 @@ try:
         print(x)
     def timerLoop(x):
         gpioLoopCallback()
-        idle()
         return True
     timer = None
     def init():
@@ -121,19 +114,15 @@ try:
                 telnet.callback(telnetCallback)
                 telnet.feed(gpioLoopCallback)
                 telnet.start()
-            AlexaRun(wlan.ifconfig()[0], timerLoop)
             wifimgr.start()    
+            AlexaRun(wlan.ifconfig()[0], timerLoop)
     def run():
         global telnet
         if reset_cause() == DEEPSLEEP_RESET:
-            print('0.woke from a deep sleep')
             ev.setSleep(-1)
-          
         try:
             init()
             bind()
-            print('Mem Loop free: {} allocated: {}'.format(
-                mem_free(), mem_alloc()))
             loop()
         except KeyboardInterrupt as e:
             pass
@@ -149,7 +138,6 @@ try:
             except:
                 pass    
 except Exception as e:
-    print('... encerrando')
     print(e)
     sleep(30)
     reset()

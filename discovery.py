@@ -1,4 +1,5 @@
 import socket
+import time
 
 msg = \
     'M-SEARCH * HTTP/1.1\r\n' \
@@ -27,6 +28,8 @@ try:
     while True:
         data, addr = s.recvfrom(65507)
         print(addr, data)
+        time.sleep(10)
+        break
 except socket.timeout:
     print('timeout')
 
