@@ -15,17 +15,13 @@ def doTelnetEvent(server, addr,message):
     print('telnet',addr,message)
     return True
 
-def doWebEvent(server, addr,message):
-    print('web',addr,message)
-    return True
-
 
 def services_run(ip,timeloop):
    telnet = services.Server("",7777, "IHomeware Terminal")
    telnet.listen(doTelnetEvent)
 
    web = services.WebServer("", 8080)
-   web.listen(doWebEvent)
+   web.listen(broadcast.http)
 
    udp = services.Broadcast(callbackFn=timeloop)
    udp.listen(broadcast.discovery)
@@ -46,15 +42,15 @@ class mainApp:
         self.bind()
         pass
     def timerLoop(self,x):
-        collect()
-        idle()
-        print('timerloop', mem_free())
+        #collect()
+        #idle()
+        #print('timerloop', mem_free())
         pass   
     def init(self):
-        timer = Timer(-1)
-        timer.init(mode=Timer.PERIODIC,
-                   period=1000, callback=self.timerLoop)
- 
+        #timer = Timer(-1)
+        #timer.init(mode=Timer.PERIODIC,
+        #           period=5000, callback=self.timerLoop)
+        pass
     def bind(self):
             global wlan
             wlan = None

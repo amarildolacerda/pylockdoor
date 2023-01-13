@@ -27,7 +27,7 @@ class Server:
     def next(self):
         idle()
         collect()
-        sleep(0.1)
+      
     def receive_data(self,sck):
         sck.setblocking(True)
         try:
@@ -91,7 +91,7 @@ class Broadcast(Server):
                 data, addr = self.sock.recvfrom(128)
                 if data:
                     if self.messageEvent: 
-                      if not self.messageEvent(sck,data,addr) :
+                      if not self.messageEvent(sck,addr,data) :
                         break
                     self.next()
             except Exception as e:

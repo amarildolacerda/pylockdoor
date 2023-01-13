@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+<device><deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType><friendlyName>{name}</friendlyName><UDN>uuid:{uuid}</UDN>
+<serviceList><service><serviceType>urn:schemas-upnp-org:service:Basic:1</serviceType>
+<serviceId>urn:upnp-org:serviceId:Basic</serviceId>
+<controlURL>/ctrl/basic</controlURL><eventSubURL>/evt/basic</eventSubURL><SCPDURL>/description.xml</SCPDURL>
+</service></serviceList></device>
+</root>
