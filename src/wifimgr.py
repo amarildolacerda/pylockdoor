@@ -96,14 +96,16 @@ def _send_header(client, status_code, content_length, contentType):
     if content_length is not _N:
         client.sendall("Content-Length: {}\r\n".format(content_length))
     client.sendall("\r\n")
+    time.sleep(0.1) 
+
 
 def send_response(client, payload, status_code=200, contentType='text/html'):
     content_length = len(payload)
     _send_header(client, status_code, content_length, contentType)
     if content_length > 0:
         client.sendall(payload)
-    machine.idle()   
-    time.sleep(0.5) 
+    time.sleep(0.2) 
+    machine.idle()
     client.close()
 def handle_not_found(client, url):
     send_response(client, "{}".format(url), 404)
@@ -121,6 +123,7 @@ def accept_http(sock):
                         break
                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP",
                                  request).group(1).decode("utf-8").rstrip("/")
+                print(request)
                 collect()
                 if url.startswith('description.xml') :
                        send_response(client,  

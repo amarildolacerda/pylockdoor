@@ -61,6 +61,7 @@ class AlexaDiscovery:
         idle()
         time.sleep(0.1)
     def do_receive_event(self, data:str, addr):
+        print(data)
         if data.startswith(b"M-SEARCH"):
             self.sendto(addr, self.readFile("alexa_search.html").format(self.http_address))
             return True
