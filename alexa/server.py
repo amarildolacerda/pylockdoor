@@ -1,6 +1,6 @@
 import socket
 import struct
-from gc import mem_free
+from gc import collect, mem_free
 from time import sleep
 
 import network
@@ -24,6 +24,10 @@ class Server:
         self.sock.setsockopt(socket.SOL_SOCKET, 20, self.receive_data)
         print('Listen {}:{}'.format(self.host,self.port))
         pass
+    def next(self):
+        idle()
+        collect()
+        sleep(0.1)
     def receive_data(self,sck):
         sck.setblocking(True)
         try:
@@ -46,15 +50,15 @@ class Server:
                                     return None
                             if (self.messageEvent): self.messageEvent(conn,addr,bts)
                             bts = b''
+                            self.next()
                         # close connection
                 except EAGAIN:
-                    idle()
-                    collect()
+                    self.next()
                     continue        
                 except Exception as e:
                     print(str(e))
-                    idle()
-                    sleep(0.1)    
+                    self.next()
+                       
         finally:
             sck.setblocking(True)  
             return conn and conn.close()
@@ -89,10 +93,10 @@ class Broadcast(Server):
                     if self.messageEvent: 
                       if not self.messageEvent(sck,data,addr) :
                         break
+                    self.next()
             except Exception as e:
                 print(str(e))
-                idle()
-                collect()
+                self.next()
                 if self.callbackFn: self.callbackFn(self)
                 else:
                   time.sleep(0.1)

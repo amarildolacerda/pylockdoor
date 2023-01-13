@@ -10,6 +10,7 @@ echo Compilar
 ..\mpy-cross app.py
 ..\mpy-cross ntp.py
 ..\mpy-cross server.py
+..\mpy-cross broadcast.py
 
 
 if "%2"=="" goto :todos
@@ -25,6 +26,8 @@ ampy -d 1 --port %1 put config.mpy
 ampy -d 1 --port %1 put wifimgr.mpy
 ampy -d 1 --port %1 put ntp.mpy
 ampy -d 1 --port %1 put server.mpy
+ampy -d 1 --port %1 put broadcast.mpy
+ampy -d 1 --port %1 put msearch.html
 
 :fim
 

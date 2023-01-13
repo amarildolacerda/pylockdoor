@@ -65,6 +65,7 @@ def get_connection():
                if (wlan_ap):
                     wlan_ap.active(_F)
                print('\r\nConectou: {} {} '.format(c_ssid, ifconfig()))
+               g.ifconfig = ifconfig()
                timerFeed()    
     except Exception as e:
         print(e)

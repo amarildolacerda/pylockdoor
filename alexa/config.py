@@ -1,5 +1,6 @@
 
 config = {
+    'ifconfig': None,
     'ssid' : 'kcasa',
     'password' : '3938373635', 
     'ap_ssid': 'machup',

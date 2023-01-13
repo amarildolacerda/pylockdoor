@@ -2,6 +2,7 @@ from gc import collect, mem_alloc, mem_free
 from os import uname
 from time import sleep
 
+import broadcast
 from machine import DEEPSLEEP_RESET, Timer, idle, reset, reset_cause
 from micropython import const
 
@@ -12,9 +13,6 @@ import wifimgr
 
 def doTelnetEvent(server, addr,message):
     print('telnet',addr,message)
-    return True
-def doUDPEvent(server, addr,message):
-    print('udp',addr,message)
     return True
 
 def doWebEvent(server, addr,message):
@@ -30,7 +28,7 @@ def services_run(ip,timeloop):
    web.listen(doWebEvent)
 
    udp = services.Broadcast(callbackFn=timeloop)
-   udp.listen(doUDPEvent)
+   udp.listen(broadcast.discovery)
    pass
 
 wlan = None
@@ -48,7 +46,9 @@ class mainApp:
         self.bind()
         pass
     def timerLoop(self,x):
-        print('timerloop')
+        collect()
+        idle()
+        print('timerloop', mem_free())
         pass   
     def init(self):
         timer = Timer(-1)
