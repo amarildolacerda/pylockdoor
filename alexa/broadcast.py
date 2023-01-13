@@ -54,22 +54,20 @@ def handle_not_found(client, url):
 
 
 def http(client,addr,request):
+        try:
                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP",
                                  request).group(1).decode("utf-8").rstrip("/")
                 print('Url',url)
                 if url.endswith('.xml') or url.endswith('.html')   :
-                    try:    
-                       print('responder com',url) 
                        send_response(client,  
 readFile(url).format(name=g.config['mqtt_name'] or 'indef',uuid= g.uid, url=url) 
-,200,'application/xml' )
-                    except Exception as e:
-                       print(str(e))
-                       send_response(client,readFile('erro.html').format(msg=str(e), url=url) ,200 )
-
+,200,'application/{}'.format(url.split('.')[1]) )
                 else:
                        handle_not_found(client, url)
-                time.sleep(0.2) 
-                client.close()       
-                return true
-
+        except Exception as e:
+            print(str(e))
+            send_response(client,readFile('erro.html').format(msg=str(e), url=url) ,500 )
+        finally:
+            time.sleep(0.2) 
+            client.close()       
+        return true    
