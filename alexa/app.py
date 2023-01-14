@@ -3,13 +3,9 @@ from os import uname
 from time import sleep
 
 import broadcast
-import commands as cm
 from machine import DEEPSLEEP_RESET, Timer, idle, reset, reset_cause
 from micropython import const
 
-import config as g
-import event as ev
-import mqtt
 import ntp
 import server as services
 import wifimgr
@@ -32,6 +28,8 @@ def services_run(ip,timeloop):
    pass
 
 wlan = None
+mqttinited = False
+
 def connectWifi():
         global wlan
         if not wlan:
@@ -48,11 +46,11 @@ class mainApp:
     def timerLoop(self,x):
         #collect()
         #idle()
-        #print('timerloop', mem_free())
+        print('timerloop', mem_free())
+        import mqtt
+        mqtt.sendStatus()
         pass   
     def init(self):
-        g.start()
-
         #timer = Timer(-1)
         #timer.init(mode=Timer.PERIODIC,
         #           period=5000, callback=self.timerLoop)
@@ -74,12 +72,21 @@ def mqtt_rcv(_t, _p):
         t = _t.decode('utf-8')
         p = _p.decode('utf-8')
         try:
+            import commands as cm
             cm.tpRcv(t,p)
         except OSError as e:
+            import mqtt
             mqtt.p('Invalid', 0)
             pass
 def mqttConnect(ip=''):
         try:
+            global mqttinited
+            import config as g
+            import mqtt
+
+            if not mqttinited:
+               g.start()
+               mqttinited = True
             mqtt.topic = mqtt.tpfx()
             mqtt.host = g.config[g.CFG_MQTTHOST]
             mqtt.create(g.uid, g.config[g.CFG_MQTTHOST],

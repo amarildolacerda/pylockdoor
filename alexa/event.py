@@ -13,7 +13,6 @@ _T = const(True)
 _F = const(False)
 utm = ticks_ms()
 nled = 0
-go_sleep = 0
 def init():
     pass
 def timerEvent(x):
@@ -31,7 +30,6 @@ def p(pin: str, msg: str):
     except:
         pass
 def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
-    global go_sleep
     m = 0
     t = 0
     try:
@@ -62,7 +60,7 @@ def o(p: str, v, mode: int, force=_F, topic: str = None):
     except Exception as e:
         print(str(e))
 def cv(mqtt_active=False):
-    global utm, nled, go_sleep
+    global utm, nled
     try:
         t = ticks_ms()
         if ticks_diff(t, utm) > g.config[g.CFG_INTERVAL]*1000:
@@ -89,16 +87,6 @@ def cv(mqtt_active=False):
                         localTrig(i,'adc',v)  
                         setSleep(1)
                         continue
-                    elif (md == 5):
-                        o(i, getDht11(i), md, False, mqtt.tpfx() +
-                          '/{}'.format(stype or 'dht11'))
-                        setSleep(1)
-                        continue
-                    elif (md == 6):
-                        o(i, getDht12(i), md, False, mqtt.tpfx() +
-                          '/{}'.format(stype or 'dht12'))
-                        setSleep(1)
-                        continue
             if bled:
                 led(1)
                 if nled > 250:
@@ -108,20 +96,6 @@ def cv(mqtt_active=False):
         print('{} {}'.format('event.cv: ', e))
 def ADCRead(pin: str):
     return ADC(int(pin)).read()
-def getDht11(pin: str):
-    import dht
-    d = dht.DHT11(Pin(int(pin)))
-    d.measure()
-    d.temperature()  # eg. 23 (°C)
-    d.humidity()
-    return {"temp": d.temperature(), "hum": d.humidity()}
-def getDht12(pin: str):
-    import dht
-    d = dht.DHT12(Pin(int(pin)))
-    d.measure()
-    d.temperature()  # eg. 23 (°C)
-    d.humidity()
-    return {"temp": d.temperature(), "hum": d.humidity()}
 def interruptTrigger(pin: Pin):
     p = -1
     for key in g.pins:

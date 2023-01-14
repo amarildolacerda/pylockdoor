@@ -88,7 +88,8 @@ class Broadcast(Server):
         self.receive_data(self.sock)
 
     def receive_data(self,sck):
-        self.sock.setblocking(1)
+        self.sock.setblocking(False)
+        self.sock.settimeout(10)
         while True:
             try:
                 data, addr = self.sock.recvfrom(128)
@@ -97,7 +98,8 @@ class Broadcast(Server):
                       if not self.messageEvent(sck,addr,data) :
                         break
                     if self.autoclose: break
-                    self.next()
+                if self.callbackFn: self.callbackFn(self)
+                self.next()
             except Exception as e:
                 print(str(e))
                 self.next()
