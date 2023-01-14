@@ -3,9 +3,13 @@ from os import uname
 from time import sleep
 
 import broadcast
+import commands as cm
 from machine import DEEPSLEEP_RESET, Timer, idle, reset, reset_cause
 from micropython import const
 
+import config as g
+import event as ev
+import mqtt
 import ntp
 import server as services
 import wifimgr
@@ -47,6 +51,8 @@ class mainApp:
         #print('timerloop', mem_free())
         pass   
     def init(self):
+        g.start()
+
         #timer = Timer(-1)
         #timer.init(mode=Timer.PERIODIC,
         #           period=5000, callback=self.timerLoop)
@@ -56,13 +62,34 @@ class mainApp:
             wlan = None
             if not connectWifi():
                reset()
-            #print(wifimgr.c_ssid, wifimgr.ifconfig())
             try: 
                 ntp.settime()
             except: 
                 pass
-            #wifimgr.start(self.port)    
+            mqttConnect(wifimgr.ifconfig()[0])
             services_run(wifimgr.ifconfig()[0], self.timerLoop)
+
+
+def mqtt_rcv(_t, _p):
+        t = _t.decode('utf-8')
+        p = _p.decode('utf-8')
+        try:
+            cm.tpRcv(t,p)
+        except OSError as e:
+            mqtt.p('Invalid', 0)
+            pass
+def mqttConnect(ip=''):
+        try:
+            mqtt.topic = mqtt.tpfx()
+            mqtt.host = g.config[g.CFG_MQTTHOST]
+            mqtt.create(g.uid, g.config[g.CFG_MQTTHOST],
+                        g.config[g.CFG_MQTTUSER], g.config[g.CFG_MQTTPASS])
+            mqtt.callback(mqtt_rcv)
+            mqtt.cnt()
+            mqtt.sb(mqtt.topic_command_in())
+            mqtt.p(mqtt.tpfx()+'/ip', ip)
+        except OSError as e:
+            p(e)
 
 
 def start(port = 8080):

@@ -10,6 +10,11 @@ echo Compilar
 ..\mpy-cross ntp.py
 ..\mpy-cross server.py
 ..\mpy-cross broadcast.py
+..\mpy-cross commands.py
+..\mpy-cross mqtt.py
+..\mpy-cross umqtt_simple.py
+..\mpy-cross event.py
+..\mpy-cross commandutils.py
 
 
 
@@ -34,6 +39,13 @@ ampy -d 0.5 --port %1 put state.soap
 ampy -d 0.5 --port %1 put eventservice.xml
 ampy -d 0.5 --port %1 put msearch.html
 ampy -d 0.5 --port %1 put setup.xml
+
+ampy -d 0.5 --port %1 put commands.mpy
+ampy -d 0.5 --port %1 put mqtt.mpy
+ampy -d 0.5 --port %1 put umqtt_simple.mpy
+ampy -d 0.5 --port %1 put event.mpy
+ampy -d 0.5 --port %1 put commandutils.mpy
+
 
 
 :fix
