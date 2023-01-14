@@ -77,8 +77,6 @@ def cmmd(c):
                 elif cmd1 == 'scene':
                     #import configshow
                     return r(topologyshow())# configshow.shScene())
-                elif cmd1 == 'stats':
-                    return mqtt.sendStatus(True)
                 #import configshow as cs
                 return r(topologyshow())# r(cs.show())
 
@@ -86,16 +84,6 @@ def cmmd(c):
                 return r(g.save())
             elif cmd == 'reset':
                 reset()
-            elif cmd == 'dht11':
-                import event
-                r(event.getDht11(cmd1))
-            elif cmd == 'dht12':
-                import event
-                r(event.getDht12(cmd1))
-            elif cmd == g.events:  # scene
-                return g.sEvent(p)
-            elif cmd == 'delay':
-                sleep(g.strToNum(cmd1))
             elif cmd == 'gpio':
                 if cmd1 == 'clear':
                    return r( g.model('clear'))
@@ -132,14 +120,6 @@ def cmmd(c):
                     return r(gadc(p))
                 return k
             elif cmd == 'set':
-                if cmd1 == 'sleep':
-                    g.config['sleep'] = int(cmd2)
-                    return r(g.save())
-
-                elif cmd1 == 'model':
-                    return g.model(cmd2)
-                elif cmd1 == 'account':
-                    return mqtt.account(cmd2)
                 return r(g.sKey(cmd1, cmd2))
             elif cmd == 'get':
                 return r(g.gKey(cmd1))
