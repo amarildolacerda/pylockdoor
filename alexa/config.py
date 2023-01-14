@@ -53,7 +53,7 @@ events = 'scene'
 modes = ['none','out','in','adc','pwm','dht11','dht12']
 _table = ['none','monostable_NC','bistable_NC','monostable_NO', 'bistable_NO']
 timeOnOff = {}
-mesh = 'ihomeware/'+uid
+mesh = 'mesh/'+uid
 gpio = 'gpio'
 conds = 'conds'
 def conf():

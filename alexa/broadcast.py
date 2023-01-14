@@ -43,10 +43,9 @@ def discovery(sender,addr, data:str ):
         return True
 
 def getState(pin=4):
-    relayState = Pin(pin,Pin.OUT).value()
-    return relayState
+    return g.gpin(pin)
 def action_state(value:int,pin=4):
-    Pin(pin, Pin.OUT).value(value)
+    g.spin(pin,value)
     return True
 
 def make_header(soap, status_code, contentType):

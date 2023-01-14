@@ -19,6 +19,7 @@ started_in = ticks_ms()
 
 def topologyshow():
     m = {}
+    m['label'] = g.config[g.CFG_LABEL]
     m['time'] = u.now()
     m['ssid'] = g.config[g.CFG_SSID]
     m['free']  = mem_free()
