@@ -1,18 +1,15 @@
 
 from gc import collect
-from json import dumps
-from os import listdir, uname
 from time import sleep
 
 from machine import ADC, idle, reset
-from micropython import const
 
 import config as g
 import mqtt
 
 _N = None
-_g = const('get')
-_s = const('set')
+_g = 'get'
+_s = 'set'
 sendCB = None
 def r(p, response='/response'):
     global sendCB
@@ -72,18 +69,18 @@ def cmmd(c):
                 if cmd1 == 'config':
                     return r(str(g.config))
                 elif cmd1 == 'mqtt':
-                    import configshow
-                    return r(configshow.shMqtt())
+                    #import configshow
+                    return r(topologyshow())#return r(configshow.shMqtt())
                 elif cmd1 == "gpio":
-                    import csGpio
-                    return r(csGpio.shGpio())
+                    #import csGpio
+                    return r(topologyshow())#r(csGpio.shGpio())
                 elif cmd1 == 'scene':
-                    import configshow
-                    return r(configshow.shScene())
+                    #import configshow
+                    return r(topologyshow())# configshow.shScene())
                 elif cmd1 == 'stats':
                     return mqtt.sendStatus(True)
-                import configshow as cs
-                return r(cs.show())
+                #import configshow as cs
+                return r(topologyshow())# r(cs.show())
 
             elif cmd == 'save':
                 return r(g.save())
@@ -111,9 +108,6 @@ def cmmd(c):
                 else:
                     if cmd2 == _s:
                         rsp = r(g.spin(cmd1, p[3]))
-                        if g.gpin(cmd1) == 1:
-                            import event
-                            event.setSleep(None)
                         return rsp
                     elif cmd2 == 'switch':
                         return g.swt(cmd1)
@@ -121,9 +115,6 @@ def cmmd(c):
                         if cmd2 == _g:
                             v = g.gpin(p[1])
                             rsp = r(g.gpin(p[1]))
-                            if v == 0:
-                                import event
-                                event.setSleep(1)
                             return rsp
                         elif cmd2 == 'mode':
                             return g.sMde(cmd1, p[3])

@@ -1,13 +1,8 @@
 from gc import collect, mem_alloc, mem_free
-from os import uname
-from time import sleep
 
-import broadcast
 from machine import DEEPSLEEP_RESET, Timer, idle, reset, reset_cause
-from micropython import const
 
 import ntp
-import server as services
 import wifimgr
 
 
@@ -17,9 +12,11 @@ def doTelnetEvent(server, addr,message):
 
 
 def services_run(ip,timeloop):
+   import server as services
    telnet = services.Server("",7777, "IHomeware Terminal")
    telnet.listen(doTelnetEvent)
 
+   import broadcast
    web = services.WebServer("", 8080)
    web.listen(broadcast.http)
 
@@ -37,17 +34,61 @@ def connectWifi():
         return wlan and wlan.isconnected()
 
 
+errCount = 0
+inLoop = False
+def gpioLoopCallback():
+        global errCount, inLoop
+        if inLoop: return
+        try:
+          #import event as ev
+          import mqtt
+          try:  
+            inLoop = True
+            if wlan.isconnected():
+                try:
+                    wifimgr.timerFeed()
+                    mqtt.check_msg()
+           #         ev.cv(mqtt.connected)
+                    if mqtt.connected:
+                        mqtt.sendStatus()
+                        errCount = 0
+                    return True    
+                except:
+                    errCount = errCount + 1
+                    if errCount > 10:
+                        reset()
+                    mqttConnect(wlan.ifconfig()[0])
+            else: #ev.cv(False)
+              return False
+          finally:
+            wifimgr.timerReset(True)
+            inLoop = False    
+            collect()
+            idle()
+        except Exception as e:
+            pass
+
+
 class mainApp:
     def start(self, port ):
         self.port = port
         self.init()
         self.bind()
         pass
+    def eventLoop(self,rt):
+        #import event as ev
+        #ev.cv(rt)
+        pass
+       
     def timerLoop(self,x):
-        import mqtt
-        mqtt.sendStatus()
+
+        rt = gpioLoopCallback()
         collect()
-        pass   
+        idle()
+        self.eventLoop(rt)
+        collect()
+        idle()
+           
     def init(self):
         #timer = Timer(-1)
         #timer.init(mode=Timer.PERIODIC,

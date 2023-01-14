@@ -1,16 +1,14 @@
 from gc import collect
 from time import ticks_diff, ticks_ms
 
-import commands as ev
 from machine import ADC, RTC, Pin, idle, reset_cause
-from micropython import const
 
 import config as g
-import mqtt
+from mqtt import tCmdOut, tpfx
 
-_N = const(None)
-_T = const(True)
-_F = const(False)
+_N = None
+_T = True
+_F = False
 utm = ticks_ms()
 nled = 0
 def init():
@@ -26,7 +24,8 @@ def spin(p1: str, p3) -> str:
     return g.spin(p1, p3)
 def p(pin: str, msg: str):
     try:
-        mqtt.p(mqtt.tCmdOut()+'/%s' % pin, msg)
+        from mqtt import p as mqttp
+        mqttp(tCmdOut()+'/%s' % pin, msg)
     except:
         pass
 def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
@@ -56,7 +55,9 @@ def o(p: str, v, mode: int, force=_F, topic: str = None):
         if force or (v - x) != 0:
             g.sVlr(p, v)
             g.trigg(p, v)
-            mqtt.p((topic or mqtt.tCmdOut())+'/' + p, v)
+            from mqtt import p as mqttp
+
+            mqttp((topic or tCmdOut())+'/' + p, v)
     except Exception as e:
         print(str(e))
 def cv(mqtt_active=False):
@@ -75,17 +76,18 @@ def cv(mqtt_active=False):
                 if (md != None):
                     if (md in [1, 2]):
                         v = g.gpin(i)
-                        o(i, v, md, False, mqtt.tpfx() +
+
+                        o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'gpio'))
                         localTrig(i,'gpio',v)  
-                        setSleep(1)
+                        #setSleep(1)
                         continue
                     elif (md == 3):
                         v = ADCRead(i)
-                        o(i, v, md, False, mqtt.tpfx() +
+                        o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'adc'))
                         localTrig(i,'adc',v)  
-                        setSleep(1)
+                        #setSleep(1)
                         continue
             if bled:
                 led(1)
@@ -132,11 +134,14 @@ def localTrig(i: str,stype: str,value: int):
                     rsp = 'ne'
 
                 if (rsp != None):
-                    mqtt.p(mqtt.tpfx()+'/scene/'+p,cmd[6])
+                    from mqtt import p as mqttp
+
+                    mqttp(tpfx()+'/scene/'+p,cmd[6])
                     _p = 'scene '+p+' set '+cmd[6]
                     print(_p)
                     sv['{}'.format(p)] =cmd[6]
-                    ev.rcv(_p)
+                    from commands import rcv
+                    rcv(_p)
             continue
           except Exception as e: 
                 print('error {}, {}=={} and {}=={} {} '.format(cmd,cmd[0],stype,cmd[1],i,e))
@@ -153,7 +158,9 @@ def localTrig(i: str,stype: str,value: int):
                 elif (c=='ne') and (value != a):
                     rsp = g.spin(p,v, True)
                 if (rsp != None):
-                    mqtt.p(mqtt.tpfx() +'/gpio/' + p, g.gpin(p) )    
+                    from mqtt import p as mqttp
+
+                    mqttp(tpfx() +'/gpio/' + p, g.gpin(p) )    
             continue   
     collect()
     return 'nok'

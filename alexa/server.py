@@ -101,7 +101,8 @@ class Broadcast(Server):
                 if self.callbackFn: self.callbackFn(self)
                 self.next()
             except Exception as e:
-                print(str(e))
+                if str(e).find('ETIME') < 0:
+                       print(self.__class__.__name__,str(e))
                 self.next()
                 if self.callbackFn: self.callbackFn(self)
                 else:
