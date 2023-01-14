@@ -1,14 +1,16 @@
 import socket
 import struct
+import time
 from gc import collect, mem_free
-from time import sleep
 
 import network
+import uselect
 from machine import DEEPSLEEP_RESET, Timer, idle, reset, reset_cause
 
 
 class Server:
     def __init__(self, host,port, welcome=None, socketType=socket.SOCK_STREAM):
+        self.autoclose = False
         self.host = host
         self.port = port
         self.welcome = welcome
@@ -27,36 +29,38 @@ class Server:
     def next(self):
         idle()
         collect()
+
       
     def receive_data(self,sck):
-        sck.setblocking(True)
         try:
             conn, addr = self.sock.accept()
-            print("Connected by", addr)
+            conn.settimeout(1)
+
+            print("Connected by",self.__class__.__name__,addr)
             if self.welcome:
                conn.send("{} MemFree: {} \r\n".format(self.welcome,mem_free()))
             bts = b''
+            sck.setblocking(False)
             while True:
                 try: 
-                        res = conn.recv(16)
+                        res = conn.recv(8)
                         if res:
                             if res[0] == 0x08 and len(bts)>0:
                                     bts = bts[:-1]
                                     continue
                             bts += (res or '')
-                            if not bts.endswith(self.end):
-                                    continue
-                            if bts.startswith('quit'):
-                                    return None
-                            if (self.messageEvent): self.messageEvent(conn,addr,bts)
-                            bts = b''
-                            self.next()
-                        # close connection
-                except EAGAIN:
-                    self.next()
-                    continue        
+                            
                 except Exception as e:
-                    print(str(e))
+                    if str(e).find('ETIME') < 0:
+                       print(self.__class__.__name__,str(e))
+                       print(self.autoclose,bts.endswith(self.end),self.end,bts)
+                    else:   
+                    #if bts.endswith(self.end):
+                            if (self.messageEvent): 
+                               if  self.messageEvent(conn,addr,bts):
+                                  break
+                            bts=b''
+                    if self.autoclose: break
                     self.next()
                        
         finally:
@@ -93,6 +97,7 @@ class Broadcast(Server):
                     if self.messageEvent: 
                       if not self.messageEvent(sck,addr,data) :
                         break
+                    if self.autoclose: break
                     self.next()
             except Exception as e:
                 print(str(e))
@@ -106,6 +111,7 @@ class Broadcast(Server):
 class WebServer(Server):
     def __init__(self, host, port):
         super().__init__(host, port, None,socket.SOCK_STREAM)
+        self.autoclose = True
     def listen(self, messageEvent):
-        return super().listen(messageEvent,end=b'\r\n\r\n')
+        return super().listen(messageEvent,end=b'\r\n')
     

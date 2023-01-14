@@ -5,7 +5,6 @@ esptool.py --port %1 --baud 1000000 write_flash  -fm dio --flash_size=detect 0 .
 echo Compilar
 ..\mpy-cross config.py
 
-..\mpy-cross udp.py
 ..\mpy-cross wifimgr.py
 ..\mpy-cross app.py
 ..\mpy-cross ntp.py
@@ -17,7 +16,7 @@ echo Compilar
 
 if "%2"=="" goto :todos
 ampy -d 0.5 --port %1 put %2
-goto :fim
+goto :fix
 
 
 :todos
@@ -28,12 +27,19 @@ ampy -d 0.5 --port %1 put config.mpy
 ampy -d 0.5 --port %1 put wifimgr.mpy
 ampy -d 0.5 --port %1 put ntp.mpy
 ampy -d 0.5 --port %1 put server.mpy
-ampy -d 0.5 --port %1 put broadcast.mpy
+ampy -d 0.5 --port %1 put boradcast.mpy
 
+ampy -d 0.5 --port %1 put erro.html
+ampy -d 0.5 --port %1 put state.soap
+ampy -d 0.5 --port %1 put eventservice.xml
+ampy -d 0.5 --port %1 put msearch.html
+ampy -d 0.5 --port %1 put setup.xml
+
+
+:fix
 
 :fim
-ampy -d 0.5 --port %1 put msearch.html
-ampy -d 0.5 --port %1 put description.xml
-ampy -d 0.5 --port %1 put erro.html
+
+
 esptool.py --port %1 --baud 1000000 run  
 

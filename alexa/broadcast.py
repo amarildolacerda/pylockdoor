@@ -1,12 +1,18 @@
 
 import socket
 import time
+from gc import collect, mem_free
 
 import ure
+import utime
 from machine import idle
 
 import config as g
 
+
+def now():
+   t = utime.localtime()
+   return '{}-{}-{}T{}:{}:{}'.format(t[0],t[1],t[2],t[3],t[4],t[5])
 
 class Alexa:
     def __init__(self,ip):
@@ -28,42 +34,100 @@ def readFile(nome:str):
 def discovery(sender,addr, data:str ):
         ip = g.ifconfig[0]
         if data.startswith(b"M-SEARCH"):
-                print('m-search',addr)
                 alexa = Alexa(ip)
                 alexa.send_msearch(addr)
+        elif data.startswith(b"NOTIFY"):
+            pass        
         else:        
-           print('broadcast',ip, addr,data)
+           print('discoverey',ip, addr,data)
         return True
+
+relayState = 0
+def getState():
+    global relayState
+    return relayState
+def action_state(value):
+    global relayState
+    relayState = value
+    print(value)    
+    return True
+
+def make_header(soap, status_code, contentType):
+    return      ("HTTP/1.1 {code} OK\r\n"
+                "CONTENT-LENGTH: {len}\r\n"
+                'CONTENT-TYPE: {type} charset="utf-8"\r\n'
+                "DATE: {data}\r\n"
+                "EXT:\r\n"
+                "SERVER: Unspecified, UPnP/1.0, Unspecified\r\n"
+                "X-User-Agent: redsonic\r\n"
+                "CONNECTION: close\r\n"
+                "\r\n"
+                "{payload}").format(len=len(soap), data=now(),payload=soap,code=status_code,type=contentType)
     
 
-def _send_header(client, status_code, content_length, contentType):
-    client.sendall("HTTP/1.0 {} OK\r\n".format(status_code))
-    client.sendall("Content-Type: {}; charset=utf-8\r\n".format(contentType))
-    if content_length :
-        client.sendall("Content-Length: {}\r\n".format(content_length))
-    client.sendall("\r\n")
-    time.sleep(0.2) 
-
 def send_response(client, payload, status_code=200, contentType='text/html'):
-    content_length = len(payload)
-    _send_header(client, status_code, content_length, contentType)
-    if content_length > 0:
-        client.sendall(payload)
+    client.sendall(make_header(payload,status_code,contentType ))
+    collect()
+    return True
+    
 def handle_not_found(client, url):
     send_response(client, "{}".format(url), 404)
+    return True
+
+
+def label():
+    return g.config['label'] or g.config['mqtt_name']
+def dbg(txt):
+    print(txt)
+    return True
+def handle_request(client, data):
+        global relayState
+        if (
+            data.find(b"POST /upnp/control/basicevent1 HTTP/1.1") == 0
+            and data.find(b"urn:Belkin:service:basicevent:1#GetBinaryState") != -1
+        ):          
+           return send_response(client,  readFile('state.soap').format(state=getState()))
+        elif data.find(b"GET /eventservice.xml HTTP/1.1") == 0:
+           return send_response(client,  readFile('eventservice.xml'),200,'application/xml')
+        elif data.find(b"GET /setup.xml HTTP/1.1") == 0:
+            return send_response(client, readFile('setup.xml').format(name=label(), uuid=g.uid),200,'application/xml' )
+        elif (
+            data.find(b'basicevent:1#SetBinaryState"')
+            != -1
+        ):
+            print(data)
+            success = False
+            if data.find(b"<BinaryState>1</BinaryState>") != -1:
+                # on
+                print("Responding to ON for %s" )
+                success = action_state(1) 
+            elif data.find(b"<BinaryState>0</BinaryState>") != -1:
+                # off
+                print("Responding to OFF for %s")
+                success = action_state(0)
+            else:
+                print("Unknown Binary State request:")
+
+            if success:
+                 send_response(client,  readFile('state.soap').format(state=getState()))
+                 return True
+            else: 
+                return False    
+        else:
+            return False
 
 
 def http(client,addr,request):
         try:
+                client.setblocking(False)
                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP",
                                  request).group(1).decode("utf-8").rstrip("/")
                 print('Url',url)
-                if url.endswith('.xml') or url.endswith('.html')   :
-                       send_response(client,  
-readFile(url).format(name=g.config['mqtt_name'] or 'indef',uuid= g.uid, url=url) 
-,200,'application/{}'.format(url.split('.')[1]) )
-                else:
-                       handle_not_found(client, url)
+                if not handle_request(client, request):                         
+                    if url.endswith('.xml') or url.endswith('.html')   :
+                        send_response(client,      (readFile(url) or '').format(name=label() or 'indef',uuid= g.uid, url=url)     ,200,'text/{}'.format(url.split('.')[1]) )
+                    else: handle_not_found(client, url)
+
         except Exception as e:
             print(str(e))
             send_response(client,readFile('erro.html').format(msg=str(e), url=url) ,500 )
