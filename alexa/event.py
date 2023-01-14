@@ -11,10 +11,6 @@ _T = True
 _F = False
 utm = ticks_ms()
 nled = 0
-def init():
-    pass
-def timerEvent(x):
-    cv(False)
 def led(v):
     pin = int(g.config['led'] or 255)
     if pin > 16:
@@ -79,14 +75,14 @@ def cv(mqtt_active=False):
 
                         o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'gpio'))
-                        localTrig(i,'gpio',v)  
+                        #localTrig(i,'gpio',v)  
                         #setSleep(1)
                         continue
                     elif (md == 3):
                         v = ADCRead(i)
                         o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'adc'))
-                        localTrig(i,'adc',v)  
+                        #localTrig(i,'adc',v)  
                         #setSleep(1)
                         continue
             if bled:
@@ -106,63 +102,6 @@ def interruptTrigger(pin: Pin):
     if p >= 0:
         o(p, pin.value(), None, _T)
     collect()
-  
-sv = {"none":None}  
-def localTrig(i: str,stype: str,value: int):
-    global sv 
-    for j in g.config[g.conds]:
-        cmd = j.split(',',8)
-        c = cmd[2]
-        a = int(cmd[3])
-        tp = cmd[4] 
-        p = cmd[5]
-        v = g.strToNum(cmd[6] or str(value))
-        if (tp=='s'):
-          try: 
-            x = sv.get('{}'.format(p)) or '-1'
-            if (cmd[0]==stype)  and cmd[1]==i and x != cmd[6]: # and vo != value   :  
-                rsp = None
-                vo = g.strToNum('{}'.format(value))
-                va = g.strToNum('{}'.format(a))
-                if (c == 'eq' and vo == va):
-                    rsp = 'eq'
-                elif (c == 'lt' and vo < va):
-                    rsp = 'lt'
-                elif (c == 'gt' and vo > va):
-                    rsp = 'gt'        
-                elif (c == 'ne' and vo != va):
-                    rsp = 'ne'
 
-                if (rsp != None):
-                    from mqtt import p as mqttp
-
-                    mqttp(tpfx()+'/scene/'+p,cmd[6])
-                    _p = 'scene '+p+' set '+cmd[6]
-                    print(_p)
-                    sv['{}'.format(p)] =cmd[6]
-                    from commands import rcv
-                    rcv(_p)
-            continue
-          except Exception as e: 
-                print('error {}, {}=={} and {}=={} {} '.format(cmd,cmd[0],stype,cmd[1],i,e))
-        elif (tp=='t'):
-            vo = g.strToNum(g.gpin(p))
-            if (cmd[0]==stype)  and (cmd[1]==i and (vo != v)):  
-                rsp = None;
-                if (c=='lt') and (value < a):
-                    rsp = g.spin(p, v, True)
-                elif (c=='gt') and (value > a):
-                    rsp = g.spin(p, v,True)
-                elif (c=='eq') and (value == a):
-                    rsp = g.spin(p,v, True)
-                elif (c=='ne') and (value != a):
-                    rsp = g.spin(p,v, True)
-                if (rsp != None):
-                    from mqtt import p as mqttp
-
-                    mqttp(tpfx() +'/gpio/' + p, g.gpin(p) )    
-            continue   
-    collect()
-    return 'nok'
 
 g.irqEvent(interruptTrigger)

@@ -76,8 +76,8 @@ class mainApp:
         self.bind()
         pass
     def eventLoop(self,rt):
-        #import event as ev
-        #ev.cv(rt)
+        import event as ev
+        ev.cv(rt)
         pass
        
     def timerLoop(self,x):
