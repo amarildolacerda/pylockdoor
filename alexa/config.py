@@ -76,7 +76,7 @@ def conf():
         'stype': {},
         CFG_MQTTHOST: 'broker.emqx.io',
         CFG_MQTTNAME: uid,
-        CFG_MQTTPREFIX: 'mesh',
+        CFG_MQTTPREFIX: mesh,
         CFG_MQTTPORT: 1883,
         CFG_MQTTUSER: uid,
         CFG_MQTTPASS: 'anonymous',
