@@ -5,7 +5,7 @@ from gc import collect, mem_free
 
 import ure
 import utime
-from machine import idle
+from machine import Pin, idle
 
 import config as g
 
@@ -42,14 +42,11 @@ def discovery(sender,addr, data:str ):
            print('discoverey',ip, addr,data)
         return True
 
-relayState = 0
-def getState():
-    global relayState
+def getState(pin=4):
+    relayState = Pin(pin,Pin.OUT).value()
     return relayState
-def action_state(value):
-    global relayState
-    relayState = value
-    print(value)    
+def action_state(value:int,pin=4):
+    Pin(pin, Pin.OUT).value(value)
     return True
 
 def make_header(soap, status_code, contentType):
@@ -81,10 +78,9 @@ def dbg(txt):
     print(txt)
     return True
 def handle_request(client, data):
-        global relayState
         if (
             data.find(b"POST /upnp/control/basicevent1 HTTP/1.1") == 0
-            and data.find(b"urn:Belkin:service:basicevent:1#GetBinaryState") != -1
+            and data.find(b"#GetBinaryState") != -1
         ):          
            return send_response(client,  readFile('state.soap').format(state=getState()))
         elif data.find(b"GET /eventservice.xml HTTP/1.1") == 0:
@@ -92,7 +88,7 @@ def handle_request(client, data):
         elif data.find(b"GET /setup.xml HTTP/1.1") == 0:
             return send_response(client, readFile('setup.xml').format(name=label(), uuid=g.uid),200,'application/xml' )
         elif (
-            data.find(b'basicevent:1#SetBinaryState"')
+            data.find(b'#SetBinaryState')
             != -1
         ):
             print(data)
@@ -107,7 +103,7 @@ def handle_request(client, data):
                 success = action_state(0)
             else:
                 print("Unknown Binary State request:")
-
+            collect()
             if success:
                  send_response(client,  readFile('state.soap').format(state=getState()))
                  return True

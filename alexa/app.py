@@ -44,11 +44,9 @@ class mainApp:
         self.bind()
         pass
     def timerLoop(self,x):
-        #collect()
-        #idle()
-        print('timerloop', mem_free())
         import mqtt
         mqtt.sendStatus()
+        collect()
         pass   
     def init(self):
         #timer = Timer(-1)
