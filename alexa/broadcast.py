@@ -76,7 +76,7 @@ def handle_not_found(client, url):
 
 
 def label():
-    return g.config['label'] or g.config['mqtt_name']
+    return g.config[g.CFG_LABEL] or g.config[g.CFG_MQTTNAME]
 def dbg(txt):
     print(txt)
     return True
@@ -129,7 +129,7 @@ def http(client,addr,request):
                     else: handle_not_found(client, url)
 
         except Exception as e:
-            print(str(e))
+            print(str(e), ' in ', request)
             send_response(client,readFile('erro.html').format(msg=str(e), url=url) ,500 )
         finally:
             time.sleep(0.2) 

@@ -55,11 +55,10 @@ class Server:
                        print(self.__class__.__name__,str(e))
                        print(self.autoclose,bts.endswith(self.end),self.end,bts)
                     else:   
-                    #if bts.endswith(self.end):
-                            if (self.messageEvent): 
+                        if (len(bts)>0 and  self.messageEvent): 
                                if  self.messageEvent(conn,addr,bts):
                                   break
-                            bts=b''
+                        bts=b''
                     if self.autoclose: break
                     self.next()
                        

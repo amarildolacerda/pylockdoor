@@ -27,7 +27,7 @@ ampy -d 0.5 --port %1 put config.mpy
 ampy -d 0.5 --port %1 put wifimgr.mpy
 ampy -d 0.5 --port %1 put ntp.mpy
 ampy -d 0.5 --port %1 put server.mpy
-ampy -d 0.5 --port %1 put boradcast.mpy
+ampy -d 0.5 --port %1 put broadcast.mpy
 
 ampy -d 0.5 --port %1 put erro.html
 ampy -d 0.5 --port %1 put state.soap

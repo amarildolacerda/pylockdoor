@@ -23,15 +23,15 @@ _port = 8080
 connected = None
 def getConfig():
     global c_ssid, c_pass, c_id
-    c_ssid = g.config['ssid']
-    c_pass = g.config['password']
-    c_id = g.config['mqtt_prefix']
+    c_ssid = g.config[g.CFG_SSID]
+    c_pass = g.config[g.CFG_PASS]
+    c_id = g.config[g.CFG_MQTTPREFIX]
     return g.config
 def setConfig(s, p):
     global c_id
-    g.config['ssid'] = s
-    g.config['password'] = p
-    g.config['mqtt_prefix'] = c_id
+    g.config[g.CFG_SSID] = s
+    g.config[g.CFG_PASS] = p
+    g.config[g.CFG_MQTTPREFIX] = c_id
     getConfig()
 
 def isconnected():
@@ -120,7 +120,7 @@ def accept_http(sock):
                 collect()
                 if url.startswith('description.xml') :
                        send_response(client,  
-readFile('alexa_description.xml').format(g.config['mqtt_name'], g.uid) 
+readFile('alexa_description.xml').format(g.config[g.CFG_MQTTNAME], g.uid) 
 ,200,'application/xml' )
                 else:
                        handle_not_found(client, url)
