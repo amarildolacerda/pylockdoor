@@ -1,6 +1,6 @@
-import config as g
 def shGpioP(i):
     try:
+        import config as g
         s = ''
         mode = g.gMde(i)
         trigger = g.gTrg(i)
@@ -24,6 +24,7 @@ def shGpioP(i):
     return s
 def shGpio():
     m = {}
+    import config as g
     for i in g.config[g.gp_mde]:
         mode = g.gMde(i)
         if mode != None:

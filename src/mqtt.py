@@ -58,8 +58,9 @@ def sendStatus(force=False):
         global host
         rsp = p(topic_topology(), show.show(), 0)
         mqttResetCount += (1-rsp)
-        if (mqttResetCount > 0):
-            reset()
+        #if (mqttResetCount > 0):
+            #cnt()
+            #reset()
         if g.defineEsp32:
             p(tpfx()+'/sensor/temp',
               str(round((esp32.raw_temperature() - 32) / 1.8, 1)), 1)

@@ -1,16 +1,15 @@
-from gc import mem_alloc, mem_free
-
-from machine import RTC
-
-import config as g
 
 
 def getRTCNow():
+    from machine import RTC
     return RTC().datetime()
 def shConfig(x=False):
     m = {}
     try:
-        m['ip'] = g.dados[g.IFCONFIG]        
+        from gc import mem_alloc, mem_free
+
+        from config import IFCONFIG, dados
+        m['ip'] = dados[IFCONFIG]        
         m['free'] = mem_free()
         m['alloc'] = mem_alloc()
         m['time'] = str(getRTCNow())

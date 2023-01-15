@@ -1,24 +1,21 @@
 
 from gc import collect
-from json import dumps
-from os import listdir, uname
 from time import sleep
 
 from machine import ADC, idle, reset
-from micropython import const
 
 import config as g
-import mqtt
 
 _N = None
-_g = const('get')
-_s = const('set')
+_g = 'get'
+_s =  'set'
 sendCB = None
 def r(p, response='/response'):
     global sendCB
     try:
         if (p != _N):
-            mqtt.sdRsp(p,0,response)
+            from mqtt import sdRsp
+            sdRsp(p,0,response)
         if sendCB:
             sendCB(p+'\r\n')
     finally:
@@ -27,7 +24,8 @@ def rPin(pin, p):
     global sendCB
     try:
         if (p != _N):
-            mqtt.sdPinRsp(pin, p)
+            from mqtt import sdPinRsp
+            sdPinRsp(pin, p)
         if sendCB:
             sendCB(p+'\r\n')
     finally:
@@ -81,7 +79,8 @@ def cmmd(c):
                     import configshow
                     return r(configshow.shScene())
                 elif cmd1 == 'stats':
-                    return mqtt.sendStatus(True)
+                    from mqtt import sendStatus
+                    sendStatus(True)
                 import configshow as cs
                 return r(cs.show())
 
@@ -148,7 +147,8 @@ def cmmd(c):
                 elif cmd1 == 'model':
                     return g.model(cmd2)
                 elif cmd1 == 'account':
-                    return mqtt.account(cmd2)
+                    from mqtt import account
+                    return account(cmd2)
                 return r(g.sKey(cmd1, cmd2))
             elif cmd == 'get':
                 return r(g.gKey(cmd1))
@@ -162,7 +162,8 @@ def cmmd(c):
                 return r(g.gpioCond(c))        
             ('invalido cmd:{} -> {}'.format(cmd, c))
         except Exception as e:
-            mqtt.error('Error {}: {}'.format(c, e))
+            from mqtt import error
+            error('Error {}: {}'.format(c, e))
     finally:
         pass
 def sadc(p):

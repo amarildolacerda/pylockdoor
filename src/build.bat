@@ -46,7 +46,7 @@ echo compilando....
 
 
 if "%2"=="" goto :todos
-ampy -d 1 --port %1 put %2
+ampy -d 0.5 --port %1 put %2
 goto :fix
 
 

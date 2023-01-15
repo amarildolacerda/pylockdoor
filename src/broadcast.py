@@ -1,16 +1,8 @@
 
-import socket
-import time
-from gc import collect, mem_free
-
-import ure
-import utime
-from machine import Pin, idle
-
-import config as g
 
 
 def now():
+   import utime
    t = utime.localtime()
    return '{}-{}-{}T{}:{}:{}'.format(t[0],t[1],t[2],t[3],t[4],t[5])
 
@@ -20,9 +12,12 @@ class Alexa:
     def readFile(self,nome:str):  
         with open(nome, 'r') as f:return f.read()
     def sendto(self, destination, message):
-        temp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        from socket import AF_INET, SOCK_DGRAM, socket
+        temp_socket = socket(AF_INET, SOCK_DGRAM)
         temp_socket.sendto(message, destination)
+        from machine import idle
         idle()
+        import time
         time.sleep(0.1)
     def send_msearch(self,  addr):
         self.sendto(addr, self.readFile("msearch.html").format(self.ip))
@@ -32,7 +27,8 @@ def readFile(nome:str):
 
 
 def discovery(sender,addr, data:str ):
-        ip = g.dados[g.IFCONFIG][0]
+        from config import IFCONFIG, dados
+        ip = dados[IFCONFIG][0]
         if data.startswith(b"M-SEARCH"):
                 alexa = Alexa(ip)
                 alexa.send_msearch(addr)
@@ -43,9 +39,11 @@ def discovery(sender,addr, data:str ):
         return True
 
 def getState(pin='4'):
-    return g.gpin(pin)
+    from config import gpin
+    return gpin(pin)
 def action_state(value:int,pin='4'):
-    g.spin(pin,value)
+    from config import spin
+    spin(pin,value)
     return True
 
 def make_header(soap, status_code, contentType):
@@ -71,7 +69,8 @@ def handle_not_found(client, url):
 
 
 def label():
-    return g.config[g.CFG_LABEL] or g.config[g.CFG_MQTTNAME]
+    from config import config
+    return config['label'] or config['mqtt_name']
 def dbg(txt):
     print(txt)
     return True
@@ -84,7 +83,8 @@ def handle_request(client, data):
         elif data.find(b"GET /eventservice.xml HTTP/1.1") == 0:
            return send_response(client,  readFile('eventservice.xml'),200,'application/xml')
         elif data.find(b"GET /setup.xml HTTP/1.1") == 0:
-            return send_response(client, readFile('setup.xml').format(name=label(), uuid=g.uid),200,'application/xml' )
+            from config import uid
+            return send_response(client, readFile('setup.xml').format(name=label(), uuid=uid),200,'application/xml' )
         elif (
             data.find(b'#SetBinaryState')
             != -1
@@ -97,6 +97,7 @@ def handle_request(client, data):
             else:
                 print("Unknown Binary State request:")
             if success:
+                 from gc import collect
                  collect()
                  send_response(client,  readFile('state.soap').format(state=getState()))
                  return True
@@ -107,6 +108,7 @@ def handle_request(client, data):
 
 
 def http(client,addr,request):
+        import ure
         try:
                 client.setblocking(False)
                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP",
@@ -114,13 +116,15 @@ def http(client,addr,request):
                 print('Url',url)
                 if not handle_request(client, request):                         
                     if url.endswith('.xml') or url.endswith('.html')   :
-                        send_response(client,      (readFile(url) or '').format(name=label() or 'indef',uuid= g.uid, url=url)     ,200,'text/{}'.format(url.split('.')[1]) )
+                        from config import uid
+                        send_response(client,      (readFile(url) or '').format(name=label() or 'indef',uuid= uid, url=url)     ,200,'text/{}'.format(url.split('.')[1]) )
                     else: handle_not_found(client, url)
 
         except Exception as e:
             print(str(e), ' in ', request)
             send_response(client,readFile('erro.html').format(msg=str(e), url=url) ,500 )
         finally:
+            import time
             time.sleep(0.2) 
             client.close()       
         return true    

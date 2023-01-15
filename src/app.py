@@ -9,14 +9,16 @@ _N = None
 _T = True
 _F = False
 try:
-    import config as g
+    from config import IFCONFIG, config, dados
+    from config import start as cfg_start
+    from config import uid
     wlan = _N
     def connectWifi():
         global wlan
         from wifimgr import get_connection, isconnected
         if not wlan:
             wlan = get_connection()
-            g.dados[g.IFCONFIG] = wlan.ifconfig()
+            dados[IFCONFIG] = wlan.ifconfig()
         return isconnected()
     def mqtt_rcv(_t, _p):
         t = _t.decode('utf-8')
@@ -31,9 +33,9 @@ try:
         try:
             import mqtt
             mqtt.topic = mqtt.tpfx()
-            mqtt.host = g.config['mqtt_host']
-            mqtt.create(g.uid, g.config['mqtt_host'],
-                        g.config['mqtt_user'], g.config['mqtt_password'])
+            mqtt.host = config['mqtt_host']
+            mqtt.create(uid, config['mqtt_host'],
+                        config['mqtt_user'], config['mqtt_password'])
             mqtt.callback(mqtt_rcv)
             mqtt.cnt()
             mqtt.sb(mqtt.topic_command_in())
@@ -72,8 +74,8 @@ try:
                         errCount = 0
                 except:
                     errCount = errCount + 1
-                    if errCount > 10:
-                        reset()
+                    #if errCount > 10:
+                    #    reset()
                     mqttConnect(wlan.ifconfig()[0])
             else: eventLoop(False)
           finally:
@@ -91,14 +93,21 @@ try:
         global timer
         from event import init as ev_init 
         ev_init()
-        g.start()
+        cfg_start()
 
     def doTelnetEvent(server, addr,message):
         print('telnet',addr,message)
         if message.startswith('quit'):
+            server.close()
+            sleep(1)
+            reset()
             return True
-        from command8266 import rcv
-        server.send(rcv(str(message)))
+        from command8266 import cmmd
+        rsp = cmmd(str(message))
+        print('Resp:',rsp)
+        if rsp:
+           server.sendall(rsp)
+           sleep(0.5)
         return False
 
     def services_run(ip,timeloop):

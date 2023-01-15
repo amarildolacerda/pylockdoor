@@ -1,10 +1,10 @@
-from gc import mem_alloc, mem_free
-
-import commandutils as u
-import config as g
 
 _N = None
 def show():
+    from gc import mem_alloc, mem_free
+
+    import commandutils as u
+    import config as g
     m = {}
     m['time'] = u.now()
     m['ssid'] = g.config['ssid']
@@ -15,9 +15,11 @@ def show():
     return str(m)
 def shMqtt():
     m = {}
-    for item in g.config:
+    from config import config
+    for item in config:
         if ('mqtt' in item):
-            m[item] = g.config[item]
+            m[item] = config[item]
     return str(m)
 def shScene():
-    return str(g.config[g.events])
+    from config import config, events
+    return str(config[events])
