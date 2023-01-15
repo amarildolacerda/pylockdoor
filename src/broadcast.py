@@ -63,7 +63,6 @@ def make_header(soap, status_code, contentType):
 
 def send_response(client, payload, status_code=200, contentType='text/html'):
     client.sendall(make_header(payload,status_code,contentType ))
-    print(payload)
     return True
     
 def handle_not_found(client, url):

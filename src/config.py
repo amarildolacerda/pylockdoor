@@ -65,7 +65,7 @@ def conf():
         'mqtt_port': 1883,
         'mqtt_user': uid,
         'mqtt_password': 'anonymous',
-        'mqtt_interval': 10,
+        'mqtt_interval': 30,
         'mqtt_prefix': mesh,
         'interval': 0.3,
     }

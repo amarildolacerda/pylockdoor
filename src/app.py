@@ -95,13 +95,16 @@ try:
 
     def doTelnetEvent(server, addr,message):
         print('telnet',addr,message)
+        if message.startswith('quit'):
+            return True
         from command8266 import rcv
-        server.send(rcv(message))
-        return True
+        server.send(rcv(str(message)))
+        return False
 
     def services_run(ip,timeloop):
         import server as services
         telnet = services.Server("",7777, "IHomeware Terminal")
+        telnet.autoclose = false
         telnet.listen(doTelnetEvent)
 
         import broadcast
