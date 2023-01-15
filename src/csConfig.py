@@ -10,7 +10,7 @@ def getRTCNow():
 def shConfig(x=False):
     m = {}
     try:
-        m['ip'] = g.ifconfig
+        m['ip'] = g.dados[g.IFCONFIG]        
         m['free'] = mem_free()
         m['alloc'] = mem_alloc()
         m['time'] = str(getRTCNow())

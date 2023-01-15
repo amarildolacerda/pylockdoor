@@ -1,45 +1,35 @@
 from gc import collect, mem_alloc, mem_free
 from time import sleep
 
-from machine import DEEPSLEEP_RESET, Timer, idle, reset, reset_cause
-from micropython import const
+from machine import Timer, idle, reset, reset_cause
 
-import mqtt
-import wifimgr
-from alexaserver import AlexaRun
+from mqtt import p as mqttp
 
-_N = const(None)
-_T = const(True)
-_F = const(False)
+_N = None
+_T = True
+_F = False
 try:
-    import gc
-
-    import network
-
-    import command8266 as cm
     import config as g
-    import configshow as show
-    import event as ev
-    import ntp
-    import server
     wlan = _N
-    telnet = _N
     def connectWifi():
         global wlan
+        from wifimgr import get_connection, isconnected
         if not wlan:
-            wlan = wifimgr.get_connection()
-            g.ifconfig = wlan.ifconfig()
-        return wlan.isconnected()
+            wlan = get_connection()
+            g.dados[g.IFCONFIG] = wlan.ifconfig()
+        return isconnected()
     def mqtt_rcv(_t, _p):
         t = _t.decode('utf-8')
         p = _p.decode('utf-8')
         try:
-            cm.tpRcv(t,p)
+            from command8266 import tpRcv
+            tpRcv(t,p)
         except OSError as e:
-            mqtt.p('Invalid', 0)
+            mqttp('Invalid', 0)
             pass
     def mqttConnect(ip=''):
         try:
+            import mqtt
             mqtt.topic = mqtt.tpfx()
             mqtt.host = g.config['mqtt_host']
             mqtt.create(g.uid, g.config['mqtt_host'],
@@ -51,7 +41,6 @@ try:
         except OSError as e:
             p(e)
     def loop():
-        mqtt.disp()
         while _T:
             try:
                 gpioLoopCallback()
@@ -59,70 +48,90 @@ try:
                 pass
     errCount = 0
     inLoop = False
+    def eventLoop(v):
+        from event import cv 
+        cv(v)
+        pass
     def gpioLoopCallback():
         global errCount, inLoop
         if inLoop: return
         try:
+          from mqtt import disp
+          disp()
           try:  
             inLoop = True
+            from wifimgr import timerFeed, timerReset
             if wlan.isconnected():
                 try:
-                    wifimgr.timerFeed()
-                    mqtt.check_msg()
-                    ev.cv(mqtt.connected)
-                    if mqtt.connected:
-                        mqtt.sendStatus()
+                    timerFeed()
+                    from mqtt import check_msg, connected, sendStatus
+                    check_msg()
+                    eventLoop(connected)
+                    if connected:
+                        sendStatus()
                         errCount = 0
                 except:
                     errCount = errCount + 1
                     if errCount > 10:
                         reset()
                     mqttConnect(wlan.ifconfig()[0])
-            else: ev.cv(False)
+            else: eventLoop(False)
           finally:
-            wifimgr.timerReset(True)
+            timerReset(True)
             inLoop = False    
             collect()
-            idle()
+            sleep(0.05)
         except Exception as e:
             pass
-    def telnetCallback(data):
-        return cm.rcv(data)
-    def p(x):
-        print(x)
     def timerLoop(x):
         gpioLoopCallback()
         return True
     timer = None
     def init():
         global timer
-        ev.init()
+        from event import init as ev_init 
+        ev_init()
         g.start()
-        timer = Timer(-1)
-        timer.init(mode=Timer.PERIODIC,
-                   period=1000, callback=timerLoop)
+
+    def doTelnetEvent(server, addr,message):
+        print('telnet',addr,message)
+        from command8266 import rcv
+        server.send(rcv(message))
+        return True
+
+    def services_run(ip,timeloop):
+        import server as services
+        telnet = services.Server("",7777, "IHomeware Terminal")
+        telnet.listen(doTelnetEvent)
+
+        import broadcast
+        web = services.WebServer("", 8080)
+        web.listen(broadcast.http)
+
+        udp = services.Broadcast(callbackFn=timeloop)
+        udp.listen(broadcast.discovery)
+        pass
+
     def bind():
-            global telnet, wlan
+            global  wlan
             if not connectWifi():
                reset()
-            try: ntp.settime()
+            try:
+                from ntp import settime
+                settime()
             except: pass
             mqttConnect(wlan.ifconfig()[0])
-            if (g.config['locked'] == 0):
-                collect()
-                telnet = server.TCPServer()
-                telnet.callback(telnetCallback)
-                telnet.feed(gpioLoopCallback)
-                telnet.start()
-            wifimgr.start(8080)    
-            AlexaRun(wlan.ifconfig()[0], timerLoop)
+
     def run():
-        global telnet
-        if reset_cause() == DEEPSLEEP_RESET:
-            ev.setSleep(-1)
         try:
             init()
             bind()
+    
+            timer = Timer(-1)
+            timer.init(mode=Timer.PERIODIC,
+                   period=1000, callback=timerLoop)
+
+            services_run(wlan.ifconfig()[0],timerLoop)
             loop()
         except KeyboardInterrupt as e:
             pass
@@ -130,9 +139,8 @@ try:
             print(e)
             reset()
         finally:
-            if (telnet is not None):
-                telnet.close()
-            mqtt.dcnt()
+            from mqtt import dcnt
+            dcnt()
             try:
                 wlan.close()
             except:

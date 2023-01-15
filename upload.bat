@@ -42,6 +42,7 @@ mpy-cross src/umqtt_simple.py
 
 mpy-cross src/alexaserver.py
 
+mpy-cross src/broadcast.py
 
 
 rem ampy  --port %1 ls
@@ -57,47 +58,49 @@ goto :so
 :todos
 :upload
 cd src
-ampy -d 1 --port %1 put boot.py
-ampy  --port %1 put command32.mpy	
-ampy  --port %1 put commandutils.mpy	
-ampy  --port %1 put command8266.mpy
-ampy  --port %1 put config.mpy
+del *.mpy
 
-ampy  --port %1 put configshow.mpy
+ampy -d 0.5 --port %1 put boot.py
+ampy -d 0.5 --port %1 put command32.mpy	
+ampy -d 0.5 --port %1 put commandutils.mpy	
+ampy -d 0.5 --port %1 put command8266.mpy
+ampy -d 0.5 --port %1 put config.mpy
 
-ampy  --port %1 put csConfig.mpy
-ampy  --port %1 put csGpio.mpy
+ampy -d 0.5 --port %1 put configshow.mpy
 
-ampy  --port %1 put event.mpy
-ampy  --port %1 put eventutils.mpy
-ampy  --port %1 put main.py
-ampy  --port %1 put app.mpy
-ampy  --port %1 put mqtt.mpy	
-ampy  --port %1 put ntp.mpy
-ampy  --port %1 put server.mpy
-ampy  --port %1 put wifimgr.mpy
-ampy  --port %1 put umqtt_simple.mpy
-ampy  --port %1 put help.tmpl
-ampy  --port %1 put commandutils.mpy
-echo ampy  --port %1 put wssid.html
-echo ampy --port %1 put wfalhou.html
-echo ampy --port %1 put broadcast.mpy
-ampy --port %1 put alexaserver.mpy
-ampy --port %1 put alexa_description.xml
-ampy --port %1 put alexa_search.html
+ampy -d 0.5 --port %1 put csConfig.mpy
+ampy -d 0.5 --port %1 put csGpio.mpy
+
+ampy -d 0.5 --port %1 put event.mpy
+ampy -d 0.5 --port %1 put eventutils.mpy
+ampy -d 0.5 --port %1 put main.py
+ampy -d 0.5 --port %1 put app.mpy
+ampy -d 0.5 --port %1 put mqtt.mpy	
+ampy -d 0.5 --port %1 put ntp.mpy
+ampy -d 0.5 --port %1 put server.mpy
+ampy -d 0.5 --port %1 put wifimgr.mpy
+ampy -d 0.5 --port %1 put umqtt_simple.mpy
+ampy -d 0.5 --port %1 put help.tmpl
+ampy -d 0.5 --port %1 put commandutils.mpy
+ampy -d 0.5 --port %1 put broadcast.mpy
+ampy -d 0.5 --port %1 put erro.html
+ampy -d 0.5 --port %1 put eventservice.xml
+ampy -d 0.5 --port %1 put help.tmpl
+ampy -d 0.5 --port %1 put msearch.html
+ampy -d 0.5 --port %1 put setup.xml
+ampy -d 0.5 --port %1 put state.soap
+
 
 cd ..
-goto :fim
+goto :fix
 
 :so
-rem ampy  --port %1 rm ".\src\%2"
 ampy -d 0.5 --port %1 put .\src\%2
 
+:fix
 
 :fim
-rem ampy --port %1 run main.py
-
-
+esptool.py --port %1 --baud 1000000 run  
 
 
 

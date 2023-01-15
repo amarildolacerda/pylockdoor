@@ -1,20 +1,15 @@
 from gc import collect
 from time import ticks_diff, ticks_ms
 
-from machine import (ADC, DEEPSLEEP, DEEPSLEEP_RESET, RTC, Pin, idle,
-                     reset_cause)
-from micropython import const
+from machine import ADC, RTC, Pin, idle, reset_cause
 
-import command8266 as ev
 import config as g
-import mqtt
 
-_N = const(None)
-_T = const(True)
-_F = const(False)
+_N = None
+_T = True
+_F = False
 utm = ticks_ms()
 nled = 0
-go_sleep = 0
 def init():
     pass
 def timerEvent(x):
@@ -28,17 +23,13 @@ def spin(p1: str, p3) -> str:
     return g.spin(p1, p3)
 def p(pin: str, msg: str):
     try:
-        mqtt.p(mqtt.tCmdOut()+'/%s' % pin, msg)
+        from mqtt import p, tCmdOut
+        p(tCmdOut()+'/%s' % pin, msg)
     except:
         pass
 def setSleep(n: int):
-    global go_sleep
-    if (n == None):
-        go_sleep = 0
-    else:
-        go_sleep += n
+    pass
 def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
-    global go_sleep
     m = 0
     t = 0
     try:
@@ -53,27 +44,10 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
                 if (m == 0) or (ticks_diff(ticks_ms(), m) > t*1000):
                     g.spin(p, 1-seFor)
                     return True
-        if (go_sleep > 1):
-            if (go_sleep < 2 and g.config['sleep'] > 0):
-                mqtt.p(mqtt.tCmdOut()+'/sleep', str(g.config['sleep']))
-            go_sleep += 1
-            if go_sleep > 60:
-                go_sleep = 0
-                if (g.config['sleep'] > 0):
-                    collect()
-                    idle()
-                    deepsleep(g.config['sleep'])
     except Exception as e:
         print('Erro Time seFor {} em {}: {} [{},{}] {}'.format(
             seFor, key, p, m, t, e))
     return False
-def deepsleep(n):
-    rtc = RTC()
-    rtc.irq(trigger=rtc.ALARM0, wake=DEEPSLEEP)
-    if reset_cause() == DEEPSLEEP_RESET:
-        print('iniciando deep sleep')
-    rtc.alarm(rtc.ALARM0, n*1000)
-    #machine.deepsleep()
 
 def o(p: str, v, mode: int, force=_F, topic: str = None):
     try:
@@ -84,12 +58,14 @@ def o(p: str, v, mode: int, force=_F, topic: str = None):
         if force or (v - x) != 0:
             g.sVlr(p, v)
             g.trigg(p, v)
-            mqtt.p((topic or mqtt.tCmdOut())+'/' + p, v)
+            from mqtt import p as mqttp
+            from mqtt import tCmdOut
+            mqttp((topic or tCmdOut())+'/' + p, v)
     except Exception as e:
         print('{} {}'.format('event.switch: ', e))
     idle()
 def cv(mqtt_active=False):
-    global utm, nled, go_sleep
+    global utm, nled
     try:
         t = ticks_ms()
         if ticks_diff(t, utm) > g.config["interval"]*1000:
@@ -102,28 +78,17 @@ def cv(mqtt_active=False):
                 stype = g.gstype(i)
                 md = g.gMde(i)
                 if (md != None):
+                    from mqtt import tpfx
                     if (md in [1, 2]):
                         v = g.gpin(i)
-                        o(i, v, md, False, mqtt.tpfx() +
+                        o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'gpio'))
-                        localTrig(i,'gpio',v)  
                         setSleep(1)
                         continue
                     elif (md == 3):
                         v = ADCRead(i)
-                        o(i, v, md, False, mqtt.tpfx() +
+                        o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'adc'))
-                        localTrig(i,'adc',v)  
-                        setSleep(1)
-                        continue
-                    elif (md == 5):
-                        o(i, getDht11(i), md, False, mqtt.tpfx() +
-                          '/{}'.format(stype or 'dht11'))
-                        setSleep(1)
-                        continue
-                    elif (md == 6):
-                        o(i, getDht12(i), md, False, mqtt.tpfx() +
-                          '/{}'.format(stype or 'dht12'))
                         setSleep(1)
                         continue
             if bled:
@@ -137,80 +102,16 @@ def cv(mqtt_active=False):
     idle()
 def ADCRead(pin: str):
     return ADC(int(pin)).read()
-def getDht11(pin: str):
-    import dht
-    d = dht.DHT11(Pin(int(pin)))
-    d.measure()
-    d.temperature()  # eg. 23 (°C)
-    d.humidity()
-    return {"temp": d.temperature(), "hum": d.humidity()}
-def getDht12(pin: str):
-    import dht
-    d = dht.DHT12(Pin(int(pin)))
-    d.measure()
-    d.temperature()  # eg. 23 (°C)
-    d.humidity()
-    return {"temp": d.temperature(), "hum": d.humidity()}
 def interruptTrigger(pin: Pin):
     p = -1
-    for key in g.pins:
-        if g.pins[key] == pin:
+    for key in g.dados[g.PINS]:
+        if g.dados[g.PINS][key] == pin:
             p = int(key)
     if p >= 0:
         o(p, pin.value(), None, _T)
-    collect()
-  
-sv = {"none":None}  
-def localTrig(i: str,stype: str,value: int):
-    global sv 
-    for j in g.config[g.conds]:
-        cmd = j.split(',',8)
-        c = cmd[2]
-        a = int(cmd[3])
-        tp = cmd[4] 
-        p = cmd[5]
-        v = g.strToNum(cmd[6] or str(value))
-        if (tp=='s'):
-          try: 
-            x = sv.get('{}'.format(p)) or '-1'
-            if (cmd[0]==stype)  and cmd[1]==i and x != cmd[6]: # and vo != value   :  
-                rsp = None
-                vo = g.strToNum('{}'.format(value))
-                va = g.strToNum('{}'.format(a))
-                if (c == 'eq' and vo == va):
-                    rsp = 'eq'
-                elif (c == 'lt' and vo < va):
-                    rsp = 'lt'
-                elif (c == 'gt' and vo > va):
-                    rsp = 'gt'        
-                elif (c == 'ne' and vo != va):
-                    rsp = 'ne'
+        print('gpio {} set {}'.format(p,pin.value()))
 
-                if (rsp != None):
-                    mqtt.p(mqtt.tpfx()+'/scene/'+p,cmd[6])
-                    _p = 'scene '+p+' set '+cmd[6]
-                    print(_p)
-                    sv['{}'.format(p)] =cmd[6]
-                    ev.rcv(_p)
-            continue
-          except Exception as e: 
-                print('error {}, {}=={} and {}=={} {} '.format(cmd,cmd[0],stype,cmd[1],i,e))
-        elif (tp=='t'):
-            vo = g.strToNum(g.gpin(p))
-            if (cmd[0]==stype)  and (cmd[1]==i and (vo != v)):  
-                rsp = None;
-                if (c=='lt') and (value < a):
-                    rsp = g.spin(p, v, True)
-                elif (c=='gt') and (value > a):
-                    rsp = g.spin(p, v,True)
-                elif (c=='eq') and (value == a):
-                    rsp = g.spin(p,v, True)
-                elif (c=='ne') and (value != a):
-                    rsp = g.spin(p,v, True)
-                if (rsp != None):
-                    mqtt.p(mqtt.tpfx() +'/gpio/' + p, g.gpin(p) )    
-            continue   
     collect()
-    return 'nok'
+
 
 g.irqEvent(interruptTrigger)

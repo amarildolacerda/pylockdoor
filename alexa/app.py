@@ -4,6 +4,7 @@ from machine import DEEPSLEEP_RESET, Timer, idle, reset, reset_cause
 
 import ntp
 import wifimgr
+from event import cv
 
 
 def doTelnetEvent(server, addr,message):
@@ -41,14 +42,13 @@ def gpioLoopCallback():
         if inLoop: return
         try:
           #import event as ev
-          import mqtt
           try:  
             inLoop = True
             if wlan.isconnected():
+                import mqtt
                 try:
                     wifimgr.timerFeed()
                     mqtt.check_msg()
-           #         ev.cv(mqtt.connected)
                     if mqtt.connected:
                         mqtt.sendStatus()
                         errCount = 0
@@ -63,8 +63,6 @@ def gpioLoopCallback():
           finally:
             wifimgr.timerReset(True)
             inLoop = False    
-            collect()
-            idle()
         except Exception as e:
             pass
 
@@ -76,23 +74,15 @@ class mainApp:
         self.bind()
         pass
     def eventLoop(self,rt):
-        import event as ev
-        ev.cv(rt)
+       # ev.cv(rt)
         pass
-       
     def timerLoop(self,x):
-
         rt = gpioLoopCallback()
-        collect()
-        idle()
         self.eventLoop(rt)
-        collect()
-        idle()
-           
     def init(self):
-        #timer = Timer(-1)
-        #timer.init(mode=Timer.PERIODIC,
-        #           period=5000, callback=self.timerLoop)
+        timer = Timer(-1)
+        timer.init(mode=Timer.PERIODIC,
+                   period=5000, callback=self.timerLoop)
         pass
     def bind(self):
             global wlan

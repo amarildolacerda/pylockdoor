@@ -11,7 +11,7 @@ def show():
     m['free']  = mem_free()
     m['alloc'] = mem_alloc()
     m['id'] = g.uid
-    m['ip'] = g.ifconfig
+    m['ip'] = g.dados[g.IFCONFIG]
     return str(m)
 def shMqtt():
     m = {}

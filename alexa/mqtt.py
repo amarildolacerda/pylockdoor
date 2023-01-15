@@ -25,7 +25,7 @@ def topologyshow():
     m['free']  = mem_free()
     m['alloc'] = mem_alloc()
     m['id'] = g.uid
-    m['ip'] = g.ifconfig
+    m['ip'] = g.dados[g.IFCONFIG]
     return str(m)
 
 
@@ -111,7 +111,7 @@ def sdOut(p, v):
 def sb(aSubTopic):
     if mq != _N:
         mq.subscribe(aSubTopic)
-        mq.subscribe(g.events+'/+')
+        mq.subscribe('scene'+'/+')
         mq.subscribe(topic_alive())
 
 def callback(aCallback):

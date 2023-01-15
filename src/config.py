@@ -18,10 +18,16 @@ constPinOUT = 1
 constPinIN = 2
 onoff = 7
 inited = _F
-ifconfig = None
 _changed = _F
 uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
-pins = {}
+
+IFCONFIG = 0
+PINS = 1
+dados = {
+   IFCONFIG:None,
+   PINS : {}
+}
+
 gp = 'g_'
 trigger = 'tr'
 gp_trg = gp+trigger
@@ -37,13 +43,13 @@ mesh = 'ihomeware/'+uid
 gpio = 'gpio'
 conds = 'conds'
 def conf():
-    
     return {
         'sleep': 0,
         'led': 255,
         'locked': 0,
-        'ssid': 'micasa',
-        'password': '3938373635',
+        'label':'Luz escritório',
+        'ssid' : 'VIVOFIBRA-A360',
+        'password' : '6C9FCEC12A', 
         'ap_ssid': 'hm_{}'.format(uid),
         'ap_password': '123456780',
         gp_mde: {},
@@ -59,10 +65,9 @@ def conf():
         'mqtt_port': 1883,
         'mqtt_user': uid,
         'mqtt_password': 'anonymous',
-        'mqtt_interval': 60,
+        'mqtt_interval': 10,
         'mqtt_prefix': mesh,
         'interval': 0.3,
-        # 'sleep':0.0,
     }
 config = conf()
 def restore():
@@ -202,14 +207,14 @@ def gpin(p1: str) -> int:
     except Exception as e:
         print('{} {} {}'.format('gpin: ',p1, e))
 def initPin(pin: str, tp):
-    global pins
+    global dados
     try:
-        if not pin in pins.keys():
-            pins[pin] = Pin(int(pin), tp)
+        if not pin in dados[PINS].keys():
+            dados[PINS][pin] = Pin(int(pin), tp)
             if tp == Pin.IN:
-                pins[pin].irq(trigger=Pin.IRQ_RISING,
+                dados[PINS][pin].irq(trigger=Pin.IRQ_RISING,
                               handler=interruptEvent)
-        return pins[pin]
+        return dados[PINS][pin]
     except Exception as e:
         print('{} {}'.format('initPin: ', e))
     return None

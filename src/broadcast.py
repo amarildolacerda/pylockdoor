@@ -90,20 +90,15 @@ def handle_request(client, data):
             data.find(b'#SetBinaryState')
             != -1
         ):
-            print(data)
             success = False
             if data.find(b"<BinaryState>1</BinaryState>") != -1:
-                # on
-                print("Responding to ON for %s" )
                 success = action_state(1) 
             elif data.find(b"<BinaryState>0</BinaryState>") != -1:
-                # off
-                print("Responding to OFF for %s")
                 success = action_state(0)
             else:
                 print("Unknown Binary State request:")
-            collect()
             if success:
+                 collect()
                  send_response(client,  readFile('state.soap').format(state=getState()))
                  return True
             else: 

@@ -55,7 +55,7 @@ def o(p: str, v, mode: int, force=_F, topic: str = None):
 
             mqttp((topic or tCmdOut())+'/' + p, v)
     except Exception as e:
-        print(str(e))
+        print('event.o: {}'.format(str(e)))
 def cv(mqtt_active=False):
     global utm, nled
     try:
@@ -70,7 +70,7 @@ def cv(mqtt_active=False):
                 stype = g.gstype(i)
                 md = g.gMde(i)
                 if (md != None):
-                    if (md in [1, 2]):
+                    if (md in [g.PinOUT, g.PinIN]):
                         v = g.gpin(i)
 
                         o(i, v, md, False, tpfx() +
@@ -78,7 +78,7 @@ def cv(mqtt_active=False):
                         #localTrig(i,'gpio',v)  
                         #setSleep(1)
                         continue
-                    elif (md == 3):
+                    elif (md == g.PinADC):
                         v = ADCRead(i)
                         o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'adc'))
@@ -94,13 +94,16 @@ def cv(mqtt_active=False):
         print('{} {}'.format('event.cv: ', e))
 def ADCRead(pin: str):
     return ADC(int(pin)).read()
+    
 def interruptTrigger(pin: Pin):
     p = -1
-    for key in g.pins:
-        if g.pins[key] == pin:
+    print('PINS:',g.dados[g.PINS])
+    for key in g.dados[g.PINS].keys():
+        if g.dados[g.PINS][key] == pin:
             p = int(key)
+    print('NOTIFY gpio {} get -> {}'.format(p,pin.value()))        
     if p >= 0:
-        o(p, pin.value(), None, _T)
+        o(str(p), pin.value(), None, _T)
     collect()
 
 

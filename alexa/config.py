@@ -4,63 +4,71 @@ from time import ticks_diff, ticks_ms
 from machine import Pin, unique_id
 from ubinascii import hexlify
 
-CFG_LABEL = 'label'
-CFG_SSID = 'ssid'
-CFG_PASS = 'password'
-CFG_APSSID = 'ap_ssid'
-CFG_APPASS = 'ap_password'
+CFG_LABEL = 1
+CFG_SSID = 2
+CFG_PASS = 3
+CFG_APSSID = 4
+CFG_APPASS = 5
 
-CFG_MQTTPREFIX = 'mqtt_prefix'
-CFG_MQTTNAME = 'mqtt_name'
-CFG_MQTTINTERNAL = 'mqtt_interval'
-CFG_MQTTHOST = 'mqtt_host'
-CFG_MQTTUSER = 'mqtt_user'
-CFG_MQTTPASS = 'mqtt_password'
-CFG_MQTTPORT = 'mqtt_port'
-CFG_INTERVAL = 'interval'
-CFG_LED = 'led'
-
+CFG_MQTTPREFIX = 6
+CFG_MQTTNAME = 7
+CFG_MQTTINTERNAL = 8
+CFG_MQTTHOST = 9
+CFG_MQTTUSER = 10
+CFG_MQTTPASS = 11
+CFG_MQTTPORT = 12
+CFG_INTERVAL = 13
+CFG_LED = 14
+CFG_SLEEP = 15
+CFG_LOCKED = 16
+CFG_STYPE = 'stype'
+CFG_EVENTS = 'scene'
+CFG_CONDS = 'conds'
 uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
-ifconfig = None
 
 _N = None
 _T = True
 _F = False
 _cf = 'c.json'
-try:
-    import esp32
-    _maxPins = 40
-    defineEsp32 = _T
-except:
-    _maxPins = 16
-    defineEsp32 = _F
-constPinOUT = 1
-constPinIN = 2
+maxPins = 16
+defineEsp32 = _F
+
+#Pin Mode
+PinOUT = 1
+PinIN = 2
+PinADC = 3
+
 onoff = 7
+
 inited = _F
 ifconfig = None
 _changed = _F
 uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
-pins = {}
-gp = 'g_'
-trigger = 'tr'
-gp_trg = gp+trigger
-gp_trg_tbl = gp_trg+'_tab'
-gpio_timeoff = 'toff'
-gpio_timeon = 'ton'
-gp_mde = gp+'mode'
-events = 'scene'
-modes = ['none','out','in','adc','pwm','dht11','dht12']
-_table = ['none','monostable_NC','bistable_NC','monostable_NO', 'bistable_NO']
+gp_trg = 101
+gp_trg_tbl = 102
+gpio_timeoff = 103
+gpio_timeon = 104
+gp_mde = 105
+
+
+PINS = 0
+IFCONFIG = 1
+dados = {
+  PINS:{},
+  IFCONFIG:None
+}
+
+modes = ['none','out','in','adc']
+_table = ['none','monostable','bistable']
+
 timeOnOff = {}
 mesh = 'mesh/'+uid
 gpio = 'gpio'
-conds = 'conds'
 def conf():
     return {
-        'sleep': 0,
-        CFG_LED: 255,
-        'locked': 0,
+        CFG_SLEEP: 0,
+        CFG_LED: 2,
+        CFG_LOCKED: 0,
         CFG_LABEL:'Luz escritório',
         CFG_SSID : 'VIVOFIBRA-A360',
         CFG_PASS : '6C9FCEC12A', 
@@ -71,18 +79,17 @@ def conf():
         gp_trg_tbl: {},
         gpio_timeoff: {},
         gpio_timeon: {},
-        events: {},
-        conds:[],
-        'stype': {},
+        CFG_EVENTS: {},
+        CFG_CONDS: [],
+        CFG_STYPE: {},
         CFG_MQTTHOST: 'broker.emqx.io',
         CFG_MQTTNAME: uid,
         CFG_MQTTPREFIX: mesh,
         CFG_MQTTPORT: 1883,
         CFG_MQTTUSER: uid,
         CFG_MQTTPASS: 'anonymous',
-        CFG_MQTTINTERNAL: 60,
+        CFG_MQTTINTERNAL: 10,
         CFG_INTERVAL: 0.3,
-        # 'sleep':0.0,
     }
 config = conf()
 def restore():
@@ -142,7 +149,7 @@ def strToTbl(t: str) -> int:
 def sTrg(p):
     i = str(p[1])
     config[gp_trg][i] = int(p[3])
-    config[gp_mde][i] = constPinIN
+    config[gp_mde][i] = PinIN
     config[gp_trg_tbl][i] = strToTbl(p[4])
 def gTrg(p: str):
     return config[gp_trg].get(p)
@@ -150,10 +157,8 @@ def gTbl(p: str):
     return config[gp_trg_tbl].get(p)
 def sToInt(p3, v):
     if (p3 in ['high', 'ON', 'on', '1']):
-        v = 1
-    if (p3 in ['low', 'OFF', 'off', '0']):
-        v = 0
-    return v
+        return 1
+    else: return 0
 def checkTimeout(conn_lst, dif):
     try:
         d = ticks_diff(ticks_ms(), conn_lst)
@@ -161,9 +166,9 @@ def checkTimeout(conn_lst, dif):
     except:
         return _F
 def gstype(pin):
-    return config['stype'].get(pin)
+    return config[CFG_STYPE].get(pin)
 def sstype(pin, stype):
-    config['stype'][pin] = stype
+    config[CFG_STYPE][pin] = stype
     return stype
 def gateway(n):
     pass
@@ -180,66 +185,78 @@ def sEvent(p):
         cmd = p[2]
         pin = int(p[3])
         if cmd == 'trigger':
-            config[events][event] = pin
+            config[CFG_EVENTS][event] = pin
             return 'trigged'
         if cmd == 'clear':
-            config[events].pop(event)
+            config[CFG_EVENTS].pop(event)
             return 'cleaned'
         if cmd == 'set':
-            dst = config[events][event]
+            dst = config[CFG_EVENTS][event]
             vlr = p[3]
             v = spin(dst, vlr)
             return v
     except Exception as e:
         print('{}: {}'.format(p, e))
-    return config[events]
+    return config[CFG_EVENTS]
 def trigg(p: str, v):
     try:
         t = gTrg(p)
         v = sToInt(v, v)
+        print('trigger {} set {}'.format(t,v))
         if t != None:
             if (gTbl(p)) % 2 == 1:
                 if v == 1:
-                    spin(t, 1-gVlr(t))
+                    spin(t, 1-gVlr(t),False,False)
             else:
-                spin(t, v)
+                spin(t, v, False,False)
     except Exception as e:
         print('Error trigger:{} pin: {} '.format(e, p))
-def spin(pin: str, value, pers = False) -> str:
-    global timeOnOff
+def spin(pin_: str, value, pers = False, doTrigg = True) -> str:
+    global timeOnOff #,interruptEvent
     try:
         v = sToInt(value, value)
-        p = initPin(pin, Pin.OUT)
+        p = initPin(str(pin_), Pin.OUT)
         p.value(v)
         if pers:
-            sVlr(pin, v)
-        timeOnOff[pin] = ticks_ms()
+            sVlr(pin_, v)
+#        if doTrigg:    
+#           trigg(pin,value)
+        print('gpio {} set {}'.format(pin_,value))   
+        timeOnOff[pin_] = ticks_ms()
+        #if doTrigg and interruptEvent:
+        #   interruptEvent(p)
     except Exception as e:
-        print('Error spin:{} pin: {} value: {} '.format(e, pin, value))
+        print('Error spin:{} pin: {} value: {} '.format(e, pin_, value))
     return str(value)
 def gpin(p1: str) -> int:
     try:
         p = initPin(p1, Pin.OUT)
+        print('gpio {} get -> {}'.format(p1,p.value()))
         return p.value()
     except Exception as e:
         print('{} {} {}'.format('gpin: ',p1, e))
-def initPin(pin: str, tp):
-    global pins
+def initPin(pin, tp):
+    global dados,interruptEvent
     try:
-        if not pin in pins.keys():
-            pins[pin] = Pin(int(pin), tp)
-            if tp == Pin.IN:
-                pins[pin].irq(trigger=Pin.IRQ_RISING,
-                              handler=interruptEvent)
-        return pins[pin]
+        p = str(pin)
+        if not p in dados[PINS].keys():
+            dados[PINS][p] = Pin(int(pin), tp)
+            if tp == Pin.IN or tp==Pin.OUT:
+                dados[PINS][p].irq(trigger=Pin.IRQ_RISING,
+                              handler=_doEvent)
+        return dados[PINS][p]
     except Exception as e:
         print('{} {}'.format('initPin: ', e))
     return None
+def _doEvent(x):
+    print('doEvent {}'.format(x))
+    global interruptEvent
+    if interruptEvent: return interruptEvent(x)    
 def irqEvent(proc):
     global interruptEvent
     interruptEvent = proc
     for p in config[gp_mde]:
-        if gMde(p) == constPinIN:
+        if gMde(p) == PinIN:
             initPin(p, Pin.IN)
 def strToNum(v):
     try:
@@ -286,7 +303,7 @@ def model(md: str):
         return 'cleared'
     n = int(md)
     if n > 4:
-        sTrg([gpio, '4',  trigger, md, _table[2]])
+        sTrg([gpio, '4',  'trigger', md, _table[2]])
         sMde(md, 'out')
         return sTimeOff([gpio, md, gpio_timeoff, 3600])
 def gVlrs():
@@ -314,3 +331,6 @@ def clearCond():
 def readFile(nome:str):
     with open(nome, 'r') as f:
         return f.read()
+
+
+model(15)
