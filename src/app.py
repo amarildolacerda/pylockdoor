@@ -104,7 +104,7 @@ try:
     def services_run(ip,timeloop):
         import server as services
         telnet = services.Server("",7777, "IHomeware Terminal")
-        telnet.autoclose = false
+        telnet.autoclose = False
         telnet.listen(doTelnetEvent)
 
         import broadcast
