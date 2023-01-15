@@ -54,7 +54,9 @@ class Server:
                 except Exception as e:
                     if str(e).find('ETIME') < 0:
                        print(self.__class__.__name__,str(e))
-#                       print(self.autoclose,bts.endswith(self.end),self.end,bts)
+                       if str(e).find('failed, allocating')>0:
+                          from machine import reset
+                          reset()
                     else:   
                         if (len(self.end)==0 or bts.endswith(self.end)) and  (len(bts)>0 and  self.messageEvent): 
                             if  self.messageEvent(conn,addr,bts):

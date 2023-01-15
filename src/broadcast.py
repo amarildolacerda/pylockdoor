@@ -39,11 +39,11 @@ def discovery(sender,addr, data:str ):
         return True
 
 def getState(pin='4'):
-    from config import gpin
-    return gpin(pin)
+    from config import gtrigg
+    return gtrigg(pin)
 def action_state(value:int,pin='4'):
-    from config import spin
-    spin(pin,value)
+    from config import strigg
+    strigg(pin,value)
     return True
 
 def make_header(soap, status_code, contentType):

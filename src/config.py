@@ -188,6 +188,20 @@ def trigg(p: str, v):
                 spin(t, v)
     except Exception as e:
         print('Error trigger:{} pin: {} '.format(e, p))
+def strigg(p: str, v):
+        t = gTrg(p)
+        v = sToInt(v, v)
+        if t != None:
+            return spin(t, v)
+        else:
+            return spin(p, v)
+def gtrigg(p: str):
+        t = gTrg(p)
+        if t != None:
+            return gpin(t)
+        else:
+            return gpin(p)
+
 def spin(pin: str, value, pers = False) -> str:
     global timeOnOff
     try:

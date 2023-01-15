@@ -57,7 +57,7 @@ def o(p: str, v, mode: int, force=_F, topic: str = None):
         x = g.gVlr(p)
         if force or (v - x) != 0:
             g.sVlr(p, v)
-            g.trigg(p, v)
+            g.strigg(p, v)
             from mqtt import p as mqttp
             from mqtt import tCmdOut
             mqttp((topic or tCmdOut())+'/' + p, v)
