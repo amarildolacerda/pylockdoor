@@ -11,7 +11,6 @@ echo compilando....
 
 ..\mpy-cross boot.py
 
-..\mpy-cross command32.py
 
 ..\mpy-cross command8266.py
 
@@ -27,7 +26,6 @@ echo compilando....
 
 ..\mpy-cross event.py
 
-..\mpy-cross eventutils.py
 
 ..\mpy-cross mqtt.py
 
@@ -52,7 +50,6 @@ goto :fix
 :todos
 
 ampy -d 1 --port %1 put boot.py
-ampy -d 0.5 --port %1 put command32.mpy	
 ampy -d 0.5 --port %1 put commandutils.mpy	
 ampy -d 0.5 --port %1 put command8266.mpy
 ampy -d 0.5 --port %1 put config.mpy
@@ -63,7 +60,6 @@ ampy -d 0.5 --port %1 put csConfig.mpy
 ampy -d 0.5 --port %1 put csGpio.mpy
 
 ampy -d 0.5 --port %1 put event.mpy
-ampy -d 0.5 --port %1 put eventutils.mpy
 ampy -d 0.5 --port %1 put main.py
 ampy -d 0.5 --port %1 put app.mpy
 ampy -d 0.5 --port %1 put mqtt.mpy	

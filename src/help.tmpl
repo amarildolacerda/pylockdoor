@@ -5,6 +5,6 @@ adc <pin> [get,set <n>]
 gpio <pin> [get,set <n>,switch]
 gpio <pin> mode [in/out/adc/pwm]
 gpio <pin> type <name>
-gpio <pin> [timeoff/timeon <x>]/[trigger <pin> monostable_NC/bistable_NC]
+gpio <pin> [timeoff/timeon <x>]/[trigger <pin> monostable/bistable]
 set sleep <n>|sleep
 if [adc,gpio] 0 [lt/gt/eq/ne] 500 then trigger 15 to 1

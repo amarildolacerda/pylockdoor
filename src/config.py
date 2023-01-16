@@ -13,11 +13,8 @@ try:
 except:
     _maxPins = 16
     defineEsp32 = _F
-constPinOUT = 1
-constPinIN = 2
-onoff = 7
-inited = _F
-_changed = _F
+PinOUT = 1
+PinIN = 2
 
 from ubinascii import hexlify
 
@@ -38,10 +35,10 @@ gpio_timeoff = 'toff'
 gpio_timeon = 'ton'
 gp_mde = gp+'mode'
 events = 'scene'
-modes = ['none','out','in','adc','pwm','dht11','dht12']
-_table = ['none','monostable_NC','bistable_NC','monostable_NO', 'bistable_NO']
+modes = ['none','out','in','adc']
+_table = ['none','monostable','bistable']
 timeOnOff = {}
-mesh = 'ihomeware/'+uid
+mesh = 'mesh/'+uid
 gpio = 'gpio'
 conds = 'conds'
 def conf():
@@ -72,12 +69,12 @@ def conf():
     }
 config = conf()
 def restore():
-    import json as ujson
+    from json import load
     global config
     try:
         cfg = {}
         with open(_cf, 'r') as f:
-            cfg = ujson.load(f)
+            cfg = load(f)
         config = conf()
         for item in config:  # pega os que faltam na configuracao
             if item in cfg:
@@ -92,14 +89,10 @@ def save():
     with open(_cf, 'w') as f:
         dump(config, f)
     return "Saved"
-def changed(bChanged):
-    _changed = bChanged
 def start():
     model('15')
     try:
-        _changed = _F
         restore()
-        inited = _T
     except:
         pass
 def mdeTs(mode):
@@ -126,7 +119,7 @@ def strToTbl(t: str) -> int:
 def sTrg(p):
     i = str(p[1])
     config[gp_trg][i] = int(p[3])
-    config[gp_mde][i] = constPinIN
+    config[gp_mde][i] = PinIN
     config[gp_trg_tbl][i] = strToTbl(p[4])
 def gTrg(p: str):
     return config[gp_trg].get(p)
@@ -237,7 +230,7 @@ def irqEvent(proc):
     global interruptEvent
     interruptEvent = proc
     for p in config[gp_mde]:
-        if gMde(p) == constPinIN:
+        if gMde(p) == PinIN:
             initPin(p, Pin.IN)
 def strToNum(v):
     try:
