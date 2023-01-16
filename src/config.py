@@ -31,11 +31,11 @@ dados = {
 
 gp = 'g_'
 trigger = 'tr'
-gp_trg = 1
-gp_trg_tbl = 4
-gpio_timeoff = 2
-gpio_timeon = 3
-gp_mde = 0
+gp_trg = '1'
+gp_trg_tbl = '4'
+gpio_timeoff = '2'
+gpio_timeon = '3'
+gp_mde = '0'
 events = 'scene'
 modes = ['none','out','in','adc']
 _table = ['none','monostable','bistable']
@@ -78,11 +78,13 @@ def restore():
     global config
     try:
         cfg = {}
-        with open(_cf, 'r') as f:
+        try:
+          with open(_cf, 'r') as f:
             cfg = load(f)
+            f.close()
+        except: cfg = {}    
         config = conf()
-        for item in config:  # pega os que faltam na configuracao
-            if item in cfg:
+        for item in cfg:  # pega os que faltam na configuracao
                 config[item] = cfg[item]
     except:
         pass
@@ -92,12 +94,13 @@ def reset_factory():
 def save():
     cfg = conf()
     rst = {}
-    for k in config.keys():
+    for k in cfg.keys():
        if config[k]!=cfg[k]:
         rst[k]=config[k]
     from json import dump
     with open(_cf, 'w') as f:
         dump(rst, f)
+        f.close()
     print(rst)    
     return "Saved"
 def start():
@@ -316,5 +319,8 @@ def clearCond():
     config[conds] = []
     return 'OK'
 def readFile(nome:str):
-    with open(nome, 'r') as f:
-        return f.read()
+    with   open(nome, 'r')  as f:
+      try:
+        return f.load()
+      finally:  
+        f.close()

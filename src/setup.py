@@ -1,5 +1,5 @@
-name='teste'
-label='teste'
+name=None
+label='Proto'
 
 #ssid ='micasa'
 #password='3938373635'
