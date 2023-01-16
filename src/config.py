@@ -31,11 +31,11 @@ dados = {
 
 gp = 'g_'
 trigger = 'tr'
-gp_trg = gp+trigger
-gp_trg_tbl = gp_trg+'_tab'
-gpio_timeoff = 'toff'
-gpio_timeon = 'ton'
-gp_mde = gp+'mode'
+gp_trg = 1
+gp_trg_tbl = 4
+gpio_timeoff = 2
+gpio_timeon = 3
+gp_mde = 0
 events = 'scene'
 modes = ['none','out','in','adc']
 _table = ['none','monostable','bistable']
@@ -51,8 +51,8 @@ def conf():
         'sleep': 0,
         'led': 255,
         'label':setup.label,
-        'ssid':'micasa',
-        'password':'3938373635',
+        'ssid':setup.ssid,
+        'password':setup.password,
         'ap_ssid': 'hm_{}'.format(uid),
         'ap_password': '123456780',
         gp_mde: {},
@@ -63,9 +63,9 @@ def conf():
         events: {},
         conds:[],
         'stype': {},
-        'mqtt_host': 'broker.emqx.io',
+        'mqtt_host': setup.mqtt_host,
         'mqtt_name': uid,
-        'mqtt_port': 1883,
+        'mqtt_port': setup.mqtt_port,
         'mqtt_user': uid,
         'mqtt_password': 'anonymous',
         'mqtt_interval': 30,
@@ -186,9 +186,10 @@ def trigg(p: str, v):
         t = gTrg(p)
         v = sToInt(v, v)
         if t != None:
-            if (gTbl(p)) % 2 == 1:
+            old =gpin(t)
+            if (gTbl(p)) == 2:
                 if v == 1:
-                    spin(t, 1-gpin(t))
+                    spin(t, 1-old)
             else:
                 spin(t, v)
     except Exception as e:
