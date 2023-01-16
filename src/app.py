@@ -28,7 +28,7 @@ try:
             return tpRcv(t,p)
         except OSError as e:
             mqttp('Invalid', 0)
-            pass
+            
     def mqttConnect(ip=''):
         try:
             import mqtt
@@ -42,20 +42,13 @@ try:
             mqtt.p(mqtt.tpfx()+'/ip', ip)
         except OSError as e:
             p(e)
-    def loop():
-        while _T:
-            try:
-                gpioLoopCallback()
-            except:
-                pass
-    errCount = 0
     inLoop = False
     def eventLoop(v):
         from event import cv 
         cv(v)
-        pass
+        
     def gpioLoopCallback():
-        global errCount, inLoop
+        global inLoop
         if inLoop: return
         try:
           from mqtt import disp
@@ -71,18 +64,12 @@ try:
                     eventLoop(connected)
                     if connected:
                         sendStatus()
-                        errCount = 0
                 except:
-                    errCount = errCount + 1
-                    #if errCount > 10:
-                    #    reset()
                     mqttConnect(wlan.ifconfig()[0])
             else: eventLoop(False)
           finally:
             timerReset(True)
             inLoop = False    
-            collect()
-            sleep(0.05)
         except Exception as e:
             pass
     def timerLoop(x):
@@ -123,7 +110,7 @@ try:
 
         udp = services.Broadcast(callbackFn=timeloop)
         udp.listen(broadcast.discovery)
-        pass
+        
 
     def bind():
             global  wlan
@@ -145,7 +132,7 @@ try:
                    period=1000, callback=timerLoop)
 
             services_run(wlan.ifconfig()[0],timerLoop)
-            loop()
+
         except KeyboardInterrupt as e:
             pass
         except Exception as e:

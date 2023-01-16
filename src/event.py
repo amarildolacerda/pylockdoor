@@ -1,7 +1,7 @@
 from gc import collect
 from time import ticks_diff, ticks_ms
 
-from machine import ADC, RTC, Pin, idle, reset_cause
+from machine import Pin, idle, reset_cause
 
 import config as g
 
@@ -101,8 +101,9 @@ def cv(mqtt_active=False):
     collect()
     idle()
 def ADCRead(pin: str):
+    from machine import ADC
     return ADC(int(pin)).read()
-def interruptTrigger(pin: Pin):
+def interruptTrigger(pin):
     p = -1
     for key in g.dados[g.PINS]:
         if g.dados[g.PINS][key] == pin:
@@ -110,8 +111,4 @@ def interruptTrigger(pin: Pin):
     if p >= 0:
         o(p, pin.value(), None, _T)
         print('gpio {} set {}'.format(p,pin.value()))
-
-    collect()
-
-
 g.irqEvent(interruptTrigger)
