@@ -30,8 +30,6 @@ def rPin(pin, p):
             sendCB(p+'\r\n')
     finally:
         return p
-def gpwm(p):
-    p(g.config['pwm_duty'][int(p[1])])
 def tpRcv(t, p):
     _c = t.split('/')
     if _c[0] == 'scene':
@@ -70,34 +68,23 @@ def cmmd(c):
                 if cmd1 == 'config':
                     return r(str(g.config))
                 elif cmd1 == 'mqtt':
-                    import configshow
-                    return r(configshow.shMqtt())
+                    from configshow import shMqtt
+                    return r(shMqtt())
                 elif cmd1 == "gpio":
                     import csGpio
                     return r(csGpio.shGpio())
                 elif cmd1 == 'scene':
-                    import configshow
-                    return r(configshow.shScene())
-                elif cmd1 == 'stats':
-                    from mqtt import sendStatus
-                    sendStatus(True)
-                import configshow as cs
-                return r(cs.show())
+                    from configshow import shScene
+                    return r(shScene())
+                from configshow import show
+                return r(show())
 
             elif cmd == 'save':
                 return r(g.save())
             elif cmd == 'reset':
                 reset()
-            elif cmd == 'dht11':
-                import event
-                r(event.getDht11(cmd1))
-            elif cmd == 'dht12':
-                import event
-                r(event.getDht12(cmd1))
-            elif cmd == g.events:  # scene
+            elif cmd == g.events:
                 return g.sEvent(p)
-            elif cmd == 'delay':
-                sleep(g.strToNum(cmd1))
             elif cmd == 'gpio':
                 if cmd1 == 'clear':
                    return r( g.model('clear'))
@@ -120,18 +107,11 @@ def cmmd(c):
                         if cmd2 == _g:
                             v = g.gpin(p[1])
                             rsp = r(g.gpin(p[1]))
-                            if v == 0:
-                                import event
-                                event.setSleep(1)
                             return rsp
                         elif cmd2 == 'mode':
                             return g.sMde(cmd1, p[3])
                         elif cmd2 == 'trigger':
                             return g.sTrg(p)
-                return k
-            elif cmd == 'pwm':
-                if cmd2 == _g:
-                    return r(gpwm(p))
                 return k
             elif cmd == "adc":
                 if cmd2 == _s:
@@ -143,27 +123,20 @@ def cmmd(c):
                 if cmd1 == 'sleep':
                     g.config['sleep'] = int(cmd2)
                     return r(g.save())
-
                 elif cmd1 == 'model':
                     return g.model(cmd2)
-                elif cmd1 == 'account':
-                    from mqtt import account
-                    return account(cmd2)
                 return r(g.sKey(cmd1, cmd2))
             elif cmd == 'get':
                 return r(g.gKey(cmd1))
-            elif cmd == 'sleep':
-                r('sleeping')
-                return event.deepsleep(int(cmd1))
             elif cmd == 'clean':
                 g.model('clear')
                 return r(g.clearCond())
             elif cmd == 'if':
                 return r(g.gpioCond(c))        
-            ('invalido cmd:{} -> {}'.format(cmd, c))
+            ('invalid:{}->{}'.format(cmd, c))
         except Exception as e:
             from mqtt import error
-            error('Error {}: {}'.format(c, e))
+            error('E {}: {}'.format(c, e))
     finally:
         pass
 def sadc(p):

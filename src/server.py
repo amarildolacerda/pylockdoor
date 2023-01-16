@@ -84,7 +84,7 @@ class Broadcast(Server):
         self.sock.settimeout(10)
         while True:
             try:
-                data, addr = self.sock.recvfrom(128)
+                data, addr = self.sock.recvfrom(20)
                 if data:
                     if self.messageEvent: 
                       if not self.messageEvent(sck,addr,data) :

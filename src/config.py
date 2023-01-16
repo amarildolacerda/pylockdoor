@@ -1,7 +1,6 @@
 from time import ticks_diff, ticks_ms
 
 from machine import Pin, unique_id
-from ubinascii import hexlify
 
 _N = None
 _T = True
@@ -19,6 +18,9 @@ constPinIN = 2
 onoff = 7
 inited = _F
 _changed = _F
+
+from ubinascii import hexlify
+
 uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
 
 IFCONFIG = 0
@@ -46,7 +48,6 @@ def conf():
     return {
         'sleep': 0,
         'led': 255,
-        'locked': 0,
         'label':'Interruptor',
         'ssid':'micasa',
         'password':'3938373635',
@@ -87,9 +88,9 @@ def reset_factory():
     config = conf()
     save()
 def save():
-    import json as ujson
+    from json import dump
     with open(_cf, 'w') as f:
-        ujson.dump(config, f)
+        dump(config, f)
     return "Saved"
 def changed(bChanged):
     _changed = bChanged
@@ -187,7 +188,7 @@ def trigg(p: str, v):
             else:
                 spin(t, v)
     except Exception as e:
-        print('Error trigger:{} pin: {} '.format(e, p))
+        print('E tr:{} pin:{} '.format(e, p))
 def strigg(p: str, v):
         t = gTrg(p)
         v = sToInt(v, v)

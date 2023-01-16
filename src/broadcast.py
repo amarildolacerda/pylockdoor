@@ -29,14 +29,11 @@ def readFile(nome:str):
 
 def discovery(sender,addr, data:str ):
         from config import IFCONFIG, dados
-        ip = dados[IFCONFIG][0]
         if data.startswith(b"M-SEARCH"):
-                alexa = Alexa(ip)
+                alexa = Alexa(dados[IFCONFIG][0])
                 alexa.send_msearch(addr)
-        elif data.startswith(b"NOTIFY"):
-            pass        
         else:        
-           print('discoverey',ip, addr,data)
+           print( addr,data)
         return True
 
 def getState(pin='4'):
@@ -47,7 +44,7 @@ def action_state(value:int,pin='4'):
     strigg(pin,value)
     return True
 
-def make_header(client, status_code, contentType, length):
+def mkhdr(client, status_code, contentType, length):
      client.write("HTTP/1.1 {} OK\r\n".format(status_code) )
      client.write("CONTENT-LENGTH: {}\r\n".format(length))
      client.write('CONTENT-TYPE: {} charset="utf-8"\r\n'.format(contentType))
@@ -60,17 +57,14 @@ def make_header(client, status_code, contentType, length):
      collect()
     
 
-def send_response(client, payload, status_code=200, contentType='text/html'):
+def mkrsp(client, payload, status_code=200, contentType='text/html'):
     z = len(payload)
-    make_header(client,status_code,contentType,z )
-    for l in payload.split('\r\n'):
-       client.write(payload)
-       client.write('\r\n')
-    collect()   
+    mkhdr(client,status_code,contentType,z )
+    client.write(payload)
     return True
     
-def handle_not_found(client, url):
-    send_response(client, "{}".format(url), 404)
+def notfnd(client, url):
+    mkrsp(client, "{}".format(url), 404)
     return True
 
 
@@ -85,12 +79,12 @@ def handle_request(client, data):
             data.find(b"POST /upnp/control/basicevent1 HTTP/1.1") == 0
             and data.find(b"#GetBinaryState") != -1
         ):          
-           return send_response(client,  readFile('state.soap').format(state=getState()))
+           return mkrsp(client,  readFile('state.soap').format(state=getState()))
         elif data.find(b"GET /eventservice.xml HTTP/1.1") == 0:
-           return send_response(client,  readFile('eventservice.xml'),200,'application/xml')
+           return mkrsp(client,  readFile('eventservice.xml'),200,'application/xml')
         elif data.find(b"GET /setup.xml HTTP/1.1") == 0:
             from config import uid
-            return send_response(client, readFile('setup.xml').format(name=label(), uuid=uid),200,'application/xml' )
+            return mkrsp(client, readFile('setup.xml').format(name=label(), uuid=uid),200,'application/xml' )
         elif (
             data.find(b'#SetBinaryState')
             != -1
@@ -105,7 +99,7 @@ def handle_request(client, data):
             if success:
                  from gc import collect
                  collect()
-                 send_response(client,  readFile('state.soap').format(state=getState()))
+                 mkrsp(client,  readFile('state.soap').format(state=getState()))
                  return True
             else: 
                 return False    
@@ -123,10 +117,10 @@ def http(client,addr,request):
                 if not handle_request(client, request):                         
                     if url.endswith('.xml') or url.endswith('.html')   :
                         from config import uid
-                        send_response(client,      (readFile(url) or '').format(name=label() or 'indef',uuid= uid, url=url)     ,200,'text/{}'.format(url.split('.')[1]) )
-                    else: handle_not_found(client, url)
+                        mkrsp(client,      (readFile(url) or '').format(name=label() or 'indef',uuid= uid, url=url)     ,200,'text/{}'.format(url.split('.')[1]) )
+                    else: notfnd(client, url)
 
         except Exception as e:
             print(str(e), ' in ', request)
-            send_response(client,readFile('erro.html').format(msg=str(e), url=url) ,500 )
+            mkrsp(client,readFile('erro.html').format(msg=str(e), url=url) ,500 )
         return True    

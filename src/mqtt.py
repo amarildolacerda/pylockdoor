@@ -2,10 +2,7 @@ from time import ticks_diff, ticks_ms
 
 from machine import reset
 
-import commandutils as u
 import config as g
-import configshow as show
-from umqtt_simple import MQTTClient
 
 _N = None
 _T = True
@@ -41,6 +38,7 @@ def create(client_id, mqtt_server, mqtt_user, mqtt_password):
     global mq
     if (mq != _N):
         return mq
+    from umqtt_simple import MQTTClient
     mq = MQTTClient(client_id, mqtt_server, 0, mqtt_user,mqtt_password)
     return mq
 usnd = ticks_ms()
@@ -56,7 +54,8 @@ def sendStatus(force=False):
             return
         usnd = ticks_ms()
         global host
-        rsp = p(topic_topology(), show.show(), 0)
+        from configshow import show
+        rsp = p(topic_topology(), show(), 0)
         mqttResetCount += (1-rsp)
         #if (mqttResetCount > 0):
             #cnt()
@@ -79,7 +78,8 @@ def account(account):
     send('account', account)
 def p(t, p, aRetained=0):
     global mqttResetCount
-    print(u.now(), t, ':', p)
+    from commandutils import now
+    print(now(), t, ':', p)
     try:
         if mq != _N:
             mq.publish(t, str(p), aRetained)

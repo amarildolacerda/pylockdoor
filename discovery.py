@@ -28,9 +28,6 @@ try:
     while True:
         data, addr = s.recvfrom(65507)
         print(addr, data)
-        time.sleep(10)
-        break
+        
 except socket.timeout:
-    print('timeout')
-
     pass
