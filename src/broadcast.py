@@ -53,6 +53,7 @@ def mkhdr(client, status_code, contentType, length):
      client.write("SERVER: ihomeware UPnP/1.0, Unspecified\r\n")
      client.write("X-User-Agent: ihomeware\r\n")
      client.write("CONNECTION: close\r\n")
+     client.write("CACHE-CONTROL: no-cache\r\n")
      client.write("\r\n")
      collect()
     

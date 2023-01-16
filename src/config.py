@@ -101,7 +101,8 @@ def save():
     print(rst)    
     return "Saved"
 def start():
-    model('15')
+    if setup.relay_pin:
+        model(setup.relay_pin)
     try:
         restore()
     except:

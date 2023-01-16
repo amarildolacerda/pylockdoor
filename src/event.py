@@ -37,13 +37,12 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
         if v == seFor and key in lista:
             t = lista[key] or 0
             if t > 0:
-                try:
-                    m = g.timeOnOff[key] or 0
-                except:
-                    m = 0
-                if (m == 0) or (ticks_diff(ticks_ms(), m) > t*1000):
+               try: 
+                m = g.timeOnOff[key] or 0
+                if (m > 0) and (ticks_diff(ticks_ms(), m) > t*1000):
                     g.spin(p, 1-seFor)
                     return True
+               except: pass     
     except Exception as e:
         print('Erro Time seFor {} em {}: {} [{},{}] {}'.format(
             seFor, key, p, m, t, e))
