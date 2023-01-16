@@ -25,7 +25,7 @@ try:
         p = _p.decode('utf-8')
         try:
             from command8266 import tpRcv
-            tpRcv(t,p)
+            return tpRcv(t,p)
         except OSError as e:
             mqttp('Invalid', 0)
             pass
@@ -102,18 +102,19 @@ try:
             sleep(1)
             reset()
             return True
-        from command8266 import cmmd
-        rsp = cmmd(str(message))
-        print('Resp:',rsp)
+        if message.startswith('reset'):
+            sever.close()
+            reset()
+        from command8266 import cmmd    
+        rsp = cmmd(message[:-2].decode('utf-8'))
         if rsp:
-           server.sendall(rsp)
-           sleep(0.5)
+           server.write(rsp)
+           server.write('\r\n')
         return False
 
     def services_run(ip,timeloop):
         import server as services
-        telnet = services.Server("",7777, "IHomeware Terminal")
-        telnet.autoclose = False
+        telnet = services.TelnetServer(7777)
         telnet.listen(doTelnetEvent)
 
         import broadcast

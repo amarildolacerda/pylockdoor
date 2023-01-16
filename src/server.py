@@ -23,20 +23,12 @@ class Server:
         self.sock.setsockopt(SOL_SOCKET, 20, self.receive_data)
         print('Listen {}:{}'.format(self.host,self.port))
         pass
-    def next(self):
-        from gc import collect
-
-        from machine import idle
-        idle()
-        collect()
-
-      
     def receive_data(self,sck):
+        conn, addr = self.sock.accept()
         try:
-            conn, addr = self.sock.accept()
             conn.settimeout(1)
 
-            print("Connected by",self.__class__.__name__,addr)
+            print("Client",self.__class__.__name__,addr)
             if self.welcome:
                from gc import mem_free
                conn.send("{} MemFree: {} \r\n".format(self.welcome,mem_free()))
@@ -63,13 +55,9 @@ class Server:
                                   break
                             bts=b''
                             if self.autoclose: break
-                    self.next()
-                       
         finally:
             sck.setblocking(True)  
-            return conn and conn.close()
-
-
+            conn.close()
 class Broadcast(Server):
     def __init__(self,host="", callbackFn=None):
          super().__init__(host, 1900,None,SOCK_DGRAM)
@@ -103,15 +91,10 @@ class Broadcast(Server):
                         break
                     if self.autoclose: break
                 if self.callbackFn: self.callbackFn(self)
-                self.next()
             except Exception as e:
                 if str(e).find('ETIME') < 0:
                        print(self.__class__.__name__,str(e))
-                self.next()
                 if self.callbackFn: self.callbackFn(self)
-                else:
-                  from time import sleep
-                  sleep(0.1)
         self.sock.setblocking(0)    
         self.sock.close() 
 
@@ -122,3 +105,7 @@ class WebServer(Server):
     def listen(self, messageEvent):
         return super().listen(messageEvent,end=b'')
     
+class TelnetServer(Server):
+    def __init__(self, port):
+        super().__init__('', port, "IHomeware Terminal",SOCK_STREAM)
+        self.autoclose = False

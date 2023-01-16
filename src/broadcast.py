@@ -1,4 +1,4 @@
-
+from gc import collect
 
 
 def now():
@@ -19,6 +19,7 @@ class Alexa:
         idle()
         import time
         time.sleep(0.1)
+        temp_socket.close()
     def send_msearch(self,  addr):
         self.sendto(addr, self.readFile("msearch.html").format(self.ip))
 
@@ -46,21 +47,26 @@ def action_state(value:int,pin='4'):
     strigg(pin,value)
     return True
 
-def make_header(soap, status_code, contentType):
-    return      ("HTTP/1.1 {code} OK\r\n"
-                "CONTENT-LENGTH: {len}\r\n"
-                'CONTENT-TYPE: {type} charset="utf-8"\r\n'
-                "DATE: {data}\r\n"
-                "EXT:\r\n"
-                "SERVER: Unspecified, UPnP/1.0, Unspecified\r\n"
-                "X-User-Agent: redsonic\r\n"
-                "CONNECTION: close\r\n"
-                "\r\n"
-                "{payload}").format(len=len(soap), data=now(),payload=soap,code=status_code,type=contentType)
+def make_header(client, status_code, contentType, length):
+     client.write("HTTP/1.1 {} OK\r\n".format(status_code) )
+     client.write("CONTENT-LENGTH: {}\r\n".format(length))
+     client.write('CONTENT-TYPE: {} charset="utf-8"\r\n'.format(contentType))
+     client.write("DATE: {}\r\n".format(now()))
+     client.write("EXT:\r\n")
+     client.write("SERVER: ihomeware UPnP/1.0, Unspecified\r\n")
+     client.write("X-User-Agent: ihomeware\r\n")
+     client.write("CONNECTION: close\r\n")
+     client.write("\r\n")
+     collect()
     
 
 def send_response(client, payload, status_code=200, contentType='text/html'):
-    client.sendall(make_header(payload,status_code,contentType ))
+    z = len(payload)
+    make_header(client,status_code,contentType,z )
+    for l in payload.split('\r\n'):
+       client.write(payload)
+       client.write('\r\n')
+    collect()   
     return True
     
 def handle_not_found(client, url):
@@ -123,8 +129,4 @@ def http(client,addr,request):
         except Exception as e:
             print(str(e), ' in ', request)
             send_response(client,readFile('erro.html').format(msg=str(e), url=url) ,500 )
-        finally:
-            import time
-            time.sleep(0.2) 
-            client.close()       
-        return true    
+        return True    
