@@ -20,6 +20,8 @@ from ubinascii import hexlify
 
 uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
 
+
+
 IFCONFIG = 0
 PINS = 1
 dados = {
@@ -38,14 +40,17 @@ events = 'scene'
 modes = ['none','out','in','adc']
 _table = ['none','monostable','bistable']
 timeOnOff = {}
-mesh = 'mesh/'+uid
 gpio = 'gpio'
 conds = 'conds'
+import setup
+
+mesh = 'mesh/'+(setup.name or uid)
+
 def conf():
     return {
         'sleep': 0,
         'led': 255,
-        'label':'Interruptor',
+        'label':setup.label,
         'ssid':'micasa',
         'password':'3938373635',
         'ap_ssid': 'hm_{}'.format(uid),
@@ -183,7 +188,7 @@ def trigg(p: str, v):
         if t != None:
             if (gTbl(p)) % 2 == 1:
                 if v == 1:
-                    spin(t, 1-gVlr(t))
+                    spin(t, 1-gpin(t))
             else:
                 spin(t, v)
     except Exception as e:

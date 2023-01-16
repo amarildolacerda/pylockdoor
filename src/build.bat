@@ -38,6 +38,7 @@ echo compilando....
 ..\mpy-cross umqtt_simple.py
 
 ..\mpy-cross broadcast.py
+..\mpy-cross setup.py
 
 
 
@@ -49,7 +50,7 @@ goto :fix
 
 :todos
 
-ampy -d 1 --port %1 put boot.py
+ampy -d 0.5 --port %1 put boot.py
 ampy -d 0.5 --port %1 put commandutils.mpy	
 ampy -d 0.5 --port %1 put command8266.mpy
 ampy -d 0.5 --port %1 put config.mpy
@@ -76,6 +77,7 @@ ampy -d 0.5 --port %1 put help.tmpl
 ampy -d 0.5 --port %1 put msearch.html
 ampy -d 0.5 --port %1 put setup.xml
 ampy -d 0.5 --port %1 put state.soap
+ampy -d 0.5 --port %1 put setup.mpy
 
 
 :fix
