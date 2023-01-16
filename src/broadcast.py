@@ -1,5 +1,7 @@
 from gc import collect
 
+from config import readFile
+
 
 def now():
    import utime
@@ -19,7 +21,7 @@ class Alexa:
         time.sleep(0.1)
         temp_socket.close()
     def send_msearch(self,  addr):
-        self.sendto(addr, g.readFile("msearch.html").format(self.ip))
+        self.sendto(addr, readFile("msearch.html").format(self.ip))
 
 
 def discovery(sender,addr, data:str ):
@@ -75,12 +77,12 @@ def handle_request(client, data):
             data.find(b"POST /upnp/control/basicevent1 HTTP/1.1") == 0
             and data.find(b"#GetBinaryState") != -1
         ):          
-           return mkrsp(client,  g.readFile('state.soap').format(state=getState()))
+           return mkrsp(client,  readFile('state.soap').format(state=getState()))
         elif data.find(b"GET /eventservice.xml HTTP/1.1") == 0:
-           return mkrsp(client,  g.readFile('eventservice.xml'),200,'application/xml')
+           return mkrsp(client,  readFile('eventservice.xml'),200,'application/xml')
         elif data.find(b"GET /setup.xml HTTP/1.1") == 0:
             from config import uid
-            return mkrsp(client, g.readFile('setup.xml').format(name=label(), uuid=uid),200,'application/xml' )
+            return mkrsp(client, readFile('setup.xml').format(name=label(), uuid=uid),200,'application/xml' )
         elif (
             data.find(b'#SetBinaryState')
             != -1
@@ -95,7 +97,7 @@ def handle_request(client, data):
             if success:
                  from gc import collect
                  collect()
-                 mkrsp(client, g.readFile('state.soap').format(state=getState()))
+                 mkrsp(client, readFile('state.soap').format(state=getState()))
                  return True
             else: 
                 return False    
@@ -115,10 +117,10 @@ def http(client,addr,request):
                     if len(ext)>1:
                        if  ext[1] in ['xml','html','json']   :
                           from config import uid
-                          mkrsp(client,      (g.(url) or '').format(name=label() or 'indef',uuid= uid, url=url)     ,200,'text/{}'.format(ext[1]) )
+                          mkrsp(client,(readFile(url) or '').format(name=label() or 'indef',uuid= uid, url=url)     ,200,'text/{}'.format(ext[1]) )
                     else: notfnd(client, url)
 
         except Exception as e:
             print(str(e), ' in ', request)
-            mkrsp(client,g.readFile('erro.html').format(msg=str(e), url=url) ,500 )
+            mkrsp(client,readFile('erro.html').format(msg=str(e), url=url) ,500 )
         return True    

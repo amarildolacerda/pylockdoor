@@ -319,8 +319,6 @@ def clearCond():
     config[conds] = []
     return 'OK'
 def readFile(nome:str):
-    with   open(nome, 'r')  as f:
-      try:
-        return f.load()
-      finally:  
-        f.close()
+    with open(nome, 'r') as f: 
+            return f.read()
+    

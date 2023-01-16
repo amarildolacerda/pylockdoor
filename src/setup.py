@@ -9,6 +9,6 @@ password = "6C9FCEC12A"
 mqtt_host ='broker.emqx.io'
 mqtt_port = 1883
 
-relay_pin = '15'
+relay_pin = '5'
 
 
