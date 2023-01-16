@@ -115,9 +115,11 @@ def http(client,addr,request):
                                  request).group(1).decode("utf-8").rstrip("/")
                 print('Url',url)
                 if not handle_request(client, request):                         
-                    if url.endswith('.xml') or url.endswith('.html')   :
-                        from config import uid
-                        mkrsp(client,      (readFile(url) or '').format(name=label() or 'indef',uuid= uid, url=url)     ,200,'text/{}'.format(url.split('.')[1]) )
+                    ext = url.split('.')
+                    if len(ext)>1:
+                       if  ext[1] in ['xml','html','json']   :
+                          from config import uid
+                          mkrsp(client,      (readFile(url) or '').format(name=label() or 'indef',uuid= uid, url=url)     ,200,'text/{}'.format(ext[1]) )
                     else: notfnd(client, url)
 
         except Exception as e:

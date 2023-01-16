@@ -58,6 +58,8 @@ def cmmd(c):
                 cmd1 = p[1]
             if (len(p) > 2):
                 cmd2 = p[2]
+            if cmd=='open' :
+               return r(g.readFile(cmd1))     
             if cmd == 'reset' and cmd1 == 'factory':
                 g.reset_factory()
                 reset()

@@ -72,8 +72,9 @@ def get_connection():
                timerFeed()    
     except Exception as e:
         print(e)
-    #if not connected:
-    #    connected = start()
+    if not connected:
+        connected = start()
+        return wlan_ap
     if connected:
         return wlan_sta
     return _N
@@ -89,3 +90,10 @@ def do_connect(ssid, password):
         time.sleep(0.2)
         print('.', end='')
     return wlan_sta.isconnected()
+
+
+def start():
+    wlan_ap.active(True)
+    wlan_ap.config(essid=g.config['ap_ssid'], password=g.config['ap_password'], authmode=3)
+    print('ssid: {} pass: {}'.format(g.config['ap_ssid'], g.config['ap_password']))
+

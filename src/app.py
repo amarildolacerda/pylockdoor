@@ -90,7 +90,7 @@ try:
             reset()
             return True
         if message.startswith('reset'):
-            sever.close()
+            server.close()
             reset()
         from command8266 import cmmd    
         rsp = cmmd(message[:-2].decode('utf-8'))

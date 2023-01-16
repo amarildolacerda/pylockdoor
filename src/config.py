@@ -85,9 +85,15 @@ def reset_factory():
     config = conf()
     save()
 def save():
+    cfg = conf()
+    rst = {}
+    for k in config.keys():
+       if config[k]!=cfg[k]:
+        rst[k]=config[k]
     from json import dump
     with open(_cf, 'w') as f:
-        dump(config, f)
+        dump(rst, f)
+    print(rst)    
     return "Saved"
 def start():
     model('15')
