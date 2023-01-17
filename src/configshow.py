@@ -20,6 +20,3 @@ def shMqtt():
         if ('mqtt' in item):
             m[item] = config[item]
     return str(m)
-def shScene():
-    from config import config, events
-    return str(config[events])
