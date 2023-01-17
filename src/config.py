@@ -80,8 +80,10 @@ def restore():
             cfg = load(f)
         except: cfg = {}    
         config = conf()
+        model(setup.relay_pin)
         for item in cfg:  # pega os que faltam na configuracao
                 config[item] = cfg[item]
+        print(config)        
     except:
         pass
 def reset_factory():
@@ -98,7 +100,6 @@ def save():
         dump(rst, f)
     return "Saved"
 def start():
-    model(setup.relay_pin)
     try:
         restore()
     except:
