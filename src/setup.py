@@ -1,5 +1,5 @@
-name=None
-label='Proto'
+name='escritorio'
+label='Luz Escritorio'
 
 #ssid ='micasa'
 #password='3938373635'
@@ -9,6 +9,6 @@ password = "6C9FCEC12A"
 mqtt_host ='broker.emqx.io'
 mqtt_port = 1883
 
-relay_pin = '5'
+relay_pin = '15'
 
 

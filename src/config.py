@@ -101,7 +101,6 @@ def start():
         model(setup.relay_pin)
     try:
         restore()
-        print(config)
     except:
         pass
 def mdeTs(mode):
@@ -177,6 +176,7 @@ def strigg(p: str, v):
         t = gTrg(p)
         v = sToInt(v, v)
         if t != None:
+            initPin(t,Pin.OUT)
             return spin(t, v)
         else:
             return spin(p, v)
@@ -190,18 +190,21 @@ def gtrigg(p: str):
 def spin(pin: str, value, pers = False) -> str:
     global timeOnOff
     try:
+        print('spin')
         v = sToInt(value, value)
-        p = initPin(pin, Pin.OUT)
+        p = initPin(pin, Pin.IN)
         p.value(v)
+        print(p,v)
         if pers:
             sVlr(pin, v)
         timeOnOff[pin] = ticks_ms()
+        print('timeonoff')
     except Exception as e:
-        print('Error spin:{} pin: {} value: {} '.format(e, pin, value))
-    return str(value)
+        print('E spin:{} pin: {} value: {} '.format(e, pin, value))
+    return value
 def gpin(p1: str) -> int:
     try:
-        p = initPin(p1, Pin.OUT)
+        p = initPin(p1, Pin.IN)
         return p.value()
     except Exception as e:
         print('{} {} {}'.format('gpin: ',p1, e))

@@ -55,11 +55,12 @@ def o(p: str, v, mode: int, force=_F, topic: str = None):
         key = str(p)
         x = g.gVlr(p)
         if force or (v - x) != 0:
-            g.sVlr(p, v)
-            g.trigg(p, v)
+            g.sVlr(key, v)
+            g.trigg(key, v)
             from mqtt import p as mqttp
             from mqtt import tCmdOut
-            mqttp((topic or tCmdOut())+'/' + p, v)
+            mqttp((topic or tCmdOut())+'/' + key, str(v))
+            
     except Exception as e:
         print('{} {}'.format('event.switch: ', e))
     idle()
@@ -82,13 +83,11 @@ def cv(mqtt_active=False):
                         v = g.gpin(i)
                         o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'gpio'))
-                        setSleep(1)
                         continue
                     elif (md == 3):
                         v = ADCRead(i)
                         o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'adc'))
-                        setSleep(1)
                         continue
             if bled:
                 led(1)
@@ -108,7 +107,7 @@ def interruptTrigger(pin):
         if g.dados[g.PINS][key] == pin:
             p = int(key)
     if p >= 0:
+        print('irq {} set {}'.format(p,pin.value()))
         o(p, pin.value(), None, _T)
-        print('gpio {} set {}'.format(p,pin.value()))
 
 g.irqEvent(interruptTrigger)

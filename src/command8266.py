@@ -45,6 +45,7 @@ def rcv(c):
         collect()
     return r
 def cmmd(c):
+    print('cmd',c)
     k = 'OK'
     c = c.strip()
     cmd = ''

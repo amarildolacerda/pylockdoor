@@ -29,6 +29,6 @@ def shGpio():
         mode = g.gMde(i)
         if mode != None:
             m[i] = shGpioP(i)
-    m['tr'] = g.config[g.conds]
+    
 
     return str(m)
