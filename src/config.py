@@ -13,8 +13,6 @@ try:
 except:
     _maxPins = 16
     defineEsp32 = _F
-PinOUT = 1
-PinIN = 2
 
 from ubinascii import hexlify
 
@@ -36,6 +34,9 @@ gp_trg_tbl = '4'
 gpio_timeoff = '2'
 gpio_timeon = '3'
 gp_mde = '0'
+PinOUT = 1
+PinIN = 2
+PinADC = 3
 modes = ['none','out','in','adc']
 _table = ['none','monostable','bistable']
 timeOnOff = {}

@@ -84,10 +84,10 @@ def cv(mqtt_active=False):
                         o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'gpio'))
                         continue
-                    elif (md == 3):
+                    elif (md == g.PinADC):
                         v = ADCRead(i)
-                        o(i, v, md, False, tpfx() +
-                          '/{}'.format(stype or 'adc'))
+                        if (v>0):
+                            o(i, v, md, False,  '{}/{}'.format(tpfx(),stype or 'adc'))
                         continue
             if bled:
                 led(1)

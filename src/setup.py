@@ -1,5 +1,5 @@
-name= 'cafe'
-label='luz cafe'
+name= None
+label='Interruptor'
 
 ssid ='micasa'
 password='3938373635'
