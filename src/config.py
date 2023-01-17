@@ -79,13 +79,13 @@ def restore():
     try:
         cfg = {}
         try:
-          with open(_cf, 'r') as f:
-            cfg = load(f)
-            f.close()
-        except: cfg = {}    
+            with open(_cf, 'r') as f:
+                cfg = load(f)
+        except: pass    
         config = conf()
         for item in cfg:  # pega os que faltam na configuracao
-                config[item] = cfg[item]
+            config[item] = cfg[item]
+        cfg = None    
     except:
         pass
 def reset_factory():
@@ -100,8 +100,7 @@ def save():
     from json import dump
     with open(_cf, 'w') as f:
         dump(rst, f)
-        f.close()
-    print(rst)    
+    cfg = None
     return "Saved"
 def start():
     if setup.relay_pin:
@@ -318,7 +317,4 @@ def gpioCond(cmd:str):
 def clearCond():
     config[conds] = []
     return 'OK'
-def readFile(nome:str):
-    with open(nome, 'r') as f: 
-            return f.read()
     

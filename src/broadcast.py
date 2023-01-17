@@ -1,12 +1,15 @@
 from gc import collect
 
-from config import readFile
-
 
 def now():
    import utime
    t = utime.localtime()
    return '{}-{}-{}T{}:{}:{}'.format(t[0],t[1],t[2],t[3],t[4],t[5])
+
+def readFile(nome:str):
+    with open(nome, 'r') as f: 
+            return f.read()
+
 
 class Alexa:
     def __init__(self,ip):
