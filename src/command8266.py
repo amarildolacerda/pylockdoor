@@ -67,17 +67,12 @@ def cmmd(c):
             if cmd == 'help' :
                return  r(g.readFile('help.tmpl'))
             if cmd == "show":
-                if cmd1 == 'config':
-                    return r(str(g.config))
-                elif cmd1 == 'mqtt':
+                if cmd1 == 'mqtt':
                     from configshow import shMqtt
                     return r(shMqtt())
                 elif cmd1 == "gpio":
                     import csGpio
                     return r(csGpio.shGpio())
-                elif cmd1 == 'scene':
-                    from configshow import shScene
-                    return r(shScene())
                 from configshow import show
                 return r(show())
 
@@ -85,8 +80,6 @@ def cmmd(c):
                 return r(g.save())
             elif cmd == 'reset':
                 reset()
-            elif cmd == g.events:
-                return g.sEvent(p)
             elif cmd == 'gpio':
                 if cmd1 == 'clear':
                    return r( g.model('clear'))
@@ -98,11 +91,7 @@ def cmmd(c):
                     return r(g.sstype(cmd1, p[3]))
                 else:
                     if cmd2 == _s:
-                        rsp = r(g.spin(cmd1, p[3]))
-                        if g.gpin(cmd1) == 1:
-                            import event
-                            event.setSleep(None)
-                        return rsp
+                        return r(g.spin(cmd1, p[3]))
                     elif cmd2 == 'switch':
                         return g.swt(cmd1)
                     else:

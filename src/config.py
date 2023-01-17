@@ -36,12 +36,10 @@ gp_trg_tbl = '4'
 gpio_timeoff = '2'
 gpio_timeon = '3'
 gp_mde = '0'
-events = 'scene'
 modes = ['none','out','in','adc']
 _table = ['none','monostable','bistable']
 timeOnOff = {}
 gpio = 'gpio'
-conds = 'conds'
 import setup
 
 mesh = 'mesh/'+(setup.name or uid)
@@ -60,8 +58,6 @@ def conf():
         gp_trg_tbl: {},
         gpio_timeoff: {},
         gpio_timeon: {},
-        events: {},
-        conds:[],
         'stype': {},
         'mqtt_host': setup.mqtt_host,
         'mqtt_name': uid,
@@ -99,14 +95,13 @@ def save():
     from json import dump
     with open(_cf, 'w') as f:
         dump(rst, f)
-        f.close()
-    print(rst)    
     return "Saved"
 def start():
     if setup.relay_pin:
         model(setup.relay_pin)
     try:
         restore()
+        print(config)
     except:
         pass
 def mdeTs(mode):
@@ -165,25 +160,6 @@ def led(v):
     if pin <= _maxPins:
         return
     Pin(pin, Pin.OUT).value(v)
-def sEvent(p):
-    try:
-        event = p[1]
-        cmd = p[2]
-        pin = int(p[3])
-        if cmd == 'trigger':
-            config[events][event] = pin
-            return 'trigged'
-        if cmd == 'clear':
-            config[events].pop(event)
-            return 'cleaned'
-        if cmd == 'set':
-            dst = config[events][event]
-            vlr = p[3]
-            v = spin(dst, vlr)
-            return v
-    except Exception as e:
-        print('{}: {}'.format(p, e))
-    return config[events]
 def trigg(p: str, v):
     try:
         t = gTrg(p)
@@ -308,15 +284,6 @@ def gVlr(p: str):
         return v
     except:
         return 0
-def gpioCond(cmd:str):
-    s = cmd.split(' ')
-    cmd = s[6][0]
-    ss = '{},{},{},{},{},{},{}'.format(s[1], s[2], s[3],s[4],cmd,s[7],s[9])
-    config[conds].append( ss )
-    return config[conds]
-def clearCond():
-    config[conds] = []
-    return 'OK'
 def readFile(nome:str):
     with   open(nome, 'r')  as f:
         return f.read()

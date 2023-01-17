@@ -110,4 +110,5 @@ def interruptTrigger(pin):
     if p >= 0:
         o(p, pin.value(), None, _T)
         print('gpio {} set {}'.format(p,pin.value()))
+
 g.irqEvent(interruptTrigger)

@@ -98,7 +98,6 @@ def sdOut(p, v):
 def sb(aSubTopic):
     if mq != _N:
         mq.subscribe(aSubTopic)
-        mq.subscribe(g.events+'/+')
         mq.subscribe(topic_alive())
 
 def callback(aCallback):
