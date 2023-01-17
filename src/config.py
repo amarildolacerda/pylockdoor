@@ -1,6 +1,6 @@
 from time import ticks_diff, ticks_ms
 
-from machine import Pin, unique_id
+from machine import ADC, Pin, unique_id
 
 _N = None
 _T = True
@@ -98,8 +98,7 @@ def save():
         dump(rst, f)
     return "Saved"
 def start():
-    if setup.relay_pin:
-        model(setup.relay_pin)
+    model(setup.relay_pin)
     try:
         restore()
     except:
@@ -191,21 +190,28 @@ def gtrigg(p: str):
 def spin(pin: str, value, pers = False) -> str:
     global timeOnOff
     try:
-        print('spin')
+        x = sToInt(pin,pin)
+        if x == 0: #ADC
+            return 0
         v = sToInt(value, value)
-        p = Pin(pin,Pin.OUT)
+        p = Pin(x,Pin.OUT)
         p.value(v)
-        print(p,v)
-        if pers:
-            sVlr(pin, v)
-        timeOnOff[pin] = ticks_ms()
-        print('timeonoff')
+        try:
+            if pers:
+                sVlr(pin, v)
+            timeOnOff[pin] = ticks_ms()
+        except:
+            pass
     except Exception as e:
         print('E spin:{} pin: {} value: {} '.format(e, pin, value))
     return value
 def gpin(p1: str) -> int:
     try:
-        p = initPin(p1, Pin.IN)
+        x = sToInt(p1,p1)
+        if x == 0: 
+            from machine import ADC
+            return ADC(x).read()
+        p = initPin(p1, PinIN)
         return p.value()
     except Exception as e:
         print('{} {} {}'.format('gpin: ',p1, e))
