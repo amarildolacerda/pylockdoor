@@ -192,7 +192,7 @@ def spin(pin: str, value, pers = False) -> str:
     try:
         print('spin')
         v = sToInt(value, value)
-        p = initPin(pin, Pin.OUT)
+        p = Pin(pin,Pin.OUT)
         p.value(v)
         print(p,v)
         if pers:
@@ -209,6 +209,8 @@ def gpin(p1: str) -> int:
     except Exception as e:
         print('{} {} {}'.format('gpin: ',p1, e))
 def initPin(pin: str, tp):
+    if tp == Pin.OUT:
+      return Pin(pin,Pin.OUT)
     global dados
     try:
         if not pin in dados[PINS].keys():
