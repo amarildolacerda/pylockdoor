@@ -9,9 +9,7 @@ _N = None
 _T = True
 _F = False
 try:
-    from config import IFCONFIG, config, dados
-    from config import start as cfg_start
-    from config import uid
+    from config import IFCONFIG, config, dados, uid
     wlan = _N
     def connectWifi():
         global wlan
@@ -78,9 +76,10 @@ try:
     timer = None
     def init():
         global timer
-        from event import init as ev_init 
+        from config import start as config_start
+        config_start()
+        from event import init as ev_init
         ev_init()
-        cfg_start()
 
     def doTelnetEvent(server, addr,message):
         print('telnet',addr,message)

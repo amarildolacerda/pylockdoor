@@ -192,7 +192,7 @@ def spin(pin: str, value, pers = False) -> str:
     try:
         print('spin')
         v = sToInt(value, value)
-        p = initPin(pin, Pin.IN)
+        p = initPin(pin, Pin.OUT)
         p.value(v)
         print(p,v)
         if pers:
@@ -213,8 +213,8 @@ def initPin(pin: str, tp):
     try:
         if not pin in dados[PINS].keys():
             dados[PINS][pin] = Pin(int(pin), tp)
-            if tp == Pin.IN:
-                dados[PINS][pin].irq(trigger=Pin.IRQ_RISING,
+          #  if tp == Pin.IN:
+            dados[PINS][pin].irq(trigger=Pin.IRQ_RISING,
                               handler=interruptEvent)
         return dados[PINS][pin]
     except Exception as e:
