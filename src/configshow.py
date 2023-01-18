@@ -1,9 +1,12 @@
 
 _N = None
+desde = None
 def show():
+    global desde
     from gc import mem_alloc, mem_free
 
     import commandutils as u
+    desde = desde or u.now()
     import config as g
     m = {}
     m['time'] = u.now()
@@ -12,6 +15,7 @@ def show():
     m['alloc'] = mem_alloc()
     m['id'] = g.uid
     m['ip'] = g.dados[g.IFCONFIG]
+    m['up'] = desde
     return str(m)
 def shMqtt():
     m = {}
