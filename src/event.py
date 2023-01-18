@@ -50,10 +50,11 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
 
 def o(p: str, v, mode: int, force=_F, topic: str = None):
     try:
+        if p==None: return 'event.o.p is None'
         if not checkTimer(0, p, v, mode, g.config[g.gpio_timeon], force):
             checkTimer(1, p, v, mode, g.config[g.gpio_timeoff], force)
         key = str(p)
-        x = g.gVlr(p)
+        x = g.gVlr(key)
         if force or (v - x) != 0:
             g.sVlr(key, v)
             g.trigg(key, v)
@@ -74,7 +75,8 @@ def cv(mqtt_active=False):
             if bled:
                 led(0)
             utm = t
-            for i in g.config[g.gp_mde]:
+            #print(g.config[g.gp_mde].keys())
+            for i in g.config[g.gp_mde].keys():
                 stype = g.gstype(i)
                 md = g.gMde(i)
                 if (md != None):

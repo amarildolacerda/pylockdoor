@@ -110,7 +110,6 @@ try:
         udp = services.Broadcast(callbackFn=timeloop)
         udp.listen(broadcast.discovery)
         
-
     def bind():
             global  wlan
             if not connectWifi():

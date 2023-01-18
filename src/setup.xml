@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <root>
   <device>
-    <deviceType>urn:LeMaRiva:device:controllee:1</deviceType>
+    <deviceType>urn:ihomeware:device:controller:1</deviceType>
     <friendlyName>{name}</friendlyName>
-    <manufacturer>Belkin International Inc.</manufacturer>
+    <manufacturer>ihomewareio</manufacturer>
     <modelName>Emulated Socket</modelName>
     <modelNumber>3.1415</modelNumber>
     <UDN>uuid:Socket-1_0-{uuid}</UDN>
@@ -11,8 +11,8 @@
     <binaryState>0</binaryState>
     <serviceList>
       <service>
-          <serviceType>urn:Belkin:service:basicevent:4</serviceType>
-          <serviceId>urn:Belkin:serviceId:basicevent4</serviceId>
+          <serviceType>urn:Belkin:service:basicevent:1</serviceType>
+          <serviceId>urn:Belkin:serviceId:basicevent1</serviceId>
           <controlURL>/upnp/control/basicevent/4</controlURL>
           <eventSubURL>/upnp/event/basicevent/4</eventSubURL>
           <SCPDURL>/eventservice.xml</SCPDURL>

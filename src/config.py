@@ -65,9 +65,10 @@ def conf():
         'mqtt_port': setup.mqtt_port,
         'mqtt_user': uid,
         'mqtt_password': 'anonymous',
-        'mqtt_interval': 30,
+        'mqtt_interval': 60,
         'mqtt_prefix': mesh,
         'interval': 0.3,
+        'auto-pin' : 4,
     }
 config = conf()
 def restore():
@@ -135,11 +136,15 @@ def gTrg(p: str):
 def gTbl(p: str):
     return config[gp_trg_tbl].get(p)
 def sToInt(p3, v):
-    if (p3 in ['high', 'ON', 'on', '1']):
+    try:
+     if (p3 in ['high', 'ON', 'on', '1']):
         v = 1
-    if (p3 in ['low', 'OFF', 'off', '0']):
+     if (p3 in ['low', 'OFF', 'off', '0']):
         v = 0
-    return v
+     return v   
+    except:
+      print('sToInt',p3,v)
+    return int(v)
 def checkTimeout(conn_lst, dif):
     try:
         d = ticks_diff(ticks_ms(), conn_lst)
@@ -188,27 +193,30 @@ def gtrigg(p: str):
         else:
             return gpin(p)
 
-def spin(pin: str, value, pers = False) -> str:
+def spin(p1: str, value, pers = False) -> str:
     global timeOnOff
     try:
-        x = sToInt(pin,pin)
+        x = sToInt(p1,p1)
         if x == 0: #ADC
             return 0
         v = sToInt(value, value)
-        p = Pin(x,Pin.OUT)
+        p = initPin(p1, PinOUT)
+        #p = Pin(x,Pin.OUT)
         p.value(v)
         try:
             if pers:
-                sVlr(pin, v)
-            timeOnOff[pin] = ticks_ms()
+                sVlr(p1, v)
+            timeOnOff[p1] = ticks_ms()
         except:
             pass
     except Exception as e:
-        print('E spin:{} pin: {} value: {} '.format(e, pin, value))
+        print('E spin:{} pin: {} value: {} '.format(e, p1, value))
     return value
 def gpin(p1: str) -> int:
     try:
+        #print(p1)
         x = sToInt(p1,p1)
+        #print(x)
         if x == 0: 
             from machine import ADC
             return ADC(x).read()
@@ -216,20 +224,36 @@ def gpin(p1: str) -> int:
         return p.value()
     except Exception as e:
         print('{} {} {}'.format('gpin: ',p1, e))
-def initPin(pin: str, tp):
+def initPin(p1: str, tp):
+    s=''
+    #s='a0'
+    p = str(p1)
+    #s='a1'
+    x = sToInt(p,p)
+    #s='a2'
     if tp == Pin.OUT:
-      return Pin(pin,Pin.OUT)
+      #s='a3'  
+      return Pin(x,Pin.OUT)
     global dados
+    #s = 'a4'
     try:
-        if not pin in dados[PINS].keys():
-            dados[PINS][pin] = Pin(int(pin), tp)
-          #  if tp == Pin.IN:
-            dados[PINS][pin].irq(trigger=Pin.IRQ_RISING,
-                              handler=interruptEvent)
-        return dados[PINS][pin]
+        #s= ['a5',dados[PINS].keys()]
+        if not x in dados[PINS].keys():
+         #       s = ['a6',p,x]
+                r = Pin(int(p), Pin.IN)
+         #       s = 'a7'
+                if tp == Pin.IN:
+                  r.irq(trigger=Pin.IRQ_RISING,
+                                handler=interruptEvent)
+         #       s=['a9']                  
+                dados[PINS][x] = r
+                
+                
+         #       s=['a8']                  
+        return dados[PINS][x] or Pin(int(p),Pin.OUT)
     except Exception as e:
-        print('{} {}'.format('initPin: ', e))
-    return None
+        print('{} {} {}'.format('initPin ',s, e))
+ 
 def irqEvent(proc):
     global interruptEvent
     interruptEvent = proc

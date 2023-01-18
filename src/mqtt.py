@@ -44,7 +44,7 @@ def create(client_id, mqtt_server, mqtt_user, mqtt_password):
 usnd = ticks_ms()
 mqttResetCount = 0
 def sendStatus(force=False):
-    global usnd, mqttResetCount
+    global usnd
     try:
         if (mq == _N):
             return
@@ -55,14 +55,7 @@ def sendStatus(force=False):
         usnd = ticks_ms()
         global host
         from configshow import show
-        rsp = p(topic_topology(), show(), 0)
-        mqttResetCount += (1-rsp)
-        #if (mqttResetCount > 0):
-            #cnt()
-            #reset()
-        if g.defineEsp32:
-            p(tpfx()+'/sensor/temp',
-              str(round((esp32.raw_temperature() - 32) / 1.8, 1)), 1)
+        return p(topic_topology(), show(), 0)
     except:
         pass
 def sdPinRsp(pin, sValue, aRetained=0):
@@ -87,6 +80,12 @@ def p(t, p, aRetained=0):
             return 1
         return 0  # sucesso
     except Exception as e:
+        if mqttResetCount>16:
+           print('falha conectividade MQTT') 
+           reset()
+        if str(e).find('CON')>0:
+           cnt()
+        mqttResetCount+=1   
         print('mqtt: {}'.format(e))
         return 0  # falhou
 def send(aTopic, aMessage):
@@ -108,6 +107,7 @@ def check_msg():
         mq.check_msg()
 def cnt():
     if mq != _N:
+        print('Conectando MQTT') 
         mq.connect()
         p(topic_status(), 'online', 0)
         sendStatus(True)

@@ -26,6 +26,10 @@ class Alexa:
 def readFile(nome:str):  
         with open(nome, 'r') as f:return f.read()
 
+def timerFeedSet():
+        from wifimgr import timerFeed
+        timerFeed()
+
 
 def discovery(sender,addr, data:str ):
         from config import IFCONFIG, dados
@@ -34,14 +38,15 @@ def discovery(sender,addr, data:str ):
                 alexa.send_msearch(addr)
         else:        
            print( addr,data)
+        timerFeedSet()
         return True
 
-def getState(pin='4'):
+def getState(pin=None):
     from config import gtrigg
-    return gtrigg(pin)
-def action_state(value:int,pin='4'):
+    return gtrigg(pin or g.config['auto-pin'])
+def action_state(value:int,pin=None):
     from config import strigg
-    strigg(pin,value)
+    strigg(pin or g.config['auto-pin'] ,value)
     return True
 
 def mkhdr(client, status_code, contentType, length):
@@ -126,4 +131,5 @@ def http(client,addr,request):
         except Exception as e:
             print(str(e), ' in ', request)
             mkrsp(client,readFile('erro.html').format(msg=str(e), url=url) ,500 )
+        timerFeedSet()        
         return True    
