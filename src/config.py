@@ -214,9 +214,7 @@ def spin(p1: str, value, pers = False) -> str:
     return value
 def gpin(p1: str) -> int:
     try:
-        #print(p1)
         x = sToInt(p1,p1)
-        #print(x)
         if x == 0: 
             from machine import ADC
             return ADC(x).read()
@@ -225,35 +223,21 @@ def gpin(p1: str) -> int:
     except Exception as e:
         print('{} {} {}'.format('gpin: ',p1, e))
 def initPin(p1: str, tp):
-    s=''
-    #s='a0'
     p = str(p1)
-    #s='a1'
     x = sToInt(p,p)
-    #s='a2'
     if tp == Pin.OUT:
-      #s='a3'  
       return Pin(x,Pin.OUT)
     global dados
-    #s = 'a4'
     try:
-        #s= ['a5',dados[PINS].keys()]
         if not x in dados[PINS].keys():
-         #       s = ['a6',p,x]
                 r = Pin(int(p), Pin.IN)
-         #       s = 'a7'
                 if tp == Pin.IN:
                   r.irq(trigger=Pin.IRQ_RISING,
                                 handler=interruptEvent)
-         #       s=['a9']                  
                 dados[PINS][x] = r
-                
-                
-         #       s=['a8']                  
         return dados[PINS][x] or Pin(int(p),Pin.OUT)
     except Exception as e:
         print('{} {} {}'.format('initPin ',s, e))
- 
 def irqEvent(proc):
     global interruptEvent
     interruptEvent = proc

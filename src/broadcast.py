@@ -5,23 +5,18 @@ def now():
    import utime
    t = utime.localtime()
    return '{}-{}-{}T{}:{}:{}'.format(t[0],t[1],t[2],t[3],t[4],t[5])
-
 class Alexa:
     def __init__(self,ip):
         self.ip = ip
-    def readFile(self,nome:str):  
-        with open(nome, 'r') as f:return f.read()
     def sendto(self, destination, message):
         from socket import AF_INET, SOCK_DGRAM, socket
         temp_socket = socket(AF_INET, SOCK_DGRAM)
         temp_socket.sendto(message, destination)
-        from machine import idle
-        idle()
         import time
         time.sleep(0.1)
         temp_socket.close()
     def send_msearch(self,  addr):
-        self.sendto(addr, self.readFile("msearch.html").format(self.ip))
+        self.sendto(addr, readFile("msearch.html").format(self.ip))
 
 def readFile(nome:str):  
         with open(nome, 'r') as f:return f.read()
@@ -29,7 +24,6 @@ def readFile(nome:str):
 def timerFeedSet():
         from wifimgr import timerFeed
         timerFeed()
-
 
 def discovery(sender,addr, data:str ):
         from config import IFCONFIG, dados
@@ -82,13 +76,13 @@ def dbg(txt):
     return True
 def handle_request(client, data):
         if (
-            data.find(b"POST /upnp/control/basicevent1 HTTP/1.1") == 0
+            data.find(b"POST /upnp/control/basicevent1") >= 0
             and data.find(b"#GetBinaryState") != -1
         ):          
            return mkrsp(client,  readFile('state.soap').format(state=getState()))
-        elif data.find(b"GET /eventservice.xml HTTP/1.1") == 0:
+        elif data.find(b"GET /eventservice.xml") == 0:
            return mkrsp(client,  readFile('eventservice.xml'),200,'application/xml')
-        elif data.find(b"GET /setup.xml HTTP/1.1") == 0:
+        elif data.find(b"GET /setup.xml") == 0:
             from config import uid
             return mkrsp(client, readFile('setup.xml').format(name=label(), uuid=uid),200,'application/xml' )
         elif (
@@ -111,8 +105,6 @@ def handle_request(client, data):
                 return False    
         else:
             return False
-
-
 def http(client,addr,request):
         import ure
         try:

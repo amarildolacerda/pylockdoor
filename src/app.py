@@ -45,7 +45,7 @@ try:
         from event import cv 
         cv(v)
         
-    def gpioLoopCallback():
+    def gpioLoopCallback(b=None):
         global inLoop
         if inLoop: return
         try:
@@ -68,11 +68,9 @@ try:
           finally:
             timerReset(True)
             inLoop = False    
+          return true  
         except Exception as e:
             pass
-    def timerLoop(x):
-        gpioLoopCallback()
-        return True
     timer = None
     def init():
         global timer
@@ -82,10 +80,8 @@ try:
         ev_init()
 
     def doTelnetEvent(server, addr,message):
-        print('telnet',addr,message)
         if message.startswith('quit'):
             server.close()
-            sleep(1)
             reset()
             return True
         if message.startswith('reset'):
@@ -102,11 +98,9 @@ try:
         import server as services
         telnet = services.TelnetServer(7777)
         telnet.listen(doTelnetEvent)
-
         import broadcast
         web = services.WebServer("", 8080)
         web.listen(broadcast.http)
-
         udp = services.Broadcast(callbackFn=timeloop)
         udp.listen(broadcast.discovery)
         
@@ -124,12 +118,10 @@ try:
         try:
             init()
             bind()
-    
             timer = Timer(-1)
             timer.init(mode=Timer.PERIODIC,
-                   period=1000, callback=timerLoop)
-
-            services_run(wlan.ifconfig()[0],timerLoop)
+                   period=1000, callback=gpioLoopCallback)
+            services_run(wlan.ifconfig()[0],gpioLoopCallback)
 
         except KeyboardInterrupt as e:
             pass

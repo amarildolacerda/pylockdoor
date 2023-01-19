@@ -11,10 +11,10 @@ def show():
     m = {}
     m['time'] = u.now()
     m['ssid'] = g.config['ssid']
-    m['free']  = mem_free()
     m['alloc'] = mem_alloc()
     m['id'] = g.uid
     m['ip'] = g.dados[g.IFCONFIG]
+    m['free']  = mem_free()
     m['up'] = desde
     return str(m)
 def shMqtt():
