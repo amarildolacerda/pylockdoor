@@ -34,9 +34,9 @@ gp_trg_tbl = '4'
 gpio_timeoff = '2'
 gpio_timeon = '3'
 gp_mde = '0'
-PinOUT = 1
-PinIN = 2
-PinADC = 3
+PINOUT = 1
+PININ = 2
+PINADC = 3
 modes = ['none','out','in','adc']
 _table = ['none','monostable','bistable']
 timeOnOff = {}
@@ -129,7 +129,7 @@ def strToTbl(t: str) -> int:
 def sTrg(p):
     i = str(p[1])
     config[gp_trg][i] = int(p[3])
-    config[gp_mde][i] = PinIN
+    config[gp_mde][i] = PININ
     config[gp_trg_tbl][i] = strToTbl(p[4])
 def gTrg(p: str):
     return config[gp_trg].get(p)
@@ -195,22 +195,22 @@ def gtrigg(p: str):
 
 def spin(p1: str, value, pers = False) -> str:
     global timeOnOff
+    x = sToInt(p1,p1)
+    s1 = str(x)
     try:
-        x = sToInt(p1,p1)
         if x == 0: #ADC
             return 0
         v = sToInt(value, value)
-        p = initPin(p1, PinOUT)
-        #p = Pin(x,Pin.OUT)
+        p = initPin(s1, PINOUT)
         p.value(v)
         try:
             if pers:
-                sVlr(p1, v)
-            timeOnOff[p1] = ticks_ms()
+                sVlr(s1, v)
+            timeOnOff[s1] = ticks_ms()
         except:
             pass
     except Exception as e:
-        print('E spin:{} pin: {} value: {} '.format(e, p1, value))
+        print('E spin:{} pin: {} value: {} '.format(e, s1, value))
     return value
 def gpin(p1: str) -> int:
     try:
@@ -218,31 +218,34 @@ def gpin(p1: str) -> int:
         if x == 0: 
             from machine import ADC
             return ADC(x).read()
-        p = initPin(p1, PinIN)
+        p = initPin(p1, PININ)
         return p.value()
     except Exception as e:
         print('{} {} {}'.format('gpin: ',p1, e))
-def initPin(p1: str, tp):
+def initPin(p1, tp):
     p = str(p1)
-    x = sToInt(p,p)
-    if tp == Pin.OUT:
-      return Pin(x,Pin.OUT)
-    global dados
     try:
-        if not x in dados[PINS].keys():
-                r = Pin(int(p), Pin.IN)
-                if tp == Pin.IN:
+        print('a0')
+        x = sToInt(p,p)
+        if tp == PINOUT:
+            return Pin(int(x),Pin.OUT)
+        global dados
+        print('a3')
+        if not p in dados[PINS].keys():
+                print('a4')
+                r = Pin(int(x), Pin.IN)
+                if tp == PININ:
                   r.irq(trigger=Pin.IRQ_RISING,
                                 handler=interruptEvent)
-                dados[PINS][x] = r
-        return dados[PINS][x] or Pin(int(p),Pin.OUT)
+                dados[PINS][p] = r
+        return dados[PINS][p] or Pin(int(x),Pin.OUT)
     except Exception as e:
-        print('{} {} {}'.format('initPin ',s, e))
+        print('{} {} {}'.format('initPin ',p, e))
 def irqEvent(proc):
     global interruptEvent
     interruptEvent = proc
     for p in config[gp_mde]:
-        if gMde(p) == PinIN:
+        if gMde(p) == PININ:
             initPin(p, Pin.IN)
 def strToNum(v):
     try:

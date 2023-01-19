@@ -40,7 +40,7 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
                try: 
                 m = g.timeOnOff[key] or 0
                 if (m > 0) and (ticks_diff(ticks_ms(), m) > t*1000):
-                    g.spin(p, 1-seFor)
+                    g.spin(key, 1-seFor)
                     return True
                except: pass     
     except Exception as e:
@@ -86,7 +86,7 @@ def cv(mqtt_active=False):
                         o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'gpio'))
                         continue
-                    elif (md == g.PinADC):
+                    elif (md == g.PINADC):
                         v = ADCRead(i)
                         if (v>0):
                             o(i, v, md, False,  '{}/{}'.format(tpfx(),stype or 'adc'))
@@ -104,12 +104,12 @@ def ADCRead(pin: str):
     from machine import ADC
     return ADC(int(pin)).read()
 def interruptTrigger(pin):
-    p = -1
-    for key in g.dados[g.PINS]:
-        if g.dados[g.PINS][key] == pin:
-            p = int(key)
-    if p >= 0:
+    p = None
+    for k in g.dados[g.PINS].keys():
+        if g.dados[g.PINS][k] == pin:
+            p = k
+    if p :
         print('irq {} set {}'.format(p,pin.value()))
-        o(p, pin.value(), None, _T)
+        o(str(p), pin.value(), None, _T)
 
 g.irqEvent(interruptTrigger)
