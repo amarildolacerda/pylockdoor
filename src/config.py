@@ -225,14 +225,11 @@ def gpin(p1: str) -> int:
 def initPin(p1, tp):
     p = str(p1)
     try:
-        print('a0')
         x = sToInt(p,p)
         if tp == PINOUT:
             return Pin(int(x),Pin.OUT)
         global dados
-        print('a3')
         if not p in dados[PINS].keys():
-                print('a4')
                 r = Pin(int(x), Pin.IN)
                 if tp == PININ:
                   r.irq(trigger=Pin.IRQ_RISING,
