@@ -68,7 +68,7 @@ def conf():
         'mqtt_interval': 60,
         'mqtt_prefix': mesh,
         'interval': 0.3,
-        'auto-pin' : 4,
+        'auto-pin' : setup.auto_pin,
     }
 config = conf()
 def restore():
@@ -289,7 +289,7 @@ def model(md: str):
         return 'cleared'
     n = int(md)
     if n > 4:
-        sTrg([gpio, '4',  trigger, md, _table[2]])
+        sTrg([gpio, config['auto-pin'],  trigger, md, _table[2]])
         sMde(md, 'out')
         return sTimeOff([gpio, md, gpio_timeoff, 3600*5])
 def gVlrs():
