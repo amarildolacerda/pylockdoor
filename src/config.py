@@ -1,6 +1,7 @@
 from time import ticks_diff, ticks_ms
 
 from machine import ADC, Pin, unique_id
+from micropython import const
 
 _N = None
 _T = True
@@ -20,8 +21,8 @@ uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
 
 
 
-IFCONFIG = 0
-PINS = 1
+IFCONFIG = const(0)
+PINS = const(1)
 dados = {
    IFCONFIG:None,
    PINS : {}
@@ -29,18 +30,18 @@ dados = {
 
 gp = 'g_'
 trigger = 'tr'
-gp_trg = '1'
-gp_trg_tbl = '4'
-gpio_timeoff = '2'
-gpio_timeon = '3'
-gp_mde = '0'
-PINOUT = 1
-PININ = 2
-PINADC = 3
+gp_trg = const('1')
+gp_trg_tbl = const('4')
+gpio_timeoff = const('2')
+gpio_timeon = const('3')
+gp_mde = const('0')
+PINOUT = const(1)
+PININ = const(2)
+PINADC = const(3)
 modes = ['none','out','in','adc']
 _table = ['none','monostable','bistable']
 timeOnOff = {}
-gpio = 'gpio'
+gpio = const('gpio')
 import setup
 
 mesh = 'mesh/'+(setup.name or uid)
@@ -135,6 +136,7 @@ def gTrg(p: str):
     return config[gp_trg].get(p)
 def gTbl(p: str):
     return config[gp_trg_tbl].get(p)
+
 def sToInt(p3, v):
     try:
      if (p3 in ['high', 'ON', 'on', '1']):
@@ -145,6 +147,7 @@ def sToInt(p3, v):
     except:
       print('sToInt',p3,v)
     return int(v)
+ 
 def checkTimeout(conn_lst, dif):
     try:
         d = ticks_diff(ticks_ms(), conn_lst)
@@ -165,6 +168,7 @@ def led(v):
     if pin <= _maxPins:
         return
     Pin(pin, Pin.OUT).value(v)
+ 
 def trigg(p: str, v):
     try:
         t = gTrg(p)
@@ -178,6 +182,7 @@ def trigg(p: str, v):
                 spin(t, v)
     except Exception as e:
         print('E tr:{} pin:{} '.format(e, p))
+
 def strigg(p: str, v):
         t = gTrg(p)
         v = sToInt(v, v)
@@ -186,12 +191,14 @@ def strigg(p: str, v):
             return spin(t, v)
         else:
             return spin(p, v)
+
 def gtrigg(p: str):
         t = gTrg(p)
         if t != None:
             return gpin(t)
         else:
             return gpin(p)
+
 
 def spin(p1: str, value, pers = False) -> str:
     global timeOnOff
@@ -222,6 +229,7 @@ def gpin(p1: str) -> int:
         return p.value()
     except Exception as e:
         print('{} {} {}'.format('gpin: ',p1, e))
+       
 def initPin(p1, tp):
     p = str(p1)
     try:

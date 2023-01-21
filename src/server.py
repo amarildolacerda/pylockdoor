@@ -48,6 +48,7 @@ class Server:
                        print(self.__class__.__name__,str(e))
                        if str(e).find('failed, allocating')>0:
                           from machine import reset
+                          print('falha alocar memoria')
                           reset()
                     else:   
                         if (len(self.end)==0 or bts.endswith(self.end)) and  (len(bts)>0 and  self.messageEvent): 

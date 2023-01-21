@@ -1,10 +1,10 @@
 import socket
-import time
 from gc import collect
+from time import sleep, ticks_diff, ticks_ms
 
-import machine
 import network
 import ure
+from machine import reset
 from micropython import const
 
 import config as g
@@ -16,7 +16,7 @@ _T = const(True)
 wlan_sta = network.WLAN(network.STA_IF)
 wlan_ap =  network.WLAN(network.AP_IF)
 server_socket = _N
-conn_lst = time.ticks_ms()
+conn_lst = ticks_ms()
 c_ssid = None
 c_pass = None
 c_id = None
@@ -40,18 +40,17 @@ def ifconfig():
 suspendreset = False
 def timerReset(x):
     global suspendreset, conn_lst
-    if suspendreset:
+    if (not suspendreset and  (not checkTimeout(conn_lst, 120000))):
         return
-    if (not checkTimeout(conn_lst, 60000)):
-        return
-    time.sleep(10)
-    machine.reset()
+    sleep(10)
+    print('timerReset')
+    reset()
 def checkTimeout(tm, dif):
-    d = time.ticks_diff(time.ticks_ms(), tm)
-    return (d > dif)
+    return  ticks_diff(ticks_ms(), tm)> dif
 def timerFeed():
-    global conn_lst
-    conn_lst = time.ticks_ms()
+    global conn_lst 
+    conn_lst = ticks_ms()
+    collect()
 def get_connection():
     global wlan_sta
     global c_ssid, c_pass
@@ -87,7 +86,7 @@ def do_connect(ssid, password):
     wlan_sta.connect(ssid, password)
     for retry in range(100):
         if wlan_sta.isconnected(): break
-        time.sleep(0.2)
+        sleep(0.2)
         print('.', end='')
     return wlan_sta.isconnected()
 

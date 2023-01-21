@@ -107,6 +107,7 @@ try:
     def bind():
             global  wlan
             if not connectWifi():
+               print('connectWifi') 
                reset()
             try:
                 from ntp import settime
@@ -120,7 +121,7 @@ try:
             bind()
             timer = Timer(-1)
             timer.init(mode=Timer.PERIODIC,
-                   period=1000, callback=gpioLoopCallback)
+                   period=500, callback=gpioLoopCallback)
             services_run(wlan.ifconfig()[0],gpioLoopCallback)
 
         except KeyboardInterrupt as e:
