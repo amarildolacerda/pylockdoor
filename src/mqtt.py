@@ -40,6 +40,7 @@ def create(client_id, mqtt_server, mqtt_user, mqtt_password):
         return mq
     from umqtt_simple import MQTTClient
     mq = MQTTClient(client_id, mqtt_server, 0, mqtt_user,mqtt_password)
+    print('MQTT started')
     return mq
 usnd = ticks_ms()
 mqttResetCount = 0
@@ -83,7 +84,8 @@ def p(t, p, aRetained=0):
         if mqttResetCount>16:
            print('falha conectividade MQTT') 
            reset()
-        if str(e).find('CON')>0:
+        if str(e).find('UNREACH')>0:
+           print(str(e)) 
            cnt()
         mqttResetCount+=1   
         print('mqtt: {}'.format(e))
@@ -111,7 +113,8 @@ def cnt():
         mq.connect()
         p(topic_status(), 'online', 0)
         sendStatus(True)
-        global connected
+        global connected,mqttResetCount
+        mqttResetCount=0
         connected = _T
 def disp():
     for i in g.config[g.gp_mde]:
