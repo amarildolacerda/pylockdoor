@@ -81,12 +81,15 @@ def p(t, p, aRetained=0):
             return 1
         return 0  # sucesso
     except Exception as e:
+        msg = str(e)
         if mqttResetCount>16:
            print('falha conectividade MQTT') 
            reset()
-        if str(e).find('UNREACH')>0:
+        elif msg.find('UNREACH')>0 or msg.find('CONN')>0:
            print(str(e)) 
-           cnt()
+           dcnt(False)
+           cnt(False)
+           return 0
         mqttResetCount+=1   
         print('mqtt: {}'.format(e))
         return 0  # falhou
@@ -107,12 +110,13 @@ def callback(aCallback):
 def check_msg():
     if mq != _N:
         mq.check_msg()
-def cnt():
+def cnt(notify=True):
     if mq != _N:
         print('Conectando MQTT') 
         mq.connect()
-        p(topic_status(), 'online', 0)
-        sendStatus(True)
+        if notify:
+          p(topic_status(), 'online', 0)
+          sendStatus(True)
         global connected,mqttResetCount
         mqttResetCount=0
         connected = _T
@@ -121,9 +125,10 @@ def disp():
         x = g.gstype(str(i))
         if (x != None):
             p(('{}/type/{}').format(tpfx(), i), x, 0)
-def dcnt():
+def dcnt(notify=True):
     if mq != _N:
-        p(topic_status(), 'offline', 0)
+        if notify:
+          p(topic_status(), 'offline', 0)
         mq.disconnect()
         global connected
         connected = _F

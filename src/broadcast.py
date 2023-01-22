@@ -9,12 +9,15 @@ class Alexa:
     def __init__(self,ip):
         self.ip = ip
     def sendto(self, destination, message):
+      try:  
         from socket import AF_INET, SOCK_DGRAM, socket
         temp_socket = socket(AF_INET, SOCK_DGRAM)
         temp_socket.sendto(message, destination)
         import time
         time.sleep(0.1)
         temp_socket.close()
+      except Exception as e:
+        print(str(e))  
     def send_msearch(self,  addr):
         self.sendto(addr, readFile("msearch.html").format(self.ip))
 
@@ -59,8 +62,12 @@ def mkhdr(client, status_code, contentType, length):
 
 def mkrsp(client, payload, status_code=200, contentType='text/html'):
     z = len(payload)
-    mkhdr(client,status_code,contentType,z )
-    client.write(payload)
+    try:
+        mkhdr(client,status_code,contentType,z )
+        client.write(payload)
+    except Exception as e:
+        print(str(e))
+        return False    
     return True
     
 def notfnd(client, url):
