@@ -3,18 +3,16 @@ from time import sleep
 
 from machine import Timer, idle, reset, reset_cause
 
-from mqtt import p as mqttp
-
 _N = None
 _T = True
 _F = False
 try:
-    from config import IFCONFIG, config, dados, uid
     wlan = _N
     def connectWifi():
         global wlan
         from wifimgr import get_connection, isconnected
         if not wlan:
+            from config import IFCONFIG, dados
             wlan = get_connection()
             dados[IFCONFIG] = wlan.ifconfig()
         return isconnected()
@@ -25,11 +23,13 @@ try:
             from command8266 import tpRcv
             return tpRcv(t,p)
         except OSError as e:
+            from mqtt import p as mqttp
             mqttp('Invalid', 0)
             
     def mqttConnect(ip=''):
         try:
             import mqtt
+            from config import config, uid
             mqtt.topic = mqtt.tpfx()
             mqtt.host = config['mqtt_host']
             mqtt.create(uid, config['mqtt_host'],
