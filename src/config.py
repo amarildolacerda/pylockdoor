@@ -191,7 +191,7 @@ def gtrigg(p: str):
         t = gTrg(p)
         return gpin(t or p)
 pinChanged = False
-def spin(p1: str, value, pers = False) -> str:
+def spin(p1: str, value, pers = True) -> str:
     x = sToInt(p1,p1)
     s1 = str(x)
     try:
@@ -201,7 +201,8 @@ def spin(p1: str, value, pers = False) -> str:
         p = initPin(s1, PINOUT)
         p.value(v)
         try:
-            sVlr(s1, v)
+            if pers: 
+              sVlr(s1, v)
             from time import ticks_ms
             timeOnOff[s1] = ticks_ms()
         except:
@@ -326,7 +327,8 @@ def restorePins():
         except: pass   
         for k in cfg.keys():
             if gMde(k) == PINOUT:
-               spin(k,cfg[k]) 
+               spin(k,cfg[k],pers=False) 
+        print(gp_vlr)       
     except:
         pass    
 

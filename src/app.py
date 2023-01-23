@@ -66,7 +66,7 @@ try:
             timerReset(True)
             inLoop = False  
             from config import savePins
-            savePins()   
+            savePins()
           return true  
         except Exception as e:
             pass
@@ -98,9 +98,8 @@ try:
         import broadcast
         web = services.WebServer("", 8080)
         web.listen(broadcast.http)
-
-        from config import restorePins
-        restorePins()
+        #from config import restorePins
+        #restorePins()
         udp = services.Broadcast(callbackFn=timeloop)
         udp.listen(broadcast.discovery)
         
@@ -119,7 +118,7 @@ try:
             bind()
             timer = Timer(-1)
             timer.init(mode=Timer.PERIODIC,
-                   period=500, callback=gpioLoopCallback)
+                   period=1000, callback=gpioLoopCallback)
             services_run(wlan.ifconfig()[0],gpioLoopCallback)
 
         except KeyboardInterrupt as e:

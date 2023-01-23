@@ -30,20 +30,19 @@ def timerFeedSet():
 
 def discovery(sender,addr, data:str ):
         from config import IFCONFIG, dados
+        print( addr,data)
         if data.startswith(b"M-SEARCH"):
                 alexa = Alexa(dados[IFCONFIG][0])
                 alexa.send_msearch(addr)
-        else:        
-           print( addr,data)
         timerFeedSet()
         return True
 
 def getState(pin=None):
-    from config import gtrigg
-    return gtrigg(pin or g.config['auto-pin'])
+    from config import config, gtrigg
+    return gtrigg(pin or config['auto-pin'])
 def action_state(value:int,pin=None):
-    from config import strigg
-    strigg(pin or g.config['auto-pin'] ,value)
+    from config import config, strigg
+    strigg(pin or config['auto-pin'] ,value)
     return True
 
 def mkhdr(client, status_code, contentType, length):
@@ -113,6 +112,7 @@ def handle_request(client, data):
         else:
             return False
 def http(client,addr,request):
+    try:
         import ure
         try:
                 client.setblocking(False)
@@ -130,4 +130,5 @@ def http(client,addr,request):
             print(str(e), ' in ', request)
             mkrsp(client,readFile('erro.html').format(msg=str(e), url=url) ,500 )
         timerFeedSet()        
+    finally:
         return True    

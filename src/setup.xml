@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <root>
   <device>
-    <deviceType>urn:ihomeware:device:controller:1</deviceType>
+    <deviceType>urn:LeMaRiva:device:controllee:1</deviceType>
     <friendlyName>{name}</friendlyName>
-    <manufacturer>ihomewareio</manufacturer>
+    <manufacturer>Belkin International Inc.</manufacturer>
     <modelName>Emulated Socket</modelName>
     <modelNumber>3.1415</modelNumber>
     <UDN>uuid:Socket-1_0-{uuid}</UDN>
