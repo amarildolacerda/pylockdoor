@@ -4,127 +4,125 @@ from config import IFCONFIG, dados, gKey, gtrigg, strigg, uid
 
 
 def now():
-   import utime
-   t = utime.localtime()
+   from utime import localtime
+   t = localtime()
    return '{}-{}-{}T{}:{}:{}'.format(t[0],t[1],t[2],t[3],t[4],t[5])
 class Alexa:
     def __init__(self,ip):
         self.ip = ip
-    def sendto(self, destination, message):
+    def sendto(self, dest, msg):
       try:  
         from socket import AF_INET, SOCK_DGRAM, socket
-        temp_socket = socket(AF_INET, SOCK_DGRAM)
-        temp_socket.sendto(message, destination)
+        tmp = socket(AF_INET, SOCK_DGRAM)
+        tmp.sendto(msg, dest)
         import time
         time.sleep(0.1)
-        temp_socket.close()
+        tmp.close()
       except Exception as e:
         print(str(e))  
     def send_msearch(self,  addr):
-        self.sendto(addr, readFile("msearch.html").format(self.ip))
+        self.sendto(addr, rf("msearch.html").format(self.ip))
 
-def readFile(nome:str):  
-        with open(nome, 'r') as f:return f.read()
+def rf(n):  
+        with open(n, 'r') as f:return f.read()
 
-def timerFeedSet():
-        from wifimgr import timerFeed
-        timerFeed()
+def feed():
+        from wifimgr import timerFeed as t
+        t()
 
-def discovery(sender,addr, data:str ):
-        print( addr,data)
-        if data.startswith(b"M-SEARCH"):
+def discovery(sdr,addr, dt ):
+        print( addr,dt)
+        if dt.startswith(b"M-SEARCH"):
                 alexa = Alexa(dados[IFCONFIG][0])
                 alexa.send_msearch(addr)
-        timerFeedSet()
+        feed()
         return True
 
 def getState(pin=None):
-    return gtrigg(pin or gKey('auto-pin'))
-def action_state(value:int,pin=None):
-    strigg(pin or gKey('auto-pin') ,value)
+    p = pin or gKey('auto-pin')
+    st = gtrigg(p)
+    print('getState "{}":{}'.format(p,st))
+    return st
+def action_state(v:int,pin=None):
+    p = pin or gKey('auto-pin')
+    print('setState "{}":{}'.format(p,v))
+    strigg(p ,v)
     return True
 
 def mkhdr(client, status_code, contentType, length):
-     client.write("HTTP/1.1 {} OK\r\n".format(status_code) )
-     client.write("CONTENT-LENGTH: {}\r\n".format(length))
-     client.write('CONTENT-TYPE: {} charset="utf-8"\r\n'.format(contentType))
-     client.write("DATE: {}\r\n".format(now()))
-     client.write("EXT:\r\n")
-     client.write("SERVER: ihomeware UPnP/1.0, Unspecified\r\n")
-     client.write("X-User-Agent: ihomeware\r\n")
-     client.write("CONNECTION: close\r\n")
-     client.write("CACHE-CONTROL: no-cache\r\n")
-     client.write("\r\n")
-     collect()
-    
+     w = client.write
+     w("HTTP/1.1 {} OK\r\n".format(status_code) )
+     w("CONTENT-LENGTH: {}\r\n".format(length))
+     w('CONTENT-TYPE: {}\r\n'.format(contentType)) #charset="utf-8"
+     w("DATE: {}\r\n")
+     w("EXT:\r\n")
+     w("SERVER: UPnP/1.0\r\n".format(now()))
+     w("X-User-Agent: redsonic\r\n")
+     w("CONNECTION: close\r\n")
+     w("CACHE-CONTROL: no-cache\r\n\r\n")
 
-def mkrsp(client, payload, status_code=200, contentType='text/html'):
+def mkrsp(cli, payload, status_code=200, contentType='text/html'):
     z = len(payload)
     try:
-        mkhdr(client,status_code,contentType,z )
-        client.write(payload)
+        mkhdr(cli,status_code,contentType,z )
+        cli.write(payload)
     except Exception as e:
         print(str(e))
         return False    
     return True
     
-def notfnd(client, url):
-    mkrsp(client, "{}".format(url), 404)
+def notfnd(cli, url):
+    mkrsp(cli, "{}".format(url), 404)
     return True
 
 
 def label():
     return gKey('label') or gKey('mqtt_name')
-def dbg(txt):
-    print(txt)
-    return True
-def handle_request(client, data):
+def handle_req(cli, dt):
         if (
-            data.find(b"POST /upnp/control/basicevent1") >= 0
-            and data.find(b"#GetBinaryState") != -1
+            dt.find(b"/upnp/control/basicevent1") > 0
+            and dt.find(b"#GetBinaryState") != -1
         ):          
-           return mkrsp(client,  readFile('state.soap').format(state=getState()))
-        elif data.find(b"GET /eventservice.xml") == 0:
-           return mkrsp(client,  readFile('eventservice.xml'),200,'application/xml')
-        elif data.find(b"GET /setup.xml") == 0:
-            return mkrsp(client, readFile('setup.xml').format(name=label(), uuid=uid),200,'application/xml' )
+           return mkrsp(cli,rf('state.soap').format(state=getState()))
+        elif dt.find(b"/eventservice.xml") > 0:
+           return mkrsp(cli,rf('eventservice.xml'),200,'application/xml')
+        elif dt.find(b"/setup.xml") > 0:
+            return mkrsp(cli, rf('setup.xml').format(name=label(), uuid=uid),200,'application/xml' )
         elif (
-            data.find(b'#SetBinaryState')
+            dt.find(b'#SetBinaryState')
             != -1
         ):
-            success = False
-            if data.find(b"<BinaryState>1</BinaryState>") != -1:
-                success = action_state(1) 
-            elif data.find(b"<BinaryState>0</BinaryState>") != -1:
-                success = action_state(0)
+            succ = False
+            if dt.find(b"<BinaryState>1</BinaryState>") != -1:
+                succ = action_state(1) 
+            elif dt.find(b"<BinaryState>0</BinaryState>") != -1:
+                succ = action_state(0)
             else:
                 print("Unknown Binary State request:")
-            if success:
-                 from gc import collect
-                 collect()
-                 mkrsp(client,  readFile('state.soap').format(state=getState()))
-                 return True
-            else: 
-                return False    
+            if succ:
+                 mkrsp(cli,rf('state.soap').format(state=getState()))
+            return succ    
         else:
             return False
-def http(client,addr,request):
+def http(cli,addr,req):
     try:
         import ure
         try:
-                client.setblocking(False)
+                cli.setblocking(False)
                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP",
-                                 request).group(1).decode("utf-8").rstrip("/")
+                                 req).group(1).decode("utf-8").rstrip("/")
                 print(url)
-                if not handle_request(client, request):                         
+                if not handle_req(cli, req):                         
                     ext = url.split('.')
                     if len(ext)>1:
-                          mkrsp(client,      (readFile(url) or '').format(name=label() or 'indef',uuid= uid, url=url)     ,200,'text/{}'.format(ext[1]) )
-                    else: notfnd(client, url)
+                          mkrsp(cli,      (rf(url) or '').format(name=label() or 'indef',uuid= uid, url=url)     ,200,'text/{}'.format(ext[1]) )
+                    else: notfnd(cli, url)
 
         except Exception as e:
-            print(str(e), ' in ', request)
-            mkrsp(client,readFile('erro.html').format(msg=str(e), url=url) ,500 )
-        timerFeedSet()        
-    finally:
-        return True    
+            print(str(e), ' in ', req)
+            mkrsp(cli,rf('erro.html').format(msg=str(e), url=url) ,500 )
+        feed()
+        return True        
+    except Exception as e:
+        print(str(e))
+        return True
