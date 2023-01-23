@@ -27,11 +27,11 @@ try:
     def mqttConnect(ip=''):
         try:
             import mqtt
-            from config import config, uid
+            from config import gKey, uid
             mqtt.topic = mqtt.tpfx()
-            mqtt.host = config['mqtt_host']
-            mqtt.create(uid, config['mqtt_host'],
-                        config['mqtt_user'], config['mqtt_password'])
+            mqtt.host = gKey('mqtt_host')
+            mqtt.create(uid, gKey('mqtt_host'),
+                        gKey('mqtt_user'), gKey('mqtt_password'))
             mqtt.callback(mqtt_rcv)
             mqtt.cnt()
             mqtt.sb(mqtt.topic_command_in())

@@ -4,8 +4,6 @@ from time import sleep
 
 from machine import ADC, idle, reset
 
-import config as g
-
 _N = None
 _g = 'get'
 _s =  'set'
@@ -59,15 +57,16 @@ def cmmd(c):
                 cmd1 = p[1]
             if (len(p) > 2):
                 cmd2 = p[2]
+            from config import readFile, reset_factory, save
             if cmd=='open' :
-               return r(g.readFile(cmd1))     
-            if cmd == 'reset' and cmd1 == 'factory':
-                g.reset_factory()
+               return r(readFile(cmd1))     
+            elif cmd == 'reset' and cmd1 == 'factory':
+                reset_factory()
                 reset()
                 return k
-            if cmd == 'help' :
-               return  r(g.readFile('help.tmpl'))
-            if cmd == "show":
+            elif cmd == 'help' :
+               return  r(readFile('help.tmpl'))
+            elif cmd == "show":
                 if cmd1 == 'mqtt':
                     from configshow import shMqtt
                     return r(shMqtt())
@@ -78,32 +77,34 @@ def cmmd(c):
                 return r(show())
 
             elif cmd == 'save':
-                return r(g.save())
+                return r(save())
             elif cmd == 'reset':
                 reset()
             elif cmd == 'gpio':
+                from config import (gKey, gpin, model, save, sKey, sMde, spin,
+                                    sstype, sTimeOff, sTimeOn, sTrg, swt)
                 if cmd1 == 'clear':
-                   return r( g.model('clear'))
-                if cmd2 == 'timeoff':
-                    return r(g.sTimeOff(p))
+                   return r( model('clear'))
+                elif cmd2 == 'timeoff':
+                    return r(sTimeOff(p))
                 elif cmd2 == 'timeon':
-                    return r(g.sTimeOn(p))
+                    return r(sTimeOn(p))
                 elif cmd2 == 'type':
-                    return r(g.sstype(cmd1, p[3]))
+                    return r(sstype(cmd1, p[3]))
                 else:
                     if cmd2 == _s:
-                        return r(g.spin(cmd1, p[3]))
+                        return r(spin(cmd1, p[3]))
                     elif cmd2 == 'switch':
-                        return g.swt(cmd1)
+                        return swt(cmd1)
                     else:
                         if cmd2 == _g:
-                            v = g.gpin(p[1])
-                            rsp = r(g.gpin(p[1]))
+                            v = gpin(p[1])
+                            rsp = r(gpin(p[1]))
                             return rsp
                         elif cmd2 == 'mode':
-                            return g.sMde(cmd1, p[3])
+                            return sMde(cmd1, p[3])
                         elif cmd2 == 'trigger':
-                            return g.sTrg(p)
+                            return sTrg(p)
                 return k
             elif cmd == "adc":
                 if cmd2 == _s:
@@ -113,19 +114,14 @@ def cmmd(c):
                 return k
             elif cmd == 'set':
                 if cmd1 == 'sleep':
-                    g.config['sleep'] = int(cmd2)
-                    return r(g.save())
+                    sKey('sleep',  int(cmd2))
+                    return r(save())
                 elif cmd1 == 'model':
-                    return g.model(cmd2)
-                return r(g.sKey(cmd1, cmd2))
+                    return model(cmd2)
+                return r(sKey(cmd1, cmd2))
             elif cmd == 'get':
-                return r(g.gKey(cmd1))
-            elif cmd == 'clean':
-                g.model('clear')
-                return r(g.clearCond())
-            elif cmd == 'if':
-                return r(g.gpioCond(c))        
-            ('invalid:{}->{}'.format(cmd, c))
+                return r(gKey(cmd1))
+            return ('invalid:{}->{}'.format(cmd, c))
         except Exception as e:
             from mqtt import error
             error('E {}: {}'.format(c, e))
@@ -136,5 +132,6 @@ def sadc(p):
 def gadc(p):
     pin = int(p[1])
     v = ADC(pin).read()
-    g.sVlr(p[1], v)
+    from config import sVlr
+    sVlr(p[1], v)
     return str(v)

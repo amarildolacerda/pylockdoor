@@ -81,7 +81,7 @@ def restore():
         config = conf()
         from setup import relay_pin
         model(relay_pin)
-        for item in cfg:  # pega os que faltam na configuracao
+        for item in cfg: 
                 config[item] = cfg[item]
     except:
         pass
@@ -92,7 +92,7 @@ def save():
     cfg = conf()
     rst = {}
     for k in cfg.keys():
-       if config[k]!=cfg[k]:
+       if gKey(k)!=cfg[k]:
         rst[k]=config[k]
     from json import dump
     with open(_cf, 'w') as f:
@@ -111,12 +111,12 @@ def sToMde(smode):
     except:
         return _N
 def sMde(p: str, v):
-    config[gp_mde][p] = sToMde(v)
+    gKey(gp_mde)[p] = sToMde(v)
     return v
 def gMdes():
-    return config[gp_mde]
+    return gKey(gp_mde)
 def gMde(p: str):
-    return config[gp_mde].get(p)
+    return gKey(gp_mde).get(p)
 def tblToStr(t: int) -> str:
     return _table[t]
 def strToTbl(t: str) -> int:
@@ -126,13 +126,13 @@ def strToTbl(t: str) -> int:
         return _N
 def sTrg(p):
     i = str(p[1])
-    config[gp_trg][i] = int(p[3])
-    config[gp_mde][i] = PININ
-    config[gp_trg_tbl][i] = strToTbl(p[4])
+    gKey(gp_trg)[i] = int(p[3])
+    gKey(gp_mde)[i] = PININ
+    gKey(gp_trg_tbl)[i] = strToTbl(p[4])
 def gTrg(p: str):
-    return config[gp_trg].get(p)
+    return gKey(gp_trg).get(p)
 def gTbl(p: str):
-    return config[gp_trg_tbl].get(p)
+    return gKey(gp_trg_tbl).get(p)
 
 def sToInt(p3, v):
     try:
@@ -153,14 +153,14 @@ def checkTimeout(conn_lst, dif):
     except:
         return _F
 def gstype(pin):
-    return config['stype'].get(pin)
+    return gKey('stype').get(pin)
 def sstype(pin, stype):
-    config['stype'][pin] = stype
+    gKey('stype')[pin] = stype
     return stype
 gp_vlr = {}
 interruptEvent = None
 def led(v):
-    pin = int(config['led'] or 255)
+    pin = int(gKey('led') or 255)
     if pin <= _maxPins:
         return
     spin(pin,v)
@@ -241,7 +241,7 @@ def initPin(p1, tp):
 def irqEvent(proc):
     global interruptEvent
     interruptEvent = proc
-    for p in config[gp_mde]:
+    for p in gKey(gp_mde):
         if gMde(p) == PININ:
             initPin(p, PININ)
 def strToNum(v):
@@ -276,20 +276,20 @@ def sTmDly(p):
         v = None
     return v
 def sTimeOn(p):
-    config[gpio_timeon][p[1]] = sTmDly(p)
+    gKey(gpio_timeon)[p[1]] = sTmDly(p)
 def sTimeOff(p):
-    config[gpio_timeoff][p[1]] = sTmDly(p)
+    gKey(gpio_timeoff)[p[1]] = sTmDly(p)
 def model(md: str):
     if md == 'clear':
-        config[gp_mde] = {}
-        config[gp_trg] = {}
-        config[gp_trg_tbl] = {}
-        config[gpio_timeoff] = {}
-        config[gpio_timeon] = {}
+        sKey(gp_mde, {})
+        sKey(gp_trg,  {})
+        sKey(gp_trg_tbl, {})
+        sKey(gpio_timeoff, {})
+        sKey(gpio_timeon, {})
         return 'cleared'
     n = int(md)
     if n > 4:
-        sTrg([gpio, config['auto-pin'],  trigger, md, _table[2]])
+        sTrg([gpio, gKey('auto-pin'),  trigger, md, _table[2]])
         sMde(md, 'out')
         return sTimeOff([gpio, md, gpio_timeoff, 3600*5])
 def gVlrs():
@@ -317,6 +317,7 @@ def savePins():
     with open('pins.json', 'w') as f:
         dump(gp_vlr, f)
     pinChanged = False    
+    print(gp_vlr)       
 def restorePins():
     try:
         cfg = {}
@@ -328,6 +329,7 @@ def restorePins():
         for k in cfg.keys():
             if gMde(k) == PINOUT:
                spin(k,cfg[k],pers=False) 
+               pinChanged = False    
         print(gp_vlr)       
     except:
         pass    
