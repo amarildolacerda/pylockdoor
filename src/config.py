@@ -1,4 +1,3 @@
-from time import ticks_diff, ticks_ms
 
 from machine import ADC, Pin, unique_id
 from micropython import const
@@ -7,18 +6,16 @@ _N = None
 _T = True
 _F = False
 _cf = 'config.json'
-try:
-    import esp32
-    _maxPins = 40
-    defineEsp32 = _T
-except:
-    _maxPins = 16
-    defineEsp32 = _F
+_maxPins = 16
+_defineEsp32 = _F
 
-from ubinascii import hexlify
+uid = None
+def _init():
+  global uid  
+  from ubinascii import hexlify
+  uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
 
-uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
-
+_init()
 
 
 IFCONFIG = const(0)
@@ -28,7 +25,6 @@ dados = {
    PINS : {}
 }
 
-gp = 'g_'
 trigger = 'tr'
 gp_trg = const('1')
 gp_trg_tbl = const('4')
@@ -38,15 +34,16 @@ gp_mde = const('0')
 PINOUT = const(1)
 PININ = const(2)
 PINADC = const(3)
-modes = ['none','out','in','adc']
+modes = ['none','out','in','adc','pwm']
 _table = ['none','monostable','bistable']
 timeOnOff = {}
 gpio = const('gpio')
-import setup
-
-mesh = 'mesh/'+(setup.name or uid)
+mesh = None
 
 def conf():
+    global mesh
+    import setup
+    mesh = 'mesh/'+(setup.name or uid)
     return {
         'sleep': 0,
         'led': 255,
@@ -82,10 +79,10 @@ def restore():
             cfg = load(f)
         except: cfg = {}    
         config = conf()
-        model(setup.relay_pin)
+        from setup import relay_pin
+        model(relay_pin)
         for item in cfg:  # pega os que faltam na configuracao
                 config[item] = cfg[item]
-        print(config)        
     except:
         pass
 def reset_factory():
@@ -149,6 +146,7 @@ def sToInt(p3, v):
     return int(v)
  
 def checkTimeout(conn_lst, dif):
+    from time import ticks_diff, ticks_ms
     try:
         d = ticks_diff(ticks_ms(), conn_lst)
         return (d > dif)
@@ -200,8 +198,8 @@ def gtrigg(p: str):
             return gpin(p)
 
 
+pinChanged = False
 def spin(p1: str, value, pers = False) -> str:
-    global timeOnOff
     x = sToInt(p1,p1)
     s1 = str(x)
     try:
@@ -211,13 +209,13 @@ def spin(p1: str, value, pers = False) -> str:
         p = initPin(s1, PINOUT)
         p.value(v)
         try:
-            if pers:
-                sVlr(s1, v)
+            sVlr(s1, v)
+            from time import ticks_ms
             timeOnOff[s1] = ticks_ms()
         except:
             pass
     except Exception as e:
-        print('E spin:{} pin: {} value: {} '.format(e, s1, value))
+        print('E spin:{} p:{} v:{}'.format(e, s1, value))
     return value
 def gpin(p1: str) -> int:
     try:
@@ -304,6 +302,8 @@ def gVlrs():
     return gp_vlr
 def sVlr(p: str, v):
     gp_vlr[p] = strToNum(v)
+    global  pinChanged
+    pinChanged = True
     return v
 def gVlr(p: str):
     try:
@@ -316,3 +316,25 @@ def gVlr(p: str):
 def readFile(nome:str):
     with   open(nome, 'r')  as f:
         return f.read()
+def savePins():
+  global pinChanged  
+  if pinChanged:  
+    from json import dump
+    with open('pins.json', 'w') as f:
+        dump(gp_vlr, f)
+    pinChanged = False    
+def restorePins():
+    from json import load
+    try:
+        cfg = {}
+        try:
+          with open('pins.json', 'r') as f:
+            cfg = load(f)
+        except: cfg = {}   
+        print('Restore:',cfg) 
+        for k in cfg.keys():
+            if gMde(k) == PINOUT:
+                Pin(int(k), Pin.OUT).value(cfg[k])
+    finally:
+        pass    
+

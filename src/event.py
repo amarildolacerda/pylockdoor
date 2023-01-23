@@ -1,26 +1,21 @@
-from gc import collect
-from time import ticks_diff, ticks_ms
-
-from machine import Pin, idle, reset_cause
-
-import config as g
 
 _N = None
 _T = True
 _F = False
-utm = ticks_ms()
 nled = 0
-def init():
-    pass
+utm = None
+
 def timerEvent(x):
     cv(False)
 def led(v):
-    pin = int(g.config['led'] or 255)
+    from config import config, spin
+    pin = int(config['led'] or 255)
     if pin > 16:
         return
-    Pin(pin, Pin.OUT).value(v)
+    spin(pin,v)    
 def spin(p1: str, p3) -> str:
-    return g.spin(p1, p3)
+    from config import spin
+    return spin(p1, p3)
 def p(pin: str, msg: str):
     try:
         from mqtt import p, tCmdOut
@@ -38,9 +33,11 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
             t = lista[key] or 0
             if t > 0:
                try: 
-                m = g.timeOnOff[key] or 0
+                from config import spin, timeOnOff
+                m = timeOnOff[key] or 0
+                from time import ticks_diff, ticks_ms
                 if (m > 0) and (ticks_diff(ticks_ms(), m) > t*1000):
-                    g.spin(key, 1-seFor)
+                    spin(key, 1-seFor)
                     return True
                except: pass     
     except Exception as e:
@@ -50,43 +47,45 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
 
 def o(p: str, v, mode: int, force=_F, topic: str = None):
     try:
+        from config import config, gpio_timeoff, gpio_timeon, gVlr, sVlr, trigg
         if p==None: return 'event.o.p is None'
-        if not checkTimer(0, p, v, mode, g.config[g.gpio_timeon], force):
-            checkTimer(1, p, v, mode, g.config[g.gpio_timeoff], force)
+        if not checkTimer(0, p, v, mode, config[gpio_timeon], force):
+            checkTimer(1, p, v, mode, config[gpio_timeoff], force)
         key = str(p)
-        x = g.gVlr(key)
+        x = gVlr(key)
         if force or (v - x) != 0:
-            g.sVlr(key, v)
-            g.trigg(key, v)
+            sVlr(key, v)
+            trigg(key, v)
             from mqtt import p as mqttp
             from mqtt import tCmdOut
             mqttp((topic or tCmdOut())+'/' + key, str(v))
-            
+            from config import savePins
     except Exception as e:
         print('{} {}'.format('event.switch: ', e))
-    idle()
 def cv(mqtt_active=False):
     global utm, nled
     try:
+        from time import ticks_diff, ticks_ms
         t = ticks_ms()
-        if ticks_diff(t, utm) > g.config["interval"]*1000:
+        from config import config
+        if ticks_diff(t, utm) > config["interval"]*1000:
             nled += 1
             bled = (nled % 30 == 0)
             if bled:
                 led(0)
             utm = t
-            #print(g.config[g.gp_mde].keys())
-            for i in g.config[g.gp_mde].keys():
-                stype = g.gstype(i)
-                md = g.gMde(i)
+            from config import PINADC, gMde, gp_mde, gpin, gstype
+            for i in config[gp_mde].keys():
+                stype = gstype(i)
+                md = gMde(i)
                 if (md != None):
                     from mqtt import tpfx
                     if (md in [1, 2]):
-                        v = g.gpin(i)
+                        v = gpin(i)
                         o(i, v, md, False, tpfx() +
                           '/{}'.format(stype or 'gpio'))
                         continue
-                    elif (md == g.PINADC):
+                    elif (md == PINADC):
                         v = ADCRead(i)
                         if (v>0):
                             o(i, v, md, False,  '{}/{}'.format(tpfx(),stype or 'adc'))
@@ -98,18 +97,22 @@ def cv(mqtt_active=False):
 
     except Exception as e:
         print('{} {}'.format('event.cv: ', e))
-    collect()
-    idle()
 def ADCRead(pin: str):
     from machine import ADC
     return ADC(int(pin)).read()
 def interruptTrigger(pin):
     p = None
-    for k in g.dados[g.PINS].keys():
-        if g.dados[g.PINS][k] == pin:
+    from config import PINS, dados
+    for k in dados[PINS].keys():
+        if dados[PINS][k] == pin:
             p = k
     if p :
         print('irq {} set {}'.format(p,pin.value()))
         o(str(p), pin.value(), None, _T)
 
-g.irqEvent(interruptTrigger)
+def init():
+    global utm
+    from config import irqEvent
+    irqEvent(interruptTrigger)
+    from time import ticks_ms
+    utm = ticks_ms()

@@ -1,7 +1,5 @@
-from gc import collect, mem_alloc, mem_free
-from time import sleep
 
-from machine import Timer, idle, reset, reset_cause
+from machine import Timer, reset
 
 _N = None
 _T = True
@@ -60,14 +58,15 @@ try:
                     from mqtt import check_msg, connected, sendStatus
                     check_msg()
                     eventLoop(connected)
-                    if connected:
-                        sendStatus()
+                    sendStatus()
                 except:
                     mqttConnect(wlan.ifconfig()[0])
             else: eventLoop(False)
           finally:
             timerReset(True)
-            inLoop = False    
+            inLoop = False  
+            from config import savePins
+            savePins()   
           return true  
         except Exception as e:
             pass
@@ -80,13 +79,11 @@ try:
         ev_init()
 
     def doTelnetEvent(server, addr,message):
-        if message.startswith('quit'):
+        s = message.split(' ')
+        if s in ['quit','exit','reset']:
             server.close()
             reset()
             return True
-        if message.startswith('reset'):
-            server.close()
-            reset()
         from command8266 import cmmd    
         rsp = cmmd(message[:-2].decode('utf-8'))
         if rsp:
@@ -101,20 +98,21 @@ try:
         import broadcast
         web = services.WebServer("", 8080)
         web.listen(broadcast.http)
+
+        from config import restorePins
+        restorePins()
         udp = services.Broadcast(callbackFn=timeloop)
         udp.listen(broadcast.discovery)
         
     def bind():
             global  wlan
             if not connectWifi():
-               print('connectWifi') 
                reset()
             try:
                 from ntp import settime
                 settime()
             except: pass
             mqttConnect(wlan.ifconfig()[0])
-
     def run():
         try:
             init()
@@ -138,5 +136,4 @@ try:
                 pass    
 except Exception as e:
     print(e)
-    sleep(30)
     reset()
