@@ -97,6 +97,8 @@ def cv(mqtt_active=False):
 
     except Exception as e:
         print('{} {}'.format('event.cv: ', e))
+    from gc import collect
+    collect()    
 def ADCRead(pin: str):
     from machine import ADC
     return ADC(int(pin)).read()

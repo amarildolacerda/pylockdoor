@@ -1,5 +1,4 @@
 
-from machine import ADC, Pin, unique_id
 from micropython import const
 
 _N = None
@@ -12,6 +11,7 @@ _defineEsp32 = _F
 uid = None
 def _init():
   global uid  
+  from machine import unique_id
   from ubinascii import hexlify
   uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
 
@@ -157,15 +157,13 @@ def gstype(pin):
 def sstype(pin, stype):
     config['stype'][pin] = stype
     return stype
-def gateway(n):
-    pass
 gp_vlr = {}
 interruptEvent = None
 def led(v):
     pin = int(config['led'] or 255)
     if pin <= _maxPins:
         return
-    Pin(pin, Pin.OUT).value(v)
+    spin(pin,v)
  
 def trigg(p: str, v):
     try:
@@ -185,19 +183,13 @@ def strigg(p: str, v):
         t = gTrg(p)
         v = sToInt(v, v)
         if t != None:
-            initPin(t,Pin.OUT)
+            initPin(t,PINOUT)
             return spin(t, v)
         else:
             return spin(p, v)
-
 def gtrigg(p: str):
         t = gTrg(p)
-        if t != None:
-            return gpin(t)
-        else:
-            return gpin(p)
-
-
+        return gpin(t or p)
 pinChanged = False
 def spin(p1: str, value, pers = False) -> str:
     x = sToInt(p1,p1)
@@ -232,6 +224,7 @@ def initPin(p1, tp):
     p = str(p1)
     try:
         x = sToInt(p,p)
+        from machine import Pin
         if tp == PINOUT:
             return Pin(int(x),Pin.OUT)
         global dados
@@ -249,7 +242,7 @@ def irqEvent(proc):
     interruptEvent = proc
     for p in config[gp_mde]:
         if gMde(p) == PININ:
-            initPin(p, Pin.IN)
+            initPin(p, PININ)
 def strToNum(v):
     try:
         f = float(v)
@@ -324,17 +317,16 @@ def savePins():
         dump(gp_vlr, f)
     pinChanged = False    
 def restorePins():
-    from json import load
     try:
         cfg = {}
         try:
+          from json import load
           with open('pins.json', 'r') as f:
             cfg = load(f)
-        except: cfg = {}   
-        print('Restore:',cfg) 
+        except: pass   
         for k in cfg.keys():
             if gMde(k) == PINOUT:
-                Pin(int(k), Pin.OUT).value(cfg[k])
-    finally:
+               spin(k,cfg[k]) 
+    except:
         pass    
 
