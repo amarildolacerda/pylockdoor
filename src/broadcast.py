@@ -45,7 +45,7 @@ def action_state(value:int,pin=None):
     strigg(pin or config['auto-pin'] ,value)
     return True
 
-def mkhdr(client, status_code, contentType, length):
+def mkhdr(client, status_code, contentType, length, maxage):
      client.write("HTTP/1.1 {} OK\r\n".format(status_code) )
      client.write("CONTENT-LENGTH: {}\r\n".format(length))
      client.write('CONTENT-TYPE: {} charset="utf-8"\r\n'.format(contentType))
@@ -54,15 +54,15 @@ def mkhdr(client, status_code, contentType, length):
      client.write("SERVER: ihomeware UPnP/1.0, Unspecified\r\n")
      client.write("X-User-Agent: ihomeware\r\n")
      client.write("CONNECTION: close\r\n")
-     client.write("CACHE-CONTROL: no-cache\r\n")
+     client.write("CACHE-CONTROL: max-age={}\r\n".format(maxage))
      client.write("\r\n")
      collect()
     
 
-def mkrsp(client, payload, status_code=200, contentType='text/html'):
+def mkrsp(client, payload, status_code=200, contentType='text/html', maxage='60'):
     z = len(payload)
     try:
-        mkhdr(client,status_code,contentType,z )
+        mkhdr(client,status_code,contentType,z,maxage )
         client.write(payload)
     except Exception as e:
         print(str(e))
@@ -85,12 +85,12 @@ def handle_request(client, data):
             data.find(b"POST /upnp/control/basicevent1") >= 0
             and data.find(b"#GetBinaryState") != -1
         ):          
-           return mkrsp(client,  readFile('state.soap').format(state=getState()))
+           return mkrsp(client,  readFile('state.soap').format(state=getState()), maxage='5' )
         elif data.find(b"GET /eventservice.xml") == 0:
            return mkrsp(client,  readFile('eventservice.xml'),200,'application/xml')
         elif data.find(b"GET /setup.xml") == 0:
             from config import uid
-            return mkrsp(client, readFile('setup.xml').format(name=label(), uuid=uid),200,'application/xml' )
+            return mkrsp(client, readFile('setup.xml').format(name=label(), uuid=uid),200,'application/xml',maxage='360' )
         elif (
             data.find(b'#SetBinaryState')
             != -1
@@ -105,7 +105,7 @@ def handle_request(client, data):
             if success:
                  from gc import collect
                  collect()
-                 mkrsp(client,  readFile('state.soap').format(state=getState()))
+                 mkrsp(client,  readFile('state.soap').format(state=getState()), maxage='5')
                  return True
             else: 
                 return False    
