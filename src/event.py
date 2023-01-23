@@ -1,3 +1,6 @@
+from config import (PINADC, gKey, gMde, gp_mde, gpin, gpio_timeoff,
+                    gpio_timeon, gstype, gVlr, savePins, spin, sVlr, timeOnOff,
+                    trigg)
 
 _N = None
 _T = True
@@ -5,16 +8,15 @@ _F = False
 nled = 0
 utm = None
 
+
 def timerEvent(x):
     cv(False)
 def led(v):
-    from config import gKey, spin
     pin = int(gKey('led') or 255)
     if pin > 16:
         return
     spin(pin,v)    
 def spin(p1: str, p3) -> str:
-    from config import spin
     return spin(p1, p3)
 def p(pin: str, msg: str):
     try:
@@ -33,7 +35,6 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
             t = lista[key] or 0
             if t > 0:
                try: 
-                from config import spin, timeOnOff
                 m = timeOnOff[key] or 0
                 from time import ticks_diff, ticks_ms
                 if (m > 0) and (ticks_diff(ticks_ms(), m) > t*1000):
@@ -47,8 +48,6 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
 
 def o(p: str, v, mode: int, force=_F, topic: str = None):
     try:
-        from config import (gKey, gpio_timeoff, gpio_timeon, gVlr, savePins,
-                            sVlr, trigg)
         if p==None: return 'event.o.p is None'
         if not checkTimer(0, p, v, mode, gKey(gpio_timeon), force):
             checkTimer(1, p, v, mode, gKey(gpio_timeoff), force)
@@ -67,7 +66,6 @@ def cv(mqtt_active=False):
     try:
         from time import ticks_diff, ticks_ms
         t = ticks_ms()
-        from config import PINADC, gKey, gMde, gp_mde, gpin, gstype
         if ticks_diff(t, utm) > gKey("interval")*1000:
             nled += 1
             bled = (nled % 30 == 0)

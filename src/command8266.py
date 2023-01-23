@@ -4,6 +4,9 @@ from time import sleep
 
 from machine import ADC, idle, reset
 
+from config import (gKey, gpin, model, readFile, reset_factory, save, sKey,
+                    sMde, spin, sstype, sTimeOff, sTimeOn, sTrg, sVlr, swt)
+
 _N = None
 _g = 'get'
 _s =  'set'
@@ -57,7 +60,6 @@ def cmmd(c):
                 cmd1 = p[1]
             if (len(p) > 2):
                 cmd2 = p[2]
-            from config import readFile, reset_factory, save
             if cmd=='open' :
                return r(readFile(cmd1))     
             elif cmd == 'reset' and cmd1 == 'factory':
@@ -81,8 +83,6 @@ def cmmd(c):
             elif cmd == 'reset':
                 reset()
             elif cmd == 'gpio':
-                from config import (gKey, gpin, model, save, sKey, sMde, spin,
-                                    sstype, sTimeOff, sTimeOn, sTrg, swt)
                 if cmd1 == 'clear':
                    return r( model('clear'))
                 elif cmd2 == 'timeoff':
@@ -132,6 +132,5 @@ def sadc(p):
 def gadc(p):
     pin = int(p[1])
     v = ADC(pin).read()
-    from config import sVlr
     sVlr(p[1], v)
     return str(v)

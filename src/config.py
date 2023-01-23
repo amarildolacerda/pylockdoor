@@ -182,11 +182,7 @@ def trigg(p: str, v):
 def strigg(p: str, v):
         t = gTrg(p)
         v = sToInt(v, v)
-        if t != None:
-            initPin(t,PINOUT)
-            return spin(t, v)
-        else:
-            return spin(p, v)
+        return spin(t or p, v)
 def gtrigg(p: str):
         t = gTrg(p)
         return gpin(t or p)

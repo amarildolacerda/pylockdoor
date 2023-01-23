@@ -1,5 +1,7 @@
 from gc import collect
 
+from config import IFCONFIG, dados, gKey, gtrigg, strigg, uid
+
 
 def now():
    import utime
@@ -29,7 +31,6 @@ def timerFeedSet():
         timerFeed()
 
 def discovery(sender,addr, data:str ):
-        from config import IFCONFIG, dados
         print( addr,data)
         if data.startswith(b"M-SEARCH"):
                 alexa = Alexa(dados[IFCONFIG][0])
@@ -38,11 +39,9 @@ def discovery(sender,addr, data:str ):
         return True
 
 def getState(pin=None):
-    from config import config, gtrigg
-    return gtrigg(pin or config['auto-pin'])
+    return gtrigg(pin or gKey('auto-pin'))
 def action_state(value:int,pin=None):
-    from config import config, strigg
-    strigg(pin or config['auto-pin'] ,value)
+    strigg(pin or gKey('auto-pin') ,value)
     return True
 
 def mkhdr(client, status_code, contentType, length):
@@ -75,8 +74,7 @@ def notfnd(client, url):
 
 
 def label():
-    from config import config
-    return config['label'] or config['mqtt_name']
+    return gKey('label') or gKey('mqtt_name')
 def dbg(txt):
     print(txt)
     return True
@@ -89,7 +87,6 @@ def handle_request(client, data):
         elif data.find(b"GET /eventservice.xml") == 0:
            return mkrsp(client,  readFile('eventservice.xml'),200,'application/xml')
         elif data.find(b"GET /setup.xml") == 0:
-            from config import uid
             return mkrsp(client, readFile('setup.xml').format(name=label(), uuid=uid),200,'application/xml' )
         elif (
             data.find(b'#SetBinaryState')
@@ -122,7 +119,6 @@ def http(client,addr,request):
                 if not handle_request(client, request):                         
                     ext = url.split('.')
                     if len(ext)>1:
-                          from config import uid
                           mkrsp(client,      (readFile(url) or '').format(name=label() or 'indef',uuid= uid, url=url)     ,200,'text/{}'.format(ext[1]) )
                     else: notfnd(client, url)
 
