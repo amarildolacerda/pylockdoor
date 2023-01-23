@@ -29,35 +29,25 @@ def rf(n):
 def feed():
         from wifimgr import timerFeed as t
         t()
-
 def discovery(sdr,addr, dt ):
-        print( addr,dt)
         if dt.startswith(b"M-SEARCH"):
                 alexa = Alexa(dados[IFCONFIG][0])
                 alexa.send_msearch(addr)
         feed()
         return True
-
 def getState(pin=None):
-    p = pin or gKey('auto-pin')
-    st = gtrigg(p)
-    print('getState "{}":{}'.format(p,st))
-    return st
+    return gtrigg(pin or gKey('auto-pin'))
 def action_state(v:int,pin=None):
-    p = pin or gKey('auto-pin')
-    print('setState "{}":{}'.format(p,v))
-    strigg(p ,v)
-    return True
-
+    return strigg(pin or gKey('auto-pin') ,v)
 def mkhdr(client, status_code, contentType, length):
      w = client.write
      w("HTTP/1.1 {} OK\r\n".format(status_code) )
      w("CONTENT-LENGTH: {}\r\n".format(length))
      w('CONTENT-TYPE: {}\r\n'.format(contentType)) #charset="utf-8"
-     w("DATE: {}\r\n")
-     w("EXT:\r\n")
-     w("SERVER: UPnP/1.0\r\n".format(now()))
-     w("X-User-Agent: redsonic\r\n")
+     #w("DATE: {}\r\n")
+     #w("EXT:\r\n")
+     #w("SERVER: UPnP/1.0\r\n".format(now()))
+     #w("X-User-Agent: redsonic\r\n")
      w("CONNECTION: close\r\n")
      w("CACHE-CONTROL: no-cache\r\n\r\n")
 

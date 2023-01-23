@@ -116,11 +116,7 @@ try:
         try:
             init()
             bind()
-            timer = Timer(-1)
-            timer.init(mode=Timer.PERIODIC,
-                   period=500, callback=gpioLoopCallback)
             services_run(wlan.ifconfig()[0],gpioLoopCallback)
-
         except KeyboardInterrupt as e:
             pass
         except Exception as e:

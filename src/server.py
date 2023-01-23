@@ -19,14 +19,14 @@ class Server:
     def listen(self, messageEvent, end=b'\r\n'):
         self.end = end
         self.messageEvent = messageEvent
-        self.sock.listen(1)
+        self.sock.listen(5)
         self.sock.setsockopt(SOL_SOCKET, 20, self.receive_data)
         print('Listen {}:{}'.format(self.host,self.port))
         pass
     def receive_data(self,sck):
-        conn, addr = self.sock.accept()
+        conn, addr = sck.accept()
         try:
-            conn.settimeout(1)
+            conn.settimeout(0.5)
 
             print("Client",self.__class__.__name__,addr)
             if self.welcome:
@@ -38,11 +38,10 @@ class Server:
                 try: 
                         res = conn.recv(8)
                         if res:
-                            if res[0] == 0x08 and len(bts)>0:
+                            if len(bts)>0  and res[0] == 0x08 :
                                     bts = bts[:-1]
                                     continue
                             bts += (res or '')
-                            
                 except Exception as e:
                     if str(e).find('ETIME') < 0:
                        print(self.__class__.__name__,str(e))
@@ -50,12 +49,11 @@ class Server:
                           from machine import reset
                           print('falha alocar memoria')
                           reset()
-                    else:   
+                    else:
                         if (len(self.end)==0 or bts.endswith(self.end)) and  (len(bts)>0 and  self.messageEvent): 
-                            if  self.messageEvent(conn,addr,bts):
-                                  break
-                            bts=b''
-                            if self.autoclose: break
+                            return self.messageEvent(conn,addr,bts)
+                        bts=b''
+                        if self.autoclose: break
         finally:
             sck.setblocking(True)  
             conn.close()
