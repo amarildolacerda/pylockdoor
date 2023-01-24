@@ -2,7 +2,8 @@ from time import ticks_diff, ticks_ms
 
 from machine import reset
 
-import config as g
+from config import gKey as k
+from config import gp_mde, gstype, uid
 
 _N = None
 _T = True
@@ -13,13 +14,13 @@ ssid = ""
 connected = _F
 started_in = ticks_ms()
 def hostname():
-    return g.config['ap_ssid']
+    return k('ap_ssid')
 def deviceId():
-    return g.uid
+    return uid
 def interval():
-    return g.config['mqtt_interval']
+    return k('mqtt_interval')
 def tpfx():
-    return g.config['mqtt_prefix']
+    return k('mqtt_prefix')
 def trsp(response='/response'):
     return tpfx()+response
 def topic_topology():
@@ -29,18 +30,14 @@ def topic_status():
 def tCmdOut():
     return tpfx()+'/gpio'
 def topic_command_in():
-    return g.config['mqtt_prefix']+'/in'
+    return k('mqtt_prefix')+'/in'
 def topic_alive():
     return tpfx().split('/')[0]+'/alive'    
-def debug(txt):
-    g.debug(txt)
 def create(client_id, mqtt_server, mqtt_user, mqtt_password):
     global mq
-    if (mq != _N):
-        return mq
+    if (mq != _N): return mq
     from umqtt_simple import MQTTClient
     mq = MQTTClient(client_id, mqtt_server, 0, mqtt_user,mqtt_password)
-    print('MQTT started')
     return mq
 usnd = ticks_ms()
 mqttResetCount = 0
@@ -121,8 +118,8 @@ def cnt(notify=True):
         mqttResetCount=0
         connected = _T
 def disp():
-    for i in g.config[g.gp_mde]:
-        x = g.gstype(str(i))
+    for i in k(gp_mde):
+        x = gstype(str(i))
         if (x != None):
             p(('{}/type/{}').format(tpfx(), i), x, 0)
 def dcnt(notify=True):
