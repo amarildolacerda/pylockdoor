@@ -100,7 +100,9 @@ def sb(aSubTopic):
     if mq != _N:
         mq.subscribe(aSubTopic)
         mq.subscribe(topic_alive())
-
+        t = tpfx().split('/')[0]+'/scene/+'
+        mq.subscribe(t)
+        print('Subscribe',t)
 def callback(aCallback):
     if mq != _N:
         mq.set_callback(aCallback)

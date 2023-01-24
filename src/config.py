@@ -26,11 +26,14 @@ dados = {
 }
 
 trigger = 'tr'
+
+gp_mde = const('0')
 gp_trg = const('1')
-gp_trg_tbl = const('4')
 gpio_timeoff = const('2')
 gpio_timeon = const('3')
-gp_mde = const('0')
+gp_trg_tbl = const('4')
+events = const('5')
+
 PINOUT = const(1)
 PININ = const(2)
 PINADC = const(3)
@@ -57,6 +60,7 @@ def conf():
         gp_trg_tbl: {},
         gpio_timeoff: {},
         gpio_timeon: {},
+        events:{},
         'stype': {},
         'mqtt_host': setup.mqtt_host,
         'mqtt_name': uid,
@@ -330,3 +334,22 @@ def restorePins():
     except:
         pass    
 
+def sEvent(p):
+    try:
+        event = p[1]
+        cmd = p[2]
+        pin = int(p[3])
+        if cmd == 'trigger':
+            gKey(events)[event] = pin
+            return 'trigged'
+        if cmd == 'clear':
+            gKey(events).pop(event)
+            return 'cleaned'
+        if cmd == 'set':
+            dst = gKey(events)[event]
+            vlr = p[3]
+            v = spin(dst, vlr)
+            return v
+    except Exception as e:
+        print('{}: {}'.format(p, e))
+    return gKey(events)

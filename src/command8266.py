@@ -33,8 +33,8 @@ def rPin(pin, p):
         return p
 def tpRcv(t, p):
     _c = t.split('/')
-    if _c[0] == 'scene':
-        return cmd('scene '+_c[1]+' set '+p)
+    if len(_c)>2 and  _c[1] == 'scene':
+        return cmd('scene '+_c[2]+' set '+p)
     return rcv(p)    
 def rcv(c):
     cmds = c.split(';')
@@ -69,6 +69,9 @@ def cmmd(c):
             elif cmd == 'help' :
                return  r(readFile('help.tmpl'))
             elif cmd == "show":
+                if cmd1=='scene':
+                    from config import events
+                    return r(gKey(events))
                 if cmd1 == 'mqtt':
                     from configshow import shMqtt
                     return r(shMqtt())
@@ -104,6 +107,9 @@ def cmmd(c):
                         elif cmd2 == 'trigger':
                             return r(sTrg(p))
                 return k
+            elif cmd == "scene":
+                from config import sEvent
+                return r(sEvent(p))
             elif cmd == "adc":
                 if cmd2 == _s:
                     return r(sadc(p))
@@ -119,10 +125,9 @@ def cmmd(c):
                 return r(sKey(cmd1, cmd2))
             elif cmd == 'get':
                 return r(gKey(cmd1))
-            return ('invalid:{}->{}'.format(cmd, c))
+            return r('{}{}'.format(cmd, c),'/error')
         except Exception as e:
-            from mqtt import error
-            error('E {}: {}'.format(c, e))
+            return r('E {}: {}'.format(c, e),'/error')
     finally:
         pass
 def sadc(p):
