@@ -1,6 +1,8 @@
 
 from machine import Timer, reset
 
+import mqtt as mq
+
 _N = None
 _T = True
 _F = False
@@ -21,20 +23,19 @@ try:
             from command8266 import tpRcv
             return tpRcv(t,p)
         except OSError as e:
-            from mqtt import p as mqttp
-            mqttp('Invalid', 0)
+            mq.p('Invalid', 0)
             
     def mqttConnect(ip=''):
         try:
             from config import gKey, uid
-            mqtt.topic = mqtt.tpfx()
-            mqtt.host = gKey('mqtt_host')
-            mqtt.create(uid, gKey('mqtt_host'),
+            mq.topic = mq.tpfx()
+            mq.host = gKey('mqtt_host')
+            mq.create(uid, gKey('mqtt_host'),
                         gKey('mqtt_user'), gKey('mqtt_password'))
-            mqtt.callback(mqtt_rcv)
-            mqtt.cnt()
-            mqtt.sb(mqtt.topic_command_in())
-            mqtt.p(mqtt.tpfx()+'/ip', ip)
+            mq.callback(mqtt_rcv)
+            mq.cnt()
+            mq.sb(mq.topic_command_in())
+            mq.p(mq.tpfx()+'/ip', ip)
         except OSError as e:
             p(e)
     inLoop = False
@@ -46,18 +47,16 @@ try:
         global inLoop
         if inLoop: return
         try:
-          from mqtt import disp
-          disp()
+          mq.disp()
           try:  
             inLoop = True
             from wifimgr import timerFeed, timerReset
             if wlan.isconnected():
                 try:
                     timerFeed()
-                    from mqtt import check_msg, connected, sendStatus
-                    check_msg()
-                    eventLoop(connected)
-                    sendStatus()
+                    mq.check_msg()
+                    eventLoop(mq.connected)
+                    mq.sendStatus()
                 except:
                     mqttConnect(wlan.ifconfig()[0])
             else: eventLoop(False)
@@ -116,8 +115,7 @@ try:
         except Exception as e:
             print(e)
         finally:
-            from mqtt import dcnt
-            dcnt()
+            mq.dcnt()
 except Exception as e:
     print(e)
     pass

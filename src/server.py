@@ -115,16 +115,14 @@ class TelnetServer(Server):
     def listen(self, messageEvent):
         self.event = messageEvent
         return super().listen(self.doEvent)
-    def doEvent(self,a,b,msg):
-        print(msg)
-        s = str(msg).split()[0]
-        if s in ['quit','exit','reset']:
-            server.close()
-            from time import sleep
-            sleep(1)
+    def doEvent(self,srv,b,msg):
+        s = (msg[:-2] or "" ).split()[0]
+        if "quit,exit,reset".find(s.decode('utf-8'))!=-1:
+            srv.close()
+            from machine import reset
             reset()
             return True
         if self.event:
-            return self.event(a,b,msg)
+            return self.event(srv,b,msg)
     
 
