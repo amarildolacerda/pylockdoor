@@ -79,13 +79,16 @@ try:
         ev_init()
 
     def doTelnetEvent(server, addr,message):
-        s = message.split(' ')
+        print(message)
+        s = str(message).split(' ')[0]
         if s in ['quit','exit','reset']:
             server.close()
             reset()
             return True
+        msg = message[:-2].decode('utf-8')    
+        print(msg)
         from command8266 import cmmd    
-        rsp = cmmd(message[:-2].decode('utf-8'))
+        rsp = cmmd(msg)
         if rsp:
            server.write(rsp)
            server.write('\r\n')

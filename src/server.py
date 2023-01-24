@@ -51,9 +51,10 @@ class Server:
                           reset()
                     else:
                         if (len(self.end)==0 or bts.endswith(self.end)) and  (len(bts)>0 and  self.messageEvent): 
-                            return self.messageEvent(conn,addr,bts)
-                        bts=b''
-                        if self.autoclose: break
+                            if self.messageEvent(conn,addr,bts):
+                                break
+                            bts=b''
+                            if self.autoclose: break
         finally:
             sck.setblocking(True)  
             conn.close()
