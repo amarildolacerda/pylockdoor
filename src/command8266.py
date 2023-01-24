@@ -10,26 +10,15 @@ from config import (gKey, gpin, model, readFile, reset_factory, save, sKey,
 _N = None
 _g = 'get'
 _s =  'set'
-sendCB = None
 def r(p, response='/response'):
-    global sendCB
-    try:
         if (p != _N):
             from mqtt import sdRsp
-            sdRsp(p,0,response)
-        if sendCB:
-            sendCB(p+'\r\n')
-    finally:
+            return sdRsp(p,0,response)
         return p
 def rPin(pin, p):
-    global sendCB
-    try:
         if (p != _N):
             from mqtt import sdPinRsp
-            sdPinRsp(pin, p)
-        if sendCB:
-            sendCB(p+'\r\n')
-    finally:
+            return sdPinRsp(pin, p)
         return p
 def tpRcv(t, p):
     _c = t.split('/')
@@ -40,13 +29,11 @@ def rcv(c):
     cmds = c.split(';')
     r = ''
     for item in cmds:
-        print(item)
         r += (cmmd(item) or '') + '\r\n'
         idle()
         collect()
     return r
 def cmmd(c):
-    print('cmd',c)
     k = 'OK'
     c = c.strip()
     cmd = ''
@@ -60,13 +47,7 @@ def cmmd(c):
                 cmd1 = p[1]
             if (len(p) > 2):
                 cmd2 = p[2]
-            if cmd=='open' :
-               return r(readFile(cmd1))     
-            elif cmd == 'reset' and cmd1 == 'factory':
-                reset_factory()
-                reset()
-                return k
-            elif cmd == 'help' :
+            if cmd == 'help' :
                return  r(readFile('help.tmpl'))
             elif cmd == "show":
                 if cmd1=='scene':

@@ -44,10 +44,6 @@ def mkhdr(client, status_code, contentType, length):
      w("HTTP/1.1 {} OK\r\n".format(status_code) )
      w("CONTENT-LENGTH: {}\r\n".format(length))
      w('CONTENT-TYPE: {}\r\n'.format(contentType)) #charset="utf-8"
-     #w("DATE: {}\r\n")
-     #w("EXT:\r\n")
-     #w("SERVER: UPnP/1.0\r\n".format(now()))
-     #w("X-User-Agent: redsonic\r\n")
      w("CONNECTION: close\r\n")
      w("CACHE-CONTROL: no-cache\r\n\r\n")
 
@@ -56,6 +52,7 @@ def mkrsp(cli, payload, status_code=200, contentType='text/html'):
     try:
         mkhdr(cli,status_code,contentType,z )
         cli.write(payload)
+        return True
     except Exception as e:
         print(str(e))
         return False    
@@ -69,6 +66,7 @@ def notfnd(cli, url):
 def label():
     return gKey('label') or gKey('mqtt_name')
 def handle_req(cli, dt):
+          
         if (
             dt.find(b"/upnp/control/basicevent1") > 0
             and dt.find(b"#GetBinaryState") != -1
@@ -88,7 +86,7 @@ def handle_req(cli, dt):
             elif dt.find(b"<BinaryState>0</BinaryState>") != -1:
                 succ = action_state(0)
             else:
-                print("Unknown Binary State request:")
+                print("Unknown")
             if succ:
                  mkrsp(cli,rf('state.soap').format(state=getState()))
             return succ    
@@ -101,7 +99,6 @@ def http(cli,addr,req):
                 cli.setblocking(False)
                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP",
                                  req).group(1).decode("utf-8").rstrip("/")
-                print(url)
                 if not handle_req(cli, req):                         
                     ext = url.split('.')
                     if len(ext)>1:

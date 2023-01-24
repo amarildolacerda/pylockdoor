@@ -71,3 +71,41 @@ def localTrig(i: str,stype: str,value: int):
             continue   
     collect()
     return 'nok'
+
+
+
+
+    
+_N = None
+desde = None
+def show():
+    global desde
+    from gc import mem_alloc, mem_free
+
+    import commandutils as u
+    desde = desde or u.now()
+    from config import IFCONFIG, dados, gKey, uid
+    m = ''
+    m += ' "time":"%s"' %  u.now()
+    m += ' "ssid":"%s"' % gKey('ssid')
+    m += ' "alloc":%s' % mem_alloc()
+    m += ' "id":"%s"' % uid
+    m += ' "ip":"%s"' % dados[IFCONFIG]
+    m += ' "free":%s'  % mem_free()
+    m += ' "up":"%s"' % desde
+    return m
+def shMqtt():
+    m = ''
+    from config import config
+    for item in config:
+        if ('mqtt' in item):
+            m += ' "item":"%s" ' % confg[item]
+    return m
+
+
+        if dt.find(b"/cmd")!=-1:
+            from command8266 import cmmd
+            cmd = (dt[0:dt.find(b'HTTP/')]).decode('utf-8')
+            cmd = (cmd.split('?')[1]).split('=')[1]
+            rsp = cmmd(cmd)
+            return mkrsp(cli,'{\"result\": %s } ' % rsp,200,'application/json')

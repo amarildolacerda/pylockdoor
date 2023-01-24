@@ -51,9 +51,9 @@ def conf():
         'sleep': 0,
         'led': 255,
         'label':setup.label,
-        'ssid':setup.ssid,
-        'password':setup.password,
-        'ap_ssid': 'hm_{}'.format(uid),
+        'ssid':setup.ssid[0][0],
+        'password':setup.ssid[0][1],
+        'ap_ssid': '{}'.format(uid),
         'ap_password': '123456780',
         gp_mde: {},
         gp_trg: {},
@@ -140,9 +140,9 @@ def gTbl(p: str):
 
 def sToInt(p3, v):
     try:
-     if (p3 in ['high', 'ON', 'on', '1']):
+     if (p3 in ['high', 'on', '1']):
         v = 1
-     if (p3 in ['low', 'OFF', 'off', '0']):
+     if (p3 in ['low', 'off', '0']):
         v = 0
      return v   
     except:
@@ -317,7 +317,6 @@ def savePins():
     with open('pins.json', 'w') as f:
         dump(gp_vlr, f)
     pinChanged = False    
-    print(gp_vlr)       
 def restorePins():
     try:
         cfg = {}
@@ -330,10 +329,8 @@ def restorePins():
             if gMde(k) == PINOUT:
                spin(k,cfg[k],pers=False) 
                pinChanged = False    
-        print(gp_vlr)       
     except:
         pass    
-
 def sEvent(p):
     try:
         event = p[1]

@@ -47,7 +47,12 @@ def get_connection():
         getConfig()
         timerFeed()    
         wlan_sta.active(_T)
-        connected = do_connect(gKey('ssid'), gKey('password'))
+        connected = do_connect(gKey('ssid'), gKey('password'))    
+        if not connected: 
+          for ap in setup.ssid:
+            connected = do_connect(ap[0], ap[1])
+            if connected:
+                break
         if connected:
                if (wlan_ap):
                     wlan_ap.active(_F)

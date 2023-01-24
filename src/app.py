@@ -17,14 +17,11 @@ try:
             dados[IFCONFIG] = wlan.ifconfig()
         return isconnected()
     def mqtt_rcv(_t, _p):
-        t = _t.decode('utf-8')
-        p = _p.decode('utf-8')
         try:
             from command8266 import tpRcv
-            return tpRcv(t,p)
+            return tpRcv(t.decode('utf-8'),p.decode('utf-8'))
         except OSError as e:
             mq.p('Invalid', 0)
-            
     def mqttConnect(ip=''):
         try:
             from config import gKey, uid
@@ -50,10 +47,8 @@ try:
           mq.disp()
           try:  
             inLoop = True
-            from wifimgr import timerFeed, timerReset
             if wlan.isconnected():
                 try:
-                    timerFeed()
                     mq.check_msg()
                     eventLoop(mq.connected)
                     mq.sendStatus()
@@ -61,10 +56,7 @@ try:
                     mqttConnect(wlan.ifconfig()[0])
             else: eventLoop(False)
           finally:
-            timerReset(True)
             inLoop = False  
-            from config import savePins
-            savePins()
           return true  
         except Exception as e:
             pass
@@ -91,8 +83,6 @@ try:
         import broadcast
         web = services.WebServer("", 8080)
         web.listen(broadcast.http)
-        from config import restorePins
-        restorePins()
         udp = services.Broadcast("",lp)
         udp.listen(broadcast.discovery)
         

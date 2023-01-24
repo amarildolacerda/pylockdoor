@@ -13,12 +13,6 @@ host = ""
 ssid = ""
 connected = _F
 started_in = ticks_ms()
-def hostname():
-    return k('ap_ssid')
-def deviceId():
-    return uid
-def interval():
-    return k('mqtt_interval')
 def tpfx():
     return k('mqtt_prefix')
 def trsp(response='/response'):
@@ -31,8 +25,6 @@ def tCmdOut():
     return tpfx()+'/gpio'
 def topic_command_in():
     return k('mqtt_prefix')+'/in'
-def topic_alive():
-    return tpfx().split('/')[0]+'/alive'    
 def create(client_id, mqtt_server, mqtt_user, mqtt_password):
     global mq
     if (mq != _N): return mq
@@ -47,11 +39,10 @@ def sendStatus(force=False):
         if (mq == _N):
             return
         d = ticks_diff(ticks_ms(), usnd)
-        n = interval()
+        n = k('mqtt_interval')
         if (not force) and (d < (n or 15)*1000):
             return
         usnd = ticks_ms()
-        global host
         from configshow import show
         return p(topic_topology(), show(), 0)
     except:
@@ -65,12 +56,9 @@ def sdRsp(sValue, aRetained=0, response='/response'):
         return
     usnd = ticks_ms()
     p(trsp(response), str(sValue), aRetained)
-def account(account):
-    send('account', account)
 def p(t, p, aRetained=0):
     global mqttResetCount
     from commandutils import now
-    print(now(), t, ':', p)
     try:
         if mq != _N:
             mq.publish(t, str(p), aRetained)
@@ -80,29 +68,20 @@ def p(t, p, aRetained=0):
     except Exception as e:
         msg = str(e)
         if mqttResetCount>16:
-           print('falha conectividade MQTT') 
            reset()
         elif msg.find('UNREACH')>0 or msg.find('CONN')>0:
-           print(str(e)) 
            dcnt(False)
            cnt(False)
            return 0
         mqttResetCount+=1   
-        print('mqtt: {}'.format(e))
         return 0  # falhou
 def send(aTopic, aMessage):
     p(tpfx()+'/'+aTopic, aMessage)
 def error(aMessage):
     send('error', aMessage or '?')    
-def sdOut(p, v):
-    p(tCmdOut()+'/0', 'x')
 def sb(aSubTopic):
     if mq != _N:
         mq.subscribe(aSubTopic)
-        mq.subscribe(topic_alive())
-        t = tpfx().split('/')[0]+'/scene/+'
-        mq.subscribe(t)
-        print('Subscribe',t)
 def callback(aCallback):
     if mq != _N:
         mq.set_callback(aCallback)
@@ -111,7 +90,6 @@ def check_msg():
         mq.check_msg()
 def cnt(notify=True):
     if mq != _N:
-        print('Conectando MQTT') 
         mq.connect()
         if notify:
           p(topic_status(), 'online', 0)

@@ -79,8 +79,7 @@ def cv(mqtt_active=False):
                 if (md != None):
                     from mqtt import tpfx
                     if (md in [1, 2]):
-                        v = gpin(i)
-                        o(i, v, md, False, tpfx() +
+                        o(i, gpin(i), md, False, tpfx() +
                           '/{}'.format(stype or 'gpio'))
                         continue
                     elif (md == PINADC):
