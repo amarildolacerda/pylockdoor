@@ -110,4 +110,21 @@ class WebServer(Server):
 class TelnetServer(Server):
     def __init__(self, port):
         super().__init__('', port, "IHomeware Terminal",SOCK_STREAM)
+        self.event = None
         self.autoclose = False
+    def listen(self, messageEvent):
+        self.event = messageEvent
+        return super().listen(self.doEvent)
+    def doEvent(self,a,b,msg):
+        print(msg)
+        s = str(msg).split()[0]
+        if s in ['quit','exit','reset']:
+            server.close()
+            from time import sleep
+            sleep(1)
+            reset()
+            return True
+        if self.event:
+            return self.event(a,b,msg)
+    
+

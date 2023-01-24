@@ -95,16 +95,14 @@ def cmmd(c):
                     if cmd2 == _s:
                         return r(spin(cmd1, p[3]))
                     elif cmd2 == 'switch':
-                        return swt(cmd1)
+                        return r(swt(cmd1))
                     else:
                         if cmd2 == _g:
-                            v = gpin(p[1])
-                            rsp = r(gpin(p[1]))
-                            return rsp
+                            return r(gpin(p[1]))
                         elif cmd2 == 'mode':
-                            return sMde(cmd1, p[3])
+                            return r(sMde(cmd1, p[3]))
                         elif cmd2 == 'trigger':
-                            return sTrg(p)
+                            return r(sTrg(p))
                 return k
             elif cmd == "adc":
                 if cmd2 == _s:

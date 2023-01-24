@@ -215,7 +215,7 @@ def gpin(p1: str) -> int:
         p = initPin(p1, PININ)
         return p.value()
     except Exception as e:
-        print('{} {} {}'.format('gpin: ',p1, e))
+        return '{} {} {}'.format('gpin: ',p1, e)
        
 def initPin(p1, tp):
     p = str(p1)
