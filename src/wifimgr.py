@@ -1,35 +1,24 @@
-import socket
 from gc import collect
 from time import sleep, ticks_diff, ticks_ms
 
-import network
-import ure
 from machine import reset
 from micropython import const
+from network import AP_IF, STA_IF, WLAN
 
-import config as g
-import configshow as show
+from config import gKey, sKey
 
 _N = const(None)
 _F = const(False)
 _T = const(True)
-wlan_sta = network.WLAN(network.STA_IF)
-wlan_ap =  network.WLAN(network.AP_IF)
-server_socket = _N
+wlan_sta = WLAN(STA_IF)
+wlan_ap =  WLAN(AP_IF)
 conn_lst = ticks_ms()
-c_ssid = None
-c_pass = None
-c_id = None
+
 def getConfig():
-    global c_ssid, c_pass, c_id
-    c_ssid = g.config['ssid']
-    c_pass = g.config['password']
-    c_id = g.config['mqtt_prefix']
+    pass
 def setConfig(s, p):
-    global c_id
-    g.config['ssid'] = s
-    g.config['password'] = p
-    g.config['mqtt_prefix'] = c_id
+    sKey('ssid' , s)
+    sKey('password',  p)
     getConfig()
 
 def isconnected():
@@ -39,12 +28,7 @@ def ifconfig():
     return wlan_sta.ifconfig()
 suspendreset = False
 def timerReset(x):
-    global suspendreset, conn_lst
-    if (not suspendreset and  (not checkTimeout(conn_lst, 120000))):
-        return
-    sleep(10)
-    print('timerReset')
-    reset()
+    pass
 def checkTimeout(tm, dif):
     return  ticks_diff(ticks_ms(), tm)> dif
 def timerFeed():
@@ -53,7 +37,7 @@ def timerFeed():
     collect()
 def get_connection():
     global wlan_sta
-    global c_ssid, c_pass
+    
     if wlan_sta.isconnected():
         return wlan_sta
     connected = _F
@@ -63,11 +47,11 @@ def get_connection():
         getConfig()
         timerFeed()    
         wlan_sta.active(_T)
-        connected = do_connect(c_ssid, c_pass)
+        connected = do_connect(gKey('ssid'), gKey('password'))
         if connected:
                if (wlan_ap):
                     wlan_ap.active(_F)
-               print('\r\nConectou:{} '.format( c_ssid))
+               print('\r\nConectou:{} '.format( gKey('ssid')))
                timerFeed()    
     except Exception as e:
         print(e)
@@ -93,6 +77,6 @@ def do_connect(ssid, password):
 
 def start():
     wlan_ap.active(True)
-    wlan_ap.config(essid=g.config['ap_ssid'], password=g.config['ap_password'], authmode=3)
-    print('ssid: {} pass: {}'.format(g.config['ap_ssid'], g.config['ap_password']))
+    wlan_ap.config(essid=gKey('ap_ssid'), password=gKey('ap_password'), authmode=3)
+    print('ssid: {} pass: {}'.format(gKey('ap_ssid'), gKey('ap_password')))
 
