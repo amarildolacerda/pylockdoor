@@ -58,7 +58,9 @@ def sdRsp(sValue, aRetained=0, response='/response'):
     p(trsp(response), str(sValue), aRetained)
 def p(t, p, aRetained=0):
     global mqttResetCount
-    print( t, ':', p)
+    from commandutils import now
+
+    print(now(), t, ':', p)
     try:
         if mq != _N:
             mq.publish(t, str(p), aRetained)
