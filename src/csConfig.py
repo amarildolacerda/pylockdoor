@@ -9,7 +9,7 @@ def shConfig(x=False):
         from gc import mem_alloc, mem_free
 
         from config import IFCONFIG, dados
-        m['ip'] = dados[IFCONFIG]        
+        m['ip'] = dados[IFCONFIG][0]        
         m['free'] = mem_free()
         m['alloc'] = mem_alloc()
         m['time'] = str(getRTCNow())

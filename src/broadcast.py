@@ -99,6 +99,8 @@ def http(cli,addr,req):
                 cli.setblocking(False)
                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP",
                                  req).group(1).decode("utf-8").rstrip("/")
+                print('url:',url)
+                 
                 if not handle_req(cli, req):                         
                     ext = url.split('.')
                     if len(ext)>1:

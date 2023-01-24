@@ -81,7 +81,7 @@ class Broadcast(Server):
 
     def receive_data(self,sck):
         self.sock.setblocking(False)
-        self.sock.settimeout(10)
+        self.sock.settimeout(1)
         while True:
             try:
                 data, addr = self.sock.recvfrom(20)

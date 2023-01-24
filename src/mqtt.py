@@ -58,7 +58,7 @@ def sdRsp(sValue, aRetained=0, response='/response'):
     p(trsp(response), str(sValue), aRetained)
 def p(t, p, aRetained=0):
     global mqttResetCount
-    from commandutils import now
+    print( t, ':', p)
     try:
         if mq != _N:
             mq.publish(t, str(p), aRetained)
@@ -67,7 +67,7 @@ def p(t, p, aRetained=0):
         return 0  # sucesso
     except Exception as e:
         msg = str(e)
-        if mqttResetCount>16:
+        if mqttResetCount>32:
            reset()
         elif msg.find('UNREACH')>0 or msg.find('CONN')>0:
            dcnt(False)
@@ -82,6 +82,7 @@ def error(aMessage):
 def sb(aSubTopic):
     if mq != _N:
         mq.subscribe(aSubTopic)
+        print('subscribe',aSubTopic)
 def callback(aCallback):
     if mq != _N:
         mq.set_callback(aCallback)

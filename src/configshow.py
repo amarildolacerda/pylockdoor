@@ -9,10 +9,10 @@ def show():
     desde = desde or u.now()
     from config import IFCONFIG, dados, gKey, uid
     m = '{'
-    m += ' "ip":{},'.format(dados[IFCONFIG])
-    m += ' "uid":"{}",'.format(uid)
-    m += ' "free":{},'  .format(   mem_free())
-    m += ' "up":"{}"' .format(   desde)
+    m += '"ip":"{}",'.format(dados[IFCONFIG][0])
+    m += '"uid":"{}",'.format(uid)
+    m += '"free":{},'  .format(   mem_free())
+    m += '"up":"{}"' .format(   desde)
     m+='}'
     return m
 def shMqtt():
@@ -20,6 +20,6 @@ def shMqtt():
     from config import config
     for item in config:
         if ('mqtt' in item):
-            m += ' "item":"{}", ' .format(   confg[item])
+            m += '"item":"{}", ' .format(   confg[item])
     m+='}'        
     return m

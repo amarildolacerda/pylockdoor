@@ -108,6 +108,7 @@ def interruptTrigger(pin):
     if p :
         print('irq {} set {}'.format(p,pin.value()))
         o(str(p), pin.value(), None, _T)
+        savePins()
 
 def init():
     global utm

@@ -16,7 +16,7 @@ try:
             wlan = get_connection()
             dados[IFCONFIG] = wlan.ifconfig()
         return isconnected()
-    def mqtt_rcv(_t, _p):
+    def mqtt_rcv(t, p):
         try:
             from command8266 import tpRcv
             return tpRcv(t.decode('utf-8'),p.decode('utf-8'))
@@ -52,7 +52,8 @@ try:
                     mq.check_msg()
                     eventLoop(mq.connected)
                     mq.sendStatus()
-                except:
+                except Exception as e:
+                    print('loop',str(e))
                     mqttConnect(wlan.ifconfig()[0])
             else: eventLoop(False)
           finally:
@@ -83,6 +84,8 @@ try:
         import broadcast
         web = services.WebServer("", 8080)
         web.listen(broadcast.http)
+        from config import restorePins
+        restorePins()
         udp = services.Broadcast("",lp)
         udp.listen(broadcast.discovery)
         
