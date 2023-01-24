@@ -1,8 +1,6 @@
 
 from machine import Timer, reset
 
-import mqtt as m
-
 _N = None
 _T = True
 _F = False
@@ -16,26 +14,27 @@ try:
             wlan = get_connection()
             dados[IFCONFIG] = wlan.ifconfig()
         return isconnected()
-    def mq_rcv(_t, _p):
+    def mqtt_rcv(_t, _p):
         t = _t.decode('utf-8')
         p = _p.decode('utf-8')
         try:
             from command8266 import tpRcv
             return tpRcv(t,p)
         except OSError as e:
-            mqp('Invalid', 0)
+            from mqtt import p as mqttp
+            mqttp('Invalid', 0)
             
-    def mqConnect(ip=''):
+    def mqttConnect(ip=''):
         try:
             from config import gKey, uid
-            m.topic = m.tpfx()
-            m.host = gKey('mqtt_host')
-            m.create(uid, gKey('mqtt_host'),
+            mqtt.topic = mqtt.tpfx()
+            mqtt.host = gKey('mqtt_host')
+            mqtt.create(uid, gKey('mqtt_host'),
                         gKey('mqtt_user'), gKey('mqtt_password'))
-            m.callback(mqtt_rcv)
-            m.cnt()
-            m.sb(m.topic_command_in())
-            m.p(m.tpfx()+'/ip', ip)
+            mqtt.callback(mqtt_rcv)
+            mqtt.cnt()
+            mqtt.sb(mqtt.topic_command_in())
+            mqtt.p(mqtt.tpfx()+'/ip', ip)
         except OSError as e:
             p(e)
     inLoop = False
@@ -47,6 +46,7 @@ try:
         global inLoop
         if inLoop: return
         try:
+          from mqtt import disp
           disp()
           try:  
             inLoop = True
@@ -54,6 +54,7 @@ try:
             if wlan.isconnected():
                 try:
                     timerFeed()
+                    from mqtt import check_msg, connected, sendStatus
                     check_msg()
                     eventLoop(connected)
                     sendStatus()
@@ -75,17 +76,19 @@ try:
         config_start()
         from event import init as ev_init
         ev_init()
-    def tn(server, addr,message):
+
+    def doTelnetEvent(server, addr,message):
         from command8266 import cmmd    
         rsp = cmmd(message[:-2].decode('utf-8'))
         if rsp:
            server.write(rsp)
            server.write('\r\n')
         return False
+
     def srvrun(ip,lp):
         import server as services
         telnet = services.TelnetServer(7777)
-        telnet.listen(tn)
+        telnet.listen(doTelnetEvent)
         import broadcast
         web = services.WebServer("", 8080)
         web.listen(broadcast.http)
@@ -112,14 +115,9 @@ try:
             pass
         except Exception as e:
             print(e)
-            reset()
         finally:
             from mqtt import dcnt
             dcnt()
-            try:
-                wlan.close()
-            except:
-                pass    
 except Exception as e:
     print(e)
-    reset()
+    pass
