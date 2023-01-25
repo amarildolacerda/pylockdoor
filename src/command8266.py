@@ -23,7 +23,7 @@ def rPin(pin, p):
 def tpRcv(t, p):
     _c = t.split('/')
     if len(_c)>2 and  _c[1] == 'scene':
-        return cmd('scene '+_c[2]+' set '+p)
+        return cmmd('scene '+_c[2]+' set '+p)
     return rcv(p)    
 def rcv(c):
     cmds = c.split(';')

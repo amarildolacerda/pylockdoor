@@ -84,7 +84,9 @@ def error(aMessage):
 def sb(aSubTopic):
     if mq != _N:
         mq.subscribe(aSubTopic)
-        print('subscribe',aSubTopic)
+        s = '{}/scene/+'.format(tpfx().split('/')[0])
+        mq.subscribe(s)
+        print('subscribe',aSubTopic, s)
 def callback(aCallback):
     if mq != _N:
         mq.set_callback(aCallback)

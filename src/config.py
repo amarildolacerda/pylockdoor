@@ -70,7 +70,7 @@ def conf():
         'mqtt_interval': 60,
         'mqtt_prefix': mesh,
         'interval': 0.3,
-        'auto-pin' : setup.auto_pin,
+        'auto-pin' : setup.auto_pin
     }
 config = conf()
 def restore():
@@ -83,8 +83,10 @@ def restore():
             cfg = load(f)
         except: cfg = {}    
         config = conf()
-        from setup import relay_pin
-        model(relay_pin)
+        from setup import relay_pin, set_model, start
+        if set_model:
+           model(relay_pin)
+        start()   
         for item in cfg: 
                 config[item] = cfg[item]
     except:
@@ -103,10 +105,7 @@ def save():
         dump(rst, f)
     return "Saved"
 def start():
-    try:
         restore()
-    except:
-        pass
 def mdeTs(mode):
     return modes[mode]
 def sToMde(smode):
@@ -146,7 +145,7 @@ def sToInt(p3, v):
         v = 0
      return v   
     except:
-      print('sToInt',p3,v)
+      raise TypeError('sToInt {} {}'.format(p3,v))
     return int(v)
  
 def checkTimeout(conn_lst, dif):
@@ -181,7 +180,7 @@ def trigg(p: str, v):
             else:
                 spin(t, v)
     except Exception as e:
-        print('E tr:{} pin:{} '.format(e, p))
+        raise TypeError('E tr:{} pin:{} '.format(e, p))
 
 def strigg(p: str, v):
         t = gTrg(p)
@@ -200,6 +199,7 @@ def spin(p1: str, value, pers = True) -> str:
         v = sToInt(value, value)
         p = initPin(s1, PINOUT)
         p.value(v)
+        print(p1,v)
         try:
             if pers: 
               sVlr(s1, v)
@@ -208,7 +208,7 @@ def spin(p1: str, value, pers = True) -> str:
         except:
             pass
     except Exception as e:
-        print('E spin:{} p:{} v:{}'.format(e, s1, value))
+        raise TypeError('E spin:{} p:{} v:{}'.format(e, s1, value))
     return value
 def gpin(p1: str) -> int:
     try:
@@ -219,8 +219,7 @@ def gpin(p1: str) -> int:
         p = initPin(p1, PININ)
         return p.value()
     except Exception as e:
-        return '{} {} {}'.format('gpin: ',p1, e)
-       
+        raise TypeError('{} {} {}'.format('gpin: ',p1, e))
 def initPin(p1, tp):
     p = str(p1)
     try:
@@ -237,7 +236,7 @@ def initPin(p1, tp):
                 dados[PINS][p] = r
         return dados[PINS][p] or Pin(int(x),Pin.OUT)
     except Exception as e:
-        print('{} {} {}'.format('initPin ',p, e))
+        raise TypeError('{} {} {}'.format('initPin ',p, e))
 def irqEvent(proc):
     global interruptEvent
     interruptEvent = proc
@@ -251,11 +250,8 @@ def strToNum(v):
             return v
         return f
     except:
-        try:
             f = int(v)
             return f
-        except:
-            pass
     return v
 def sKey(p: str, v):
     config[p] = strToNum(v)
@@ -266,15 +262,10 @@ def swt(_p: int):
     v = 1-gpin(_p)
     return spin(_p, v)
 def sTmDly(p):
-    v = 0
-    try:
+        v = 0
         v = strToNum(p[3])
         if v > 0 and v < 0.3:
             v = 0.3
-    except Exception as e:
-        print('{}'.format(e))
-        v = None
-    return v
 def sTimeOn(p):
     gKey(gpio_timeon)[p[1]] = sTmDly(p)
 def sTimeOff(p):
@@ -332,10 +323,9 @@ def restorePins():
     except:
         pass    
 def sEvent(p):
-    try:
         event = p[1]
         cmd = p[2]
-        pin = int(p[3])
+        pin = sToInt( p[3], p[3] )
         if cmd == 'trigger':
             gKey(events)[event] = pin
             return 'trigged'
@@ -344,9 +334,7 @@ def sEvent(p):
             return 'cleaned'
         if cmd == 'set':
             dst = gKey(events)[event]
-            vlr = p[3]
-            v = spin(dst, vlr)
-            return v
-    except Exception as e:
-        print('{}: {}'.format(p, e))
-    return gKey(events)
+            if (dst):
+                v = spin(dst, pin)
+                return v
+        raise TypeError( 'inválido '+p)    
