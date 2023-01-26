@@ -24,8 +24,8 @@ class Alexa:
         self.sendto(addr, rf("msearch.html").format(self.ip))
 
 def rf(n):  
-        with open(n, 'r') as f:return f.read()
-
+        with open(n, 'r') as f:
+                return f.read()
 def feed():
         from wifimgr import timerFeed as t
         t()

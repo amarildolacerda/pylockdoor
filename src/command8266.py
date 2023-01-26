@@ -53,7 +53,10 @@ def cmmd(c):
                 if cmd1=='scene':
                     from config import events
                     return r(gKey(events))
-                if cmd1 == 'mqtt':
+                elif cmd1 =='config':
+                    with open('config.json','r') as f:
+                        return r(f.read())    
+                elif cmd1 == 'mqtt':
                     from configshow import shMqtt
                     return r(shMqtt())
                 elif cmd1 == "gpio":
@@ -91,6 +94,9 @@ def cmmd(c):
             elif cmd == "scene":
                 from config import sEvent
                 return r(sEvent(p))
+            elif cmd =='pub':
+                from config import sPub
+                return r(sPub(p))    
             elif cmd == "adc":
                 if cmd2 == _s:
                     return r(sadc(p))

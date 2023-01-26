@@ -69,6 +69,7 @@ def p(t, p, aRetained=0):
         return 0  # sucesso
     except Exception as e:
         msg = str(e)
+        print('p->',msg)
         if mqttResetCount>32:
            reset()
         elif msg.find('UNREACH')>0 or msg.find('CONN')>0:
@@ -78,7 +79,9 @@ def p(t, p, aRetained=0):
         mqttResetCount+=1   
         return 0  # falhou
 def send(aTopic, aMessage):
-    p(tpfx()+'/'+aTopic, aMessage)
+    return p(tpfx()+'/'+aTopic, aMessage)
+def publish(tp,msg):
+    return p('{}/{}'.format(tpfx().split('/')[0],tp),msg)    
 def error(aMessage):
     send('error', aMessage or '?')    
 def sb(aSubTopic):

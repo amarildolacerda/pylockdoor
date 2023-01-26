@@ -27,12 +27,15 @@ dados = {
 
 trigger = 'tr'
 
+# config
 gp_mde = const('0')
 gp_trg = const('1')
 gpio_timeoff = const('2')
 gpio_timeon = const('3')
 gp_trg_tbl = const('4')
 events = const('5')
+pub = const('6')
+# fim
 
 PINOUT = const(1)
 PININ = const(2)
@@ -51,8 +54,8 @@ def conf():
         'sleep': 0,
         'led': 255,
         'label':setup.label,
-        'ssid':setup.ssid[0][0],
-        'password':setup.ssid[0][1],
+        'ssid':setup.ssids[0][0],
+        'password':setup.ssids[0][1],
         'ap_ssid': '{}'.format(uid),
         'ap_password': '123456780',
         gp_mde: {},
@@ -70,18 +73,18 @@ def conf():
         'mqtt_interval': 60,
         'mqtt_prefix': mesh,
         'interval': 0.3,
-        'auto-pin' : setup.auto_pin
+        'auto-pin' : setup.auto_pin,
+        pub:{}
     }
 config = conf()
 def restore():
-    from json import load
-    global config
-    try:
+        from json import load
+        global config
         cfg = {}
         try:
           with open(_cf, 'r') as f:
             cfg = load(f)
-        except: cfg = {}    
+        except: cfg = {}
         config = conf()
         from setup import relay_pin, set_model, start
         if set_model:
@@ -89,8 +92,6 @@ def restore():
         start()   
         for item in cfg: 
                 config[item] = cfg[item]
-    except:
-        pass
 def reset_factory():
     config = conf()
     save()
@@ -189,7 +190,6 @@ def strigg(p: str, v):
 def gtrigg(p: str):
         t = gTrg(p)
         return gpin(t or p)
-pinChanged = False
 def spin(p1: str, value, pers = True) -> str:
     x = sToInt(p1,p1)
     s1 = str(x)
@@ -199,6 +199,7 @@ def spin(p1: str, value, pers = True) -> str:
         v = sToInt(value, value)
         p = initPin(s1, PINOUT)
         p.value(v)
+        trigPub(p1,v)
         print(p1,v)
         try:
             if pers: 
@@ -300,29 +301,9 @@ def gVlr(p: str):
         return 0
 def readFile(nome:str):
     with   open(nome, 'r')  as f:
-        return f.read()
-def savePins():
-  global pinChanged  
-  if pinChanged:  
-    from json import dump
-    with open('pins.json', 'w') as f:
-        dump(gp_vlr, f)
-    pinChanged = False    
-def restorePins():
-    try:
-        cfg = {}
-        try:
-          from json import load
-          with open('pins.json', 'r') as f:
-            cfg = load(f)
-        except: pass   
-        for k in cfg.keys():
-            if gMde(k) == PINOUT:
-               spin(k,cfg[k],pers=False) 
-               pinChanged = False    
-    except:
-        pass    
+          return f.read()
 def sEvent(p):
+    try:
         event = p[1]
         cmd = p[2]
         pin = sToInt( p[3], p[3] )
@@ -333,8 +314,26 @@ def sEvent(p):
             gKey(events).pop(event)
             return 'cleaned'
         if cmd == 'set':
-            dst = gKey(events)[event]
-            if (dst):
-                v = spin(dst, pin)
+            if event in gKey(events).keys():
+                v = spin(gKey(events)[event], pin)
                 return v
+    except:
         raise TypeError( 'inválido '+p)    
+
+def trigPub(pin,v):
+    for it in gKey(pub).keys():
+        if str(gKey(pub)[it])==pin:
+            from mqtt import publish
+            publish(it,v)
+            return v
+
+def sPub(p):  #pub 0 trigger scene/noite     
+        cmd = p[1]
+        if cmd == 'clear':
+            return sKey(pub,{})
+        tp = p[3]
+        pin = sToInt( p[1], p[1] )
+        if p[2]=='trigger':
+            gKey(pub)[tp] = pin
+            return gKey(pub)
+        raise TypeError('invalido '+p)

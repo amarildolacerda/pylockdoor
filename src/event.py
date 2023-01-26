@@ -1,14 +1,11 @@
 from config import (PINADC, gKey, gMde, gp_mde, gpin, gpio_timeoff,
-                    gpio_timeon, gstype, gVlr, savePins, spin, sVlr, timeOnOff,
-                    trigg)
+                    gpio_timeon, gstype, gVlr, spin, sVlr, timeOnOff, trigg)
 
 _N = None
 _T = True
 _F = False
 nled = 0
 utm = None
-
-
 def timerEvent(x):
     cv(False)
 def led(v):
@@ -84,8 +81,10 @@ def cv(mqtt_active=False):
                         continue
                     elif (md == PINADC):
                         v = ADCRead(i)
+                        from config import trigPub
                         if (v>0):
                             o(i, v, md, False,  '{}/{}'.format(tpfx(),stype or 'adc'))
+                        trigPub(i, v)
                         continue
             if bled:
                 led(1)
@@ -108,8 +107,6 @@ def interruptTrigger(pin):
     if p :
         print('irq {} set {}'.format(p,pin.value()))
         o(str(p), pin.value(), None, _T)
-        savePins()
-
 def init():
     global utm
     from config import irqEvent

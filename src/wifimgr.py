@@ -49,7 +49,8 @@ def get_connection():
         wlan_sta.active(_T)
         connected = do_connect(gKey('ssid'), gKey('password'))    
         if not connected: 
-          for ap in setup.ssid:
+          from setup import ssids  
+          for ap in ssids:
             connected = do_connect(ap[0], ap[1])
             if connected:
                 break

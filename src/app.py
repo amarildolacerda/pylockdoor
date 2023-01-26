@@ -6,6 +6,7 @@ import mqtt as mq
 _N = None
 _T = True
 _F = False
+
 try:
     wlan = _N
     def connectWifi():
@@ -63,11 +64,11 @@ try:
             pass
     timer = None
     def init():
-        global timer
         from config import start as config_start
         config_start()
         from event import init as ev_init
         ev_init()
+
 
     def doTelnetEvent(server, addr,message):
         from command8266 import cmmd    
@@ -84,8 +85,6 @@ try:
         import broadcast
         web = services.WebServer("", 8080)
         web.listen(broadcast.http)
-        from config import restorePins
-        restorePins()
         udp = services.Broadcast("",lp)
         udp.listen(broadcast.discovery)
         
