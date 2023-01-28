@@ -27,10 +27,10 @@ def rf(n):
         with open(n, 'r') as f:
                 return f.read()
 def discovery(sdr,addr, dt ):
-        print(dt)
-        if dt.startswith(b"M-SEARCH"):
+        if dt.startswith(b"M-SEARCH") and dt.find(b'rootdevice')>0:
                 alexa = Alexa(dados[IFCONFIG][0])
                 alexa.send_msearch(addr)
+        else: print(dt)
         return True
 def getState(pin=None):
     return gtrigg(pin or gKey('auto-pin'))

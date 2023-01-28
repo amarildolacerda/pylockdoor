@@ -4,10 +4,13 @@ import time
 msg = \
     'M-SEARCH * HTTP/1.1\r\n' \
     'HOST:239.255.255.250:1900\r\n' \
-    'ST:urn:Belkin:device:**\r\n' \
+    'ST: upnp:rootdevice\r\n'\
     'MX:2\r\n' \
     'MAN:"ssdp:discover"\r\n' \
     '\r\n'
+
+    #'ST:urn:Belkin:device:**\r\n' \
+
 
 # Set up UDP socket
 print('iniciando socket')
@@ -17,7 +20,7 @@ s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
 s.settimeout(5)
 #s.sendto(b'M-SEARCH * HTTP/1.1', ('0.0.0.0', 1900) )
-s.sendto(b'M-SEARCH * HTTP/1.1', (b'239.255.255.250', 1900) )
+s.sendto(msg.encode('utf-8'), (b'239.255.255.250', 1900) )
 #s.sendto(b'M-SEARCH * HTTP/1.1', (b'192.168.15.255', 1900) )
 #s.sendto(b'M-SEARCH * HTTP/1.1', (b'192.168.15.2', 1900) )
 #s.sendto(b'M-SEARCH * HTTP/1.1', (b'255.255.255.255', 1900) )
