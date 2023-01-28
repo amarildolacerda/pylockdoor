@@ -1,4 +1,6 @@
 
+from time import ticks_diff, ticks_ms
+
 from micropython import const
 
 _N = None
@@ -14,9 +16,7 @@ def _init():
   from machine import unique_id
   from ubinascii import hexlify
   uid = '{}'.format(hexlify(unique_id()).decode('utf-8'))
-
 _init()
-
 
 IFCONFIG = const(0)
 PINS = const(1)
@@ -93,6 +93,7 @@ def restore():
         for item in cfg: 
                 config[item] = cfg[item]
 def reset_factory():
+    global config
     config = conf()
     save()
 def save():
@@ -150,7 +151,6 @@ def sToInt(p3, v):
     return int(v)
  
 def checkTimeout(conn_lst, dif):
-    from time import ticks_diff, ticks_ms
     try:
         d = ticks_diff(ticks_ms(), conn_lst)
         return (d > dif)
@@ -204,7 +204,6 @@ def spin(p1: str, value, pers = True) -> str:
         try:
             if pers: 
               sVlr(s1, v)
-            from time import ticks_ms
             timeOnOff[s1] = ticks_ms()
         except:
             pass

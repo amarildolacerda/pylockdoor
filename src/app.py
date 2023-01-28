@@ -1,5 +1,5 @@
 
-from machine import Timer, reset
+from machine import reset
 
 import mqtt as mq
 
@@ -22,7 +22,7 @@ try:
             from command8266 import tpRcv
             return tpRcv(t.decode('utf-8'),p.decode('utf-8'))
         except OSError as e:
-            mq.p('Invalid', 0)
+            mq.error('Inválido '+str(e), 0)
     def mqttConnect(ip=''):
         try:
             from config import gKey, uid
@@ -35,7 +35,7 @@ try:
             mq.sb(mq.topic_command_in())
             mq.p(mq.tpfx()+'/ip', ip)
         except OSError as e:
-            p(e)
+            mq.error(str(e))
     inLoop = False
     def eventLoop(v):
         from event import cv 
@@ -54,7 +54,7 @@ try:
                     eventLoop(mq.connected)
                     mq.sendStatus()
                 except Exception as e:
-                    print('loop',str(e))
+                    mp.error(str(e))
                     mqttConnect(wlan.ifconfig()[0])
             else: eventLoop(False)
           finally:
@@ -62,14 +62,11 @@ try:
           return true  
         except Exception as e:
             pass
-    timer = None
     def init():
         from config import start as config_start
         config_start()
         from event import init as ev_init
         ev_init()
-
-
     def doTelnetEvent(server, addr,message):
         from command8266 import cmmd    
         rsp = cmmd(message[:-2].decode('utf-8'))
