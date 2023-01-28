@@ -46,13 +46,16 @@ def cmmd(c):
                 cmd2 = p[2]
             if cmd == 'help' :
                return  r(readFile('help.tmpl'))
+            elif cmd == 'open':
+                    with open(cmd1,'r') as f:
+                        return r(f.read())    
             elif cmd == "show":
                 if cmd1=='scene':
                     from config import events
                     return r(gKey(events))
                 elif cmd1 =='config':
-                    with open('config.json','r') as f:
-                        return r(f.read())    
+                    from config import config
+                    return r(config)
                 elif cmd1 == 'mqtt':
                     from configshow import shMqtt
                     return r(shMqtt())

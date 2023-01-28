@@ -86,9 +86,9 @@ def restore():
             cfg = load(f)
         except: cfg = {}
         config = conf()
-        from setup import relay_pin, set_model, start
+        from setup import set_model, start
         if set_model:
-           model(relay_pin)
+           model(set_model)
         start()   
         for item in cfg: 
                 config[item] = cfg[item]
@@ -250,11 +250,13 @@ def strToNum(v):
             return v
         return f
     except:
+        try:
             f = int(v)
             return f
-    return v
+        except:
+            return v    
 def sKey(p: str, v):
-    config[p] = strToNum(v)
+    config[p]=strToNum(v)  
     return v
 def gKey(p: str):
     return config[p]
