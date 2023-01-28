@@ -11,6 +11,6 @@ mqtt_port = const(1883)
 set_model = False
 auto_pin = const('5')
 relay_pin = const('5')
-
+interval = 0.3
 def start():
     pass

@@ -26,14 +26,11 @@ class Alexa:
 def rf(n):  
         with open(n, 'r') as f:
                 return f.read()
-def feed():
-        from wifimgr import timerFeed as t
-        t()
 def discovery(sdr,addr, dt ):
+        print(dt)
         if dt.startswith(b"M-SEARCH"):
                 alexa = Alexa(dados[IFCONFIG][0])
                 alexa.send_msearch(addr)
-        feed()
         return True
 def getState(pin=None):
     return gtrigg(pin or gKey('auto-pin'))
@@ -110,7 +107,6 @@ def http(cli,addr,req):
         except Exception as e:
             print(str(e), ' in ', req)
             mkrsp(cli,rf('erro.html').format(msg=str(e), url=url) ,500 )
-        feed()
         return True        
     except Exception as e:
         print(str(e))

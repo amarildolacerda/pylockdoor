@@ -84,7 +84,7 @@ class Broadcast(Server):
         self.sock.settimeout(1)
         while True:
             try:
-                data, addr = self.sock.recvfrom(20)
+                data, addr = self.sock.recvfrom(32)
                 if data:
                     if self.messageEvent: 
                       if not self.messageEvent(sck,addr,data) :
@@ -92,8 +92,6 @@ class Broadcast(Server):
                     if self.autoclose: break
                 if self.callbackFn: self.callbackFn(self)
             except Exception as e:
-                if str(e).find('Errno 9')!=-1:
-                   break 
                 if str(e).find('ETIME') < 0:
                        print(self.__class__.__name__,str(e))
                 if self.callbackFn: self.callbackFn(self)

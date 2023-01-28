@@ -72,7 +72,7 @@ def conf():
         'mqtt_password': 'anonymous',
         'mqtt_interval': 60,
         'mqtt_prefix': mesh,
-        'interval': 0.3,
+        'interval': setup.interval,
         'auto-pin' : setup.auto_pin,
         pub:{}
     }

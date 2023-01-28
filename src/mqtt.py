@@ -48,7 +48,12 @@ def sdRsp(sValue, aRetained=0, response='/response'):
         return
     usnd = ticks_ms()
     return p(trsp(response), str(sValue), aRetained)
+ultimo=[]
+
 def p(t, p, aRetained=0):
+    global ultimo
+    if ultimo == [t,p] : return 1
+    ultimo = [t,p]
     from commandutils import now
     print(now(), t, ':', p)
     try:

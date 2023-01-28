@@ -11,15 +11,12 @@ _N = None
 _g = 'get'
 _s =  'set'
 def r(p, response='/response'):
-        if (p != _N):
-            from mqtt import sdRsp
-            sdRsp(p,0,response)
+        from mqtt import sdRsp
+        sdRsp(p,0,response)
         return p
 def rPin(pin, p):
-        if (p != _N):
-            from mqtt import sdPinRsp
-            return sdPinRsp(pin, p)
-        return p
+        from mqtt import sdPinRsp
+        return sdPinRsp(pin, p)
 def tpRcv(t, p):
     _c = t.split('/')
     if len(_c)>2 and  _c[1] == 'scene':
@@ -104,10 +101,7 @@ def cmmd(c):
                     return r(gadc(p))
                 return k
             elif cmd == 'set':
-                if cmd1 == 'sleep':
-                    sKey('sleep',  int(cmd2))
-                    return r(save())
-                elif cmd1 == 'model':
+                if cmd1 == 'model':
                     return model(cmd2)
                 return r(sKey(cmd1, cmd2))
             elif cmd == 'get':

@@ -104,9 +104,9 @@ def interruptTrigger(pin):
     for k in dados[PINS].keys():
         if dados[PINS][k] == pin:
             p = k
-    if p :
-        print('irq {} set {}'.format(p,pin.value()))
-        o(str(p), pin.value(), None, _T)
+        if p:    
+            o(str(p), pin.value(), None, _T)
+
 def init():
     global utm
     from config import irqEvent
