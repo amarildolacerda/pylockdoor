@@ -25,7 +25,7 @@ def checkTimeout(tm, dif):
     return  ticks_diff(ticks_ms(), tm)> dif
 def get_connection():
     global wlan_sta
-    if wlan_sta.isconnected():
+    if wlan_sta and  wlan_sta.isconnected():
         return wlan_sta
     connected = _F
     try:

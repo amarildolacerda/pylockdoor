@@ -250,13 +250,13 @@ def strToNum(v):
             return v
         return f
     except:
-        try:
             f = int(v)
             return f
-        except:
-            return v    
 def sKey(p: str, v):
-    config[p]=strToNum(v)  
+    try:
+      config[p]= strToNum(v)  
+    except:
+      config[p]= v
     return v
 def gKey(p: str):
     return config[p]

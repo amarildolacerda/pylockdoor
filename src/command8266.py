@@ -46,6 +46,12 @@ def cmmd(c):
                 cmd2 = p[2]
             if cmd == 'help' :
                return  r(readFile('help.tmpl'))
+            elif cmd == 'scan':
+                from wifimgr import wlan_sta     
+                rsp =[]
+                for n in wlan_sta.scan():
+                    rsp.append("{}:{}".format(n[0].decode(),n[3]))
+                return r(rsp)    
             elif cmd == 'open':
                     with open(cmd1,'r') as f:
                         return r(f.read())    
@@ -111,6 +117,7 @@ def cmmd(c):
                 return r(gKey(cmd1))
             return r('{}{}'.format(cmd, c),'/error')
         except Exception as e:
+            print(str(e))
             return r('E {}: {}'.format(c, e),'/error')
     finally:
         pass

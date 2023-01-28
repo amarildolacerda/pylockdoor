@@ -2,18 +2,16 @@
 from machine import reset
 
 import mqtt as mq
+from config import IFCONFIG, dados
 
 _N = None
 _T = True
 _F = False
 
 try:
-    wlan = _N
     def connectWifi():
-        global wlan
         from wifimgr import get_connection, isconnected
-        if not wlan:
-            from config import IFCONFIG, dados
+        if not isconnected():
             wlan = get_connection()
             dados[IFCONFIG] = wlan.ifconfig()
         return isconnected()
@@ -40,7 +38,7 @@ try:
     def eventLoop(v):
         from event import cv 
         cv(v)
-        
+
     def loop(b=None):
         global inLoop
         if inLoop: return
@@ -48,15 +46,17 @@ try:
           mq.disp()
           try:  
             inLoop = True
-            if wlan.isconnected():
+            if connectWifi():
                 try:
                     mq.check_msg()
                     eventLoop(mq.connected)
                     mq.sendStatus()
                 except Exception as e:
                     mp.error(str(e))
-                    mqttConnect(wlan.ifconfig()[0])
-            else: eventLoop(False)
+                    mqttConnect(dados[IFCONFIG][0])
+            else: 
+                print('sem conexão')
+                eventLoop(False)
           finally:
             inLoop = False  
           return true  
@@ -71,7 +71,7 @@ try:
         from command8266 import cmmd    
         rsp = cmmd(message[:-2].decode('utf-8'))
         if rsp:
-           server.write(rsp)
+           server.write(str(rsp))
            server.write('\r\n')
         return False
 
@@ -86,19 +86,18 @@ try:
         udp.listen(broadcast.discovery)
         
     def bind():
-            global  wlan
             if not connectWifi():
                reset()
             try:
                 from ntp import settime
                 settime()
             except: pass
-            mqttConnect(wlan.ifconfig()[0])
+            mqttConnect(dados[IFCONFIG][0])
     def run():
         try:
             init()
             bind()
-            srvrun(wlan.ifconfig()[0],loop)
+            srvrun(dados[IFCONFIG][0],loop)
         except KeyboardInterrupt as e:
             pass
         except Exception as e:
