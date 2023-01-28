@@ -39,7 +39,7 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
                     return True
                except: pass     
     except Exception as e:
-        print('Erro Time seFor {} em {}: {} [{},{}] {}'.format(
+        print('Erro Timer seFor {} em {}: {} [{},{}] {}'.format(
             seFor, key, p, m, t, e))
     return False
 
