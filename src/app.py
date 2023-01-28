@@ -94,10 +94,14 @@ try:
             except: pass
             mqttConnect(ifconfig()[0])
     def run():
+
         try:
-            init()
+          init()
+          while True:  
+           try:
             bind()
             srvrun(ifconfig()[0],loop)
+           except: reset()
         except KeyboardInterrupt as e:
             pass
         except Exception as e:
