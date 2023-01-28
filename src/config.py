@@ -45,7 +45,8 @@ _table = ['none','monostable','bistable']
 timeOnOff = {}
 gpio = const('gpio')
 mesh = None
-
+def ifconfig():
+    return dados[IFCONFIG]
 def conf():
     global mesh
     import setup

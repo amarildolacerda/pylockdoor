@@ -15,12 +15,13 @@ wlan_ap =  WLAN(AP_IF)
 def setConfig(s, p):
     sKey('ssid' , s)
     sKey('password',  p)
+    from config import IFCONFIG, dados
+    dados[IFCONFIG] = wlan_sta.ifconfig()
 def isconnected():
     return wlan_sta.isconnected()
 def ifconfig():
     global wlan_sta
     return wlan_sta.ifconfig()
-suspendreset = False
 def checkTimeout(tm, dif):
     return  ticks_diff(ticks_ms(), tm)> dif
 def get_connection():

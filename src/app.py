@@ -2,18 +2,17 @@
 from machine import reset
 
 import mqtt as mq
-from config import IFCONFIG, dados
+from config import ifconfig
 
 _N = None
 _T = True
 _F = False
 
 try:
-    def connectWifi():
+    def connectWifi(force=False):
         from wifimgr import get_connection, isconnected
-        if not isconnected():
-            wlan = get_connection()
-            dados[IFCONFIG] = wlan.ifconfig()
+        if force or not isconnected():
+            get_connection()
         return isconnected()
     def mqtt_rcv(t, p):
         try:
@@ -32,8 +31,9 @@ try:
             mq.cnt()
             mq.sb(mq.topic_command_in())
             mq.p(mq.tpfx()+'/ip', ip)
+            return mq!=None
         except OSError as e:
-            mq.error(str(e))
+            print(str(e))
     inLoop = False
     def eventLoop(v):
         from event import cv 
@@ -43,17 +43,17 @@ try:
         global inLoop
         if inLoop: return
         try:
-          mq.disp()
           try:  
             inLoop = True
             if connectWifi():
                 try:
+                    mq.disp()
                     mq.check_msg()
                     eventLoop(mq.connected)
                     mq.sendStatus()
                 except Exception as e:
-                    mp.error(str(e))
-                    mqttConnect(dados[IFCONFIG][0])
+                    print(str(e))
+                    mqttConnect(ifconfig()[0])
             else: 
                 print('sem conexão')
                 eventLoop(False)
@@ -86,24 +86,23 @@ try:
         udp.listen(broadcast.discovery)
         
     def bind():
-            if not connectWifi():
+            if not connectWifi(True):
                reset()
             try:
                 from ntp import settime
                 settime()
             except: pass
-            mqttConnect(dados[IFCONFIG][0])
+            mqttConnect(ifconfig()[0])
     def run():
         try:
             init()
             bind()
-            srvrun(dados[IFCONFIG][0],loop)
+            srvrun(ifconfig()[0],loop)
         except KeyboardInterrupt as e:
             pass
         except Exception as e:
             print(e)
-        finally:
-            mq.dcnt()
+        
 except Exception as e:
     print(e)
     pass

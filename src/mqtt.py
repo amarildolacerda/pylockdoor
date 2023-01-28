@@ -83,7 +83,7 @@ def cnt(notify=True):
         if notify:
           p(topic_status(), 'online', 0)
           sendStatus(True)
-        global connected,mqttResetCount
+        global connected
         connected = _T
 def disp():
     for i in k(gp_mde):
