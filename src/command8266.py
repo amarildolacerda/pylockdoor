@@ -13,7 +13,7 @@ _s =  'set'
 def r(p, response='/response'):
         if (p != _N):
             from mqtt import sdRsp
-            return sdRsp(p,0,response)
+            sdRsp(p,0,response)
         return p
 def rPin(pin, p):
         if (p != _N):
