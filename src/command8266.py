@@ -1,8 +1,6 @@
 
-from gc import collect
-from time import sleep
 
-from machine import ADC, idle, reset
+from machine import ADC, reset
 
 from config import (gKey, gpin, model, readFile, reset_factory, save, sKey,
                     sMde, spin, sstype, sTimeOff, sTimeOn, sTrg, sVlr, swt)
@@ -25,9 +23,9 @@ def tpRcv(t, p):
 def rcv(c):
     cmds = c.split(';')
     r = ''
+    from gc import collect
     for item in cmds:
         r += (cmmd(item) or '') + '\r\n'
-        idle()
         collect()
     return r
 def cmmd(c):
@@ -73,7 +71,12 @@ def cmmd(c):
 
             elif cmd == 'save':
                 return r(save())
+            
             elif cmd == 'reset':
+               if cmd1=='factory':
+                  from config import reset_factory
+                  reset_factory()
+               else:   
                 reset()
             elif cmd == 'gpio':
                 if cmd1 == 'clear':

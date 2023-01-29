@@ -87,16 +87,18 @@ def restore():
             cfg = load(f)
         except: cfg = {}
         config = conf()
+        setup()
+        for item in cfg: 
+                config[item] = cfg[item]
+def setup():
         from setup import set_model, start
         if set_model:
            model(set_model)
         start()   
-        for item in cfg: 
-                config[item] = cfg[item]
 def reset_factory():
     global config
     config = conf()
-    save()
+    setup()
 def save():
     cfg = conf()
     rst = {}
@@ -254,12 +256,14 @@ def strToNum(v):
             f = int(v)
             return f
 def sKey(p: str, v):
+    global config
     try:
       config[p]= strToNum(v)  
     except:
       config[p]= v
     return v
 def gKey(p: str):
+    global config
     return config[p]
 def swt(_p: int):
     v = 1-gpin(_p)

@@ -1,8 +1,8 @@
 from micropython import const
 
-#name= const('scs')
+#name= const('cafe')
 name=None
-label=const('interruptor')
+label=const('Interruptor')
 
 ssids = [["VIVOFIBRA-A360","6C9FCEC12A"],['micasa','3938373635']]
 

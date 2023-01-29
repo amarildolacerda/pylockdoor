@@ -16,15 +16,15 @@ started_in = ticks_ms()
 def tpfx():
     return k('mqtt_prefix')
 def trsp(response='/response'):
-    return tpfx()+response
+    return '{}{}'.format(tpfx(),response)
 def topic_topology():
-    return tpfx()+'/topology'
+    return trsp('/topology')
 def topic_status():
-    return tpfx()+'/status'
+    return trsp('/status')
 def tCmdOut():
-    return tpfx()+'/gpio'
+    return trsp('/gpio')
 def topic_command_in():
-    return k('mqtt_prefix')+'/in'
+    return trsp('/in')
 def create(client_id, mqtt_server, mqtt_user, mqtt_password):
     global mq
     if (mq != _N): return mq
@@ -42,22 +42,19 @@ def sendStatus(force=False):
         from configshow import show
         return p(topic_topology(), show(), 0)
 def sdPinRsp(pin, sValue, aRetained=0):
-    return p((tpfx()+"/out/status/{}").format(pin), str(sValue), aRetained)
+    return p((tpfx()+"/out/status/{}").format(pin), tostr(sValue), aRetained)
 def sdRsp(sValue, aRetained=0, response='/response'):
     if sValue == _N:
         return
     usnd = ticks_ms()
-    return p(trsp(response), str(sValue), aRetained)
-ultimo=[]
-
+    return p(trsp(response), tostr(sValue), aRetained)
+def tostr(x):
+    return '{}'.format(x)
 def p(t, p, aRetained=0):
-    global ultimo
-    if ultimo == [t,p] : return 1
-    ultimo = [t,p]
     from commandutils import now
     print(now(), t, ':', p)
     try:
-            mq.publish(t, str(p), aRetained)
+            mq.publish(t, tostr(p), aRetained)
             return 1
     except Exception as e:
         msg = str(e)
