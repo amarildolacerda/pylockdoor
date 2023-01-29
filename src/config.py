@@ -52,7 +52,6 @@ def conf():
     import setup
     mesh = 'mesh/'+(setup.name or uid)
     return {
-        'sleep': 0,
         'led': 255,
         'label':setup.label,
         'ssid':setup.ssids[0][0],
