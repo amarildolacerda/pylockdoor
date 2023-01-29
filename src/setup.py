@@ -1,10 +1,10 @@
 from micropython import const
 
-#name= const('cafe')
-name=None
-label=const('Interruptor')
-
-ssids = [["VIVOFIBRA-A360","6C9FCEC12A"],['micasa','3938373635']]
+name= const('cafe')
+#name=None
+#label=const('Interruptor')
+label = const('Café')
+ssids = [["VIVOFIBRA-A360","6C9FCEC12A"],['micasa','3938373635'],['visitante','']]
 
 mqtt_host =const('broker.emqx.io')
 mqtt_port = const(1883)
