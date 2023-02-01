@@ -73,11 +73,12 @@ def cmmd(c):
                 return r(save())
             
             elif cmd == 'reset':
-               if cmd1=='factory':
-                  from config import reset_factory
-                  return reset_factory()
-               else:   
-                return reset()
+               pass 
+               #if cmd1=='factory':
+               #   from config import reset_factory
+               #   return reset_factory()
+               #else:   
+               # return reset()
             elif cmd == 'gpio':
                 if cmd1 == 'clear':
                    return r( model('clear'))

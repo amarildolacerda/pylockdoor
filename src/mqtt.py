@@ -51,12 +51,11 @@ def sdRsp(sValue, aRetained=0, response='/response'):
     return p(trsp(response), tostr(sValue), aRetained)
 def tostr(x):
     return '{}'.format(x)
-def p(t, p, aRetained=0):
+def p(t, p1, aRetained=0):
+  print( t, ':', p1)
   if mq!=None:  
-    from commandutils import now
-    print(now(), t, ':', p)
     try:
-            mq.publish(t, tostr(p), aRetained)
+            mq.publish(t, tostr(p1), aRetained)
             return 1
     except Exception as e:
         msg = str(e)

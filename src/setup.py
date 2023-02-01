@@ -6,8 +6,8 @@ name= const('entrada')
 label = const('Luz da Entrada')
 ssids = [["VIVOFIBRA-A360","6C9FCEC12A"],['micasa','3938373635'],['visitante','']]
 
-#mqtt_host ='none'
-mqtt_host = const('broker.emqx.io')
+mqtt_host ='none'
+#mqtt_host = const('broker.emqx.io')
 mqtt_port = const(1883)
 
 set_model = None #const('15')
