@@ -1,9 +1,9 @@
 from micropython import const
 
-name= const('entrada')
-#name=None
-#label=const('Interruptor')
-label = const('Luz da Entrada')
+#name= const('entrada')
+name=None
+label=const('Interruptor')
+#label = const('Luz da Entrada')
 ssids = [["VIVOFIBRA-A360","6C9FCEC12A"],['micasa','3938373635'],['visitante','']]
 
 mqtt_host ='none'

@@ -63,7 +63,15 @@ def notfnd(cli, url):
 def label():
     return gKey('label') or gKey('mqtt_name')
 def handle_req(cli, dt):
-          
+        if dt.find(b"/cmd?q=")>0:
+            q = dt.decode('utf-8').split("=")[1].split(" HTTP")[0]
+            while '%20' in q: 
+              q = q.replace('%20', ' ')
+            if q:
+                from command8266 import cmmd
+                mkrsp(cli,'{}'.format(cmmd(q)))
+                return True
+            return False    
         if (
             dt.find(b"/upnp/control/basicevent1") > 0
             and dt.find(b"#GetBinaryState") != -1
