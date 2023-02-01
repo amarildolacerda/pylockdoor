@@ -17,8 +17,9 @@ def spin(p1: str, p3) -> str:
     return spin(p1, p3)
 def p(pin: str, msg: str):
     try:
-        from mqtt import p, tCmdOut
-        p(tCmdOut()+'/%s' % pin, msg)
+        from mqtt import p as cmd
+        from mqtt import tCmdOut
+        cmd(tCmdOut()+'/%s' % pin, msg)
     except:
         pass
 def setSleep(n: int):
@@ -58,9 +59,12 @@ def o(p: str, v, mode: int, force=_F, topic: str = None):
             mqttp((topic or tCmdOut())+'/' + key, str(v))
     except Exception as e:
         print('{} {}'.format('event.switch: ', e))
+inCv = False        
 def cv(mqtt_active=False):
-    global utm, nled
+    global utm, nled, inCV
+    if inCV: return
     try:
+        inCV = True
         from time import ticks_diff, ticks_ms
         t = ticks_ms()
         if ticks_diff(t, utm) > gKey("interval")*1000:
@@ -90,9 +94,10 @@ def cv(mqtt_active=False):
                 led(1)
                 if nled > 250:
                     nled = 0
-
     except Exception as e:
         print('{} {}'.format('event.cv: ', e))
+    finally: 
+        inCV = False
     from gc import collect
     collect()    
 def ADCRead(pin: str):
