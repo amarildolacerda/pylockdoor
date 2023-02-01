@@ -21,7 +21,7 @@ _init()
 IFCONFIG = const(0)
 PINS = const(1)
 dados = {
-   IFCONFIG:None,
+   IFCONFIG:[0,0,0,0],
    PINS : {}
 }
 
@@ -46,6 +46,7 @@ timeOnOff = {}
 gpio = const('gpio')
 mesh = None
 def ifconfig():
+    global dados
     return dados[IFCONFIG]
 def conf():
     global mesh

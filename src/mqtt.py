@@ -26,6 +26,7 @@ def tCmdOut():
 def topic_command_in():
     return trsp('/in')
 def create(client_id, mqtt_server, mqtt_user, mqtt_password):
+  if (mqtt_server or 'none')!='none': 
     global mq
     if (mq != _N): return mq
     from umqtt_simple import MQTTClient
@@ -51,6 +52,7 @@ def sdRsp(sValue, aRetained=0, response='/response'):
 def tostr(x):
     return '{}'.format(x)
 def p(t, p, aRetained=0):
+  if mq!=None:  
     from commandutils import now
     print(now(), t, ':', p)
     try:
@@ -69,13 +71,17 @@ def publish(tp,msg):
 def error(aMessage):
     send('error', aMessage or '?')    
 def sb(aSubTopic):
+    if mq !=None:
         mq.subscribe(aSubTopic)
-        mq.subscribe( '{}/scene/+'.format(tpfx().split('/')[0]))
+        #mq.subscribe( '{}/scene/+'.format(tpfx().split('/')[0]))
 def callback(aCallback):
+    if mq!= None:
         mq.set_callback(aCallback)
 def check_msg():
+    if mq!=None:
         mq.check_msg()
 def cnt(notify=True):
+    if mq!=None:
         mq.connect()
         if notify:
           p(topic_status(), 'online', 0)
@@ -88,6 +94,7 @@ def disp():
         if (x != None):
             p(('{}/type/{}').format(tpfx(), i), x, 0)
 def dcnt(notify=True):
+  if mq!=None: 
    try: 
         if notify:
           p(topic_status(), 'offline', 0)

@@ -92,6 +92,7 @@ class Broadcast(Server):
                     if self.autoclose: break
                 if self.callbackFn: self.callbackFn(self)
             except Exception as e:
+                print(e)
                 if str(e).find('ETIME') < 0:
                        print(self.__class__.__name__,str(e))
                 if self.callbackFn: self.callbackFn(self)
