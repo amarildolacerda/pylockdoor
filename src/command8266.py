@@ -65,7 +65,8 @@ def cmmd(c):
             elif cmd == 'save':
                 return r(save())
             elif cmd == 'reset':
-                reset()
+                #reset()
+                pass
             elif cmd == 'gpio':
                 if cmd1 == 'clear':
                    return r( model('clear'))

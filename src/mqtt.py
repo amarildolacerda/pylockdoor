@@ -26,13 +26,13 @@ def tCmdOut():
 def topic_command_in():
     return k('mqtt_prefix')+'/in'
 def create(client_id, mqtt_server, mqtt_user, mqtt_password):
+  if mqtt_server != 'none':
     global mq
     if (mq != _N): return mq
     from umqtt_simple import MQTTClient
     mq = MQTTClient(client_id, mqtt_server, 0, mqtt_user,mqtt_password)
-    return mq
+  return mq
 usnd = ticks_ms()
-mqttResetCount = 0
 def sendStatus(force=False):
     global usnd
     try:
@@ -57,26 +57,23 @@ def sdRsp(sValue, aRetained=0, response='/response'):
     usnd = ticks_ms()
     p(trsp(response), str(sValue), aRetained)
 def p(t, p, aRetained=0):
-    global mqttResetCount
     from commandutils import now
 
     print(now(), t, ':', p)
     try:
         if mq != _N:
             mq.publish(t, str(p), aRetained)
-            mqttResetCount = 0
             return 1
         return 0  # sucesso
     except Exception as e:
+       try: 
         msg = str(e)
-        if mqttResetCount>32:
-           reset()
-        elif msg.find('UNREACH')>0 or msg.find('CONN')>0:
-           dcnt(False)
+        if msg.find('UNREACH')>0 or msg.find('CONN')>0:
            cnt(False)
            return 0
-        mqttResetCount+=1   
-        return 0  # falhou
+       except:
+        pass    
+       return 0  # falhou
 def send(aTopic, aMessage):
     p(tpfx()+'/'+aTopic, aMessage)
 def error(aMessage):
@@ -84,9 +81,9 @@ def error(aMessage):
 def sb(aSubTopic):
     if mq != _N:
         mq.subscribe(aSubTopic)
-        s = '{}/scene/+'.format(tpfx().split('/')[0])
-        mq.subscribe(s)
-        print('subscribe',aSubTopic, s)
+        #s = '{}/scene/+'.format(tpfx().split('/')[0])
+        #mq.subscribe(s)
+        #print('subscribe',aSubTopic, s)
 def callback(aCallback):
     if mq != _N:
         mq.set_callback(aCallback)
@@ -99,8 +96,7 @@ def cnt(notify=True):
         if notify:
           p(topic_status(), 'online', 0)
           sendStatus(True)
-        global connected,mqttResetCount
-        mqttResetCount=0
+        global connected
         connected = _T
 def disp():
     for i in k(gp_mde):
