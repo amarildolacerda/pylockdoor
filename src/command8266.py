@@ -113,11 +113,11 @@ def cmmd(c):
                 elif cmd2 == _g:
                     return r(gadc(p))
                 return k
-            elif cmd == 'set':
+            elif cmd == 'set' or cmd=='setvar':
                 if cmd1 == 'model':
                     return model(cmd2)
                 return r(sKey(cmd1, cmd2))
-            elif cmd == 'get':
+            elif cmd == 'get' or cmd=='getvar':
                 return r(gKey(cmd1))
             return r('{}{}'.format(cmd, c),'/error')
         except Exception as e:

@@ -257,7 +257,10 @@ def strToNum(v):
             return f
 def sKey(p: str, v):
     global config
-    config[p]= v
+    try:
+        config[p]= strToNum(v)
+    except:
+       config[p]= v
     return v
 def gKey(p: str):
     global config
