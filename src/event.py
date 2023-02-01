@@ -1,3 +1,5 @@
+from time import ticks_diff, ticks_ms
+
 from config import (PINADC, gKey, gMde, gp_mde, gpin, gpio_timeoff,
                     gpio_timeon, gstype, gVlr, spin, sVlr, timeOnOff, trigg)
 
@@ -34,7 +36,6 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
             if t > 0:
                try: 
                 m = timeOnOff[key] or 0
-                from time import ticks_diff, ticks_ms
                 if (m > 0) and (ticks_diff(ticks_ms(), m) > t*1000):
                     spin(key, 1-seFor)
                     return True
@@ -44,12 +45,12 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
             seFor, key, p, m, t, e))
     return False
 
-def o(p: str, v, mode: int, force=_F, topic: str = None):
+def o(p1: str, v, mode: int, force=_F, topic: str = None):
     try:
-        if p==None: return 'event.o.p is None'
-        if not checkTimer(0, p, v, mode, gKey(gpio_timeon), force):
-            checkTimer(1, p, v, mode, gKey(gpio_timeoff), force)
-        key = str(p)
+        if p1==None: return 'event.o.p is None'
+        if not checkTimer(0, p1, v, mode, gKey(gpio_timeon), force):
+            checkTimer(1, p1, v, mode, gKey(gpio_timeoff), force)
+        key = str(p1)
         x = gVlr(key)
         if force or (v - x) != 0:
             sVlr(key, v)
@@ -59,13 +60,12 @@ def o(p: str, v, mode: int, force=_F, topic: str = None):
             mqttp((topic or tCmdOut())+'/' + key, str(v))
     except Exception as e:
         print('{} {}'.format('event.switch: ', e))
-inCv = False        
+inCV = False        
 def cv(mqtt_active=False):
     global utm, nled, inCV
     if inCV: return
     try:
         inCV = True
-        from time import ticks_diff, ticks_ms
         t = ticks_ms()
         if ticks_diff(t, utm) > gKey("interval")*1000:
             nled += 1
@@ -116,5 +116,4 @@ def init():
     global utm
     from config import irqEvent
     irqEvent(interruptTrigger)
-    from time import ticks_ms
     utm = ticks_ms()
