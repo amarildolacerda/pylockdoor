@@ -2,7 +2,7 @@
 from machine import reset
 
 import mqtt as mq
-from config import ifconfig
+from wifimgr import ifconfig
 
 _N = None
 _T = True
@@ -47,9 +47,9 @@ try:
             inLoop = True
             if connectWifi():
                 try:
-                    mq.disp()
                     mq.check_msg()
                     eventLoop(mq.connected)
+                    mq.disp()
                     mq.sendStatus()
                 except Exception as e:
                     print(str(e))

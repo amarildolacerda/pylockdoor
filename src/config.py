@@ -51,7 +51,7 @@ def ifconfig():
 def conf():
     global mesh
     import setup
-    mesh = 'mesh/'+(setup.name or uid)
+    mesh = 'ihome/'+(setup.name or uid)
     return {
         'led': 255,
         'label':setup.label,
@@ -201,7 +201,6 @@ def spin(p1: str, value, pers = True) -> str:
         p = initPin(s1, PINOUT)
         p.value(v)
         trigPub(p1,v)
-        print(p1,v)
         try:
             if pers: 
               sVlr(s1, v)

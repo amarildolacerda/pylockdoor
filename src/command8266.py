@@ -8,13 +8,13 @@ from config import (gKey, gpin, model, readFile, reset_factory, save, sKey,
 _N = None
 _g = 'get'
 _s =  'set'
-def r(p, response='/response'):
+def r(m, response='/response'):
         from mqtt import sdRsp
-        sdRsp(p,0,response)
-        return p
-def rPin(pin, p):
+        sdRsp(m,0,response)
+        return m
+def rPin(pin, m):
         from mqtt import sdPinRsp
-        return sdPinRsp(pin, p)
+        return sdPinRsp(pin, m)
 def tpRcv(t, p):
     _c = t.split('/')
     if len(_c)>2 and  _c[1] == 'scene':
@@ -71,14 +71,20 @@ def cmmd(c):
 
             elif cmd == 'save':
                 return r(save())
-            
+            elif cmd=='collect()':
+                from gc import collect
+
+                from machine import idle, soft_reset
+                idle()
+                collect()
+                return r(k)
             elif cmd == 'reset':
-               pass 
                #if cmd1=='factory':
                #   from config import reset_factory
                #   return reset_factory()
                #else:   
                # return reset()
+                pass
             elif cmd == 'gpio':
                 if cmd1 == 'clear':
                    return r( model('clear'))
@@ -121,7 +127,7 @@ def cmmd(c):
                 return r(gKey(cmd1))
             return r('{}{}'.format(cmd, c),'/error')
         except Exception as e:
-            print(str(e))
+            print(e)
             return r('E {}: {}'.format(c, e),'/error')
     finally:
         pass

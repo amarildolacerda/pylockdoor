@@ -85,12 +85,15 @@ def check_msg():
         mq.check_msg()
 def cnt(notify=True):
     if mq!=None:
+      try:  
         mq.connect()
         if notify:
           p(topic_status(), 'online', 0)
           sendStatus(True)
         global connected
         connected = _T
+      except:
+        connected = _F  
 def disp():
     for i in k(gp_mde):
         x = gstype(str(i))
