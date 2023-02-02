@@ -63,8 +63,8 @@ try:
         except Exception as e:
             pass
     def init():
-        from config import start as config_start
-        config_start()
+        from config import restore 
+        restore()
         from event import init as ev_init
         ev_init()
     def doTelnetEvent(server, addr,message):

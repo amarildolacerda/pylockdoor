@@ -62,6 +62,10 @@ def p(t, p1, aRetained=0):
         print('p->',msg)
         if msg.find('UNREACH')>0 or msg.find('CONN')>0:
            cnt(False)
+           try:
+             mq.publish(t, tostr(p1), 0)
+             return 1
+           except: pass  
         return 0  # falhou
 def send(aTopic, aMessage):
     return p(tpfx()+'/'+aTopic, aMessage)

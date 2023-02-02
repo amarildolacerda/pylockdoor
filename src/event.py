@@ -1,7 +1,8 @@
 from time import ticks_diff, ticks_ms
 
-from config import (PINADC, gKey, gMde, gp_mde, gpin, gpio_timeoff,
-                    gpio_timeon, gstype, gVlr, spin, sVlr, timeOnOff, trigg)
+from config import (PINADC, PININ, PINOUT, gKey, gMde, gp_mde, gpin,
+                    gpio_timeoff, gpio_timeon, gstype, gVlr, spin, sVlr,
+                    timeOnOff, trigg)
 
 _N = None
 _T = True
@@ -45,8 +46,11 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
             seFor, key, p, m, t, e))
     return False
 
+semaforo = []
 def o(p1: str, v, mode: int, force=_F, topic: str = None):
+    if p1 in semaforo: return
     try:
+        semaforo.append(p1)
         if p1==None: return 'event.o.p is None'
         if not checkTimer(0, p1, v, mode, gKey(gpio_timeon), force):
             checkTimer(1, p1, v, mode, gKey(gpio_timeoff), force)
@@ -60,12 +64,11 @@ def o(p1: str, v, mode: int, force=_F, topic: str = None):
             mqttp((topic or tCmdOut())+'/' + key, str(v))
     except Exception as e:
         print('{} {}'.format('event.switch: ', e))
-inCV = False        
+    finally:
+        semaforo.remove(p1)    
 def cv(mqtt_active=False):
     global utm, nled, inCV
-    if inCV: return
     try:
-        inCV = True
         t = ticks_ms()
         if ticks_diff(t, utm) > gKey("interval")*1000:
             nled += 1
@@ -75,19 +78,18 @@ def cv(mqtt_active=False):
             utm = t
             
             for i in gKey(gp_mde).keys():
-                stype = gstype(i)
                 md = gMde(i)
                 if (md != None):
                     from mqtt import tpfx
-                    if (md in [1, 2]):
+                    if (md in [PININ, PINOUT]):
                         o(i, gpin(i), md, False, tpfx() +
-                          '/{}'.format(stype or 'gpio'))
+                          '/{}'.format( 'gpio'))
                         continue
                     elif (md == PINADC):
                         v = ADCRead(i)
                         from config import trigPub
                         if (v>0):
-                            o(i, v, md, False,  '{}/{}'.format(tpfx(),stype or 'adc'))
+                            o(i, v, md, False,  '{}/{}'.format(tpfx(), 'adc'))
                         trigPub(i, v)
                         continue
             if bled:
@@ -96,8 +98,6 @@ def cv(mqtt_active=False):
                     nled = 0
     except Exception as e:
         print('{} {}'.format('event.cv: ', e))
-    finally: 
-        inCV = False
     from gc import collect
     collect()    
 def ADCRead(pin: str):

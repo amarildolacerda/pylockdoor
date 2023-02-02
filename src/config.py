@@ -28,13 +28,13 @@ dados = {
 trigger = 'tr'
 
 # config
-gp_mde = const('0')
-gp_trg = const('1')
-gpio_timeoff = const('2')
-gpio_timeon = const('3')
-gp_trg_tbl = const('4')
-events = const('5')
-pub = const('6')
+gp_mde = const('mode')
+gp_trg = const('trig')
+gpio_timeoff = const('toff')
+gpio_timeon = const('ton')
+gp_trg_tbl = const('tbl')
+events = const('ev')
+pub = const('pub')
 # fim
 
 PINOUT = const(1)
@@ -91,10 +91,10 @@ def restore():
         for item in cfg: 
                 config[item] = cfg[item]
 def setup():
-        from setup import set_model, start
+        from setup import configurar, set_model
         if set_model:
            model(set_model)
-        start()   
+        configurar()   
 def reset_factory():
     global config
     config = conf()
@@ -109,8 +109,6 @@ def save():
     with open(_cf, 'w') as f:
         dump(rst, f)
     return "Saved"
-def start():
-        restore()
 def mdeTs(mode):
     return modes[mode]
 def sToMde(smode):
