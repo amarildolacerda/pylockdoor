@@ -1,9 +1,9 @@
 from micropython import const
 
-name= const('bancada')
+name= const('ldr')
 #name=None
 #label=const('Interruptor')
-label = const('Sensor Bancada')
+label = const('Sensor Sol')
 ssids = [["VIVOFIBRA-A360","6C9FCEC12A"],['micasa','3938373635'],['visitante','']]
 
 mqtt_host ='none'
@@ -11,8 +11,8 @@ mqtt_host ='none'
 #mqtt_host = "test.mosquitto.org"
 mqtt_port = const(1883)
 
-set_model = const('15')
-auto_pin = const('4')
+set_model = '15'
+auto_pin = '4'
 interval = 0.3
 def configurar():
     #from config import sKey, sMde 
