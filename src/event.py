@@ -1,7 +1,7 @@
-from time import ticks_diff, ticks_ms
+from utime import ticks_diff, ticks_ms
 
 from config import (PINADC, PININ, PINOUT, gKey, gMde, gp_mde, gpin,
-                    gpio_timeoff, gpio_timeon, gstype, gVlr, spin, sVlr,
+                    gpio_timeoff, gpio_timeon, gstype, gVlr, spin , sVlr,
                     timeOnOff, trigg)
 
 _N = None
@@ -12,12 +12,10 @@ utm = None
 def timerEvent(x):
     cv(False)
 def led(v):
-    pin = int(gKey('led') or 255)
-    if pin > 16:
+    p = int(gKey('led') or 255)
+    if p > 16:
         return
-    spin(pin,v)    
-def spin(p1: str, p3) -> str:
-    return spin(p1, p3)
+    spin('{}'.format(p),v)    
 def p(pin: str, msg: str):
     try:
         from mqtt import p as cmd
@@ -30,8 +28,8 @@ def setSleep(n: int):
 def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
     m = 0
     t = 0
+    key = str(p)
     try:
-        key = str(p)
         if v == seFor and key in lista:
             t = lista[key] or 0
             if t > 0:
@@ -47,7 +45,7 @@ def checkTimer(seFor: int, p: str, v, mode: int, lista, force=_F):
     return False
 
 semaforo = []
-def o(p1: str, v, mode: int, force=_F, topic: str = None):
+def o(p1: str, v, mode, force=_F, topic=None):
     if p1 in semaforo: return
     try:
         semaforo.append(p1)

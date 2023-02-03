@@ -39,6 +39,7 @@ echo compilando....
 
 ..\mpy-cross broadcast.py
 ..\mpy-cross setup.py
+..\mpy-cross gpio.py
 
 
 
@@ -79,6 +80,7 @@ ampy -d 0.5 --port %1 put setup.xml
 ampy -d 0.5 --port %1 put state.soap
 ampy -d 0.5 --port %1 put setup.mpy
 ampy -d 0.5 --port %1 put pins.json
+ampy -d 0.5 --port %1 put gpio.mpy
 
 
 

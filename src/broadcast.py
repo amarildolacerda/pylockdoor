@@ -15,8 +15,8 @@ class Alexa:
         from socket import AF_INET, SOCK_DGRAM, socket
         tmp = socket(AF_INET, SOCK_DGRAM)
         tmp.sendto(msg, dest)
-        import time
-        time.sleep(0.1)
+        import utime
+        utime.sleep(0.1)
         tmp.close()
       except Exception as e:
         print(str(e))  

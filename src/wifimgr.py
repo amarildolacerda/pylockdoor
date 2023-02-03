@@ -1,5 +1,5 @@
 from gc import collect
-from time import sleep, ticks_diff, ticks_ms
+from utime import sleep, ticks_diff, ticks_ms
 
 from machine import reset
 from micropython import const

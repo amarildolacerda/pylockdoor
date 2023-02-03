@@ -48,7 +48,6 @@ def localTrig(i: str,stype: str,value: int):
                 if (rsp != None):
                     mqtt.p(mqtt.tpfx()+'/scene/'+p,cmd[6])
                     _p = 'scene '+p+' set '+cmd[6]
-                    print(_p)
                     sv['{}'.format(p)] =cmd[6]
                     ev.rcv(_p)
             continue

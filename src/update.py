@@ -23,8 +23,6 @@ class github:
             return body.decode()
            finally:
             sock.close() 
-
-
 # requer autenticacao https
 # # HTTP/1.1 301 Moved Permanently\r\nConnection: close\r\nContent-Length: 0\r\
 def update():
