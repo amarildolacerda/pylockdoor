@@ -18,7 +18,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-s.settimeout(5)
+s.settimeout(60)
 #s.sendto(b'M-SEARCH * HTTP/1.1', ('0.0.0.0', 1900) )
 s.sendto(msg.encode('utf-8'), (b'239.255.255.250', 1900) )
 #s.sendto(b'M-SEARCH * HTTP/1.1', (b'192.168.15.255', 1900) )

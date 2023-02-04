@@ -19,9 +19,11 @@ class Server:
 
         self.sock = socket(AF_INET, self.socketType)
         self.sock.setblocking(True)
+    def bind(self):    
         self.sock.bind((self.host, self.port))
 
     def listen(self, messageEvent, end=b"\r\n"):
+        self.bind()
         self.end = end
         self.messageEvent = messageEvent
         self.sock.listen(5)
@@ -87,8 +89,13 @@ class Broadcast(Server):
             self.sock.setsockopt(IPPROTO_IP, IP_ADD_MEMBERSHIP, self.mreq)
         except Exception as e:
             print(str(e))
-
+    def send(self,payload):
+        try:
+            self.sock.sendto(payload, ('239.255.255.250', 1900))
+        except Exception as e:
+            print(str(e))
     def listen(self, messageEvent):
+        self.bind()
         self.messageEvent = messageEvent
         self.receive_data(self.sock)
 
@@ -114,7 +121,7 @@ class Broadcast(Server):
                         self.callbackFn(self)
                 except:
                     pass
-        self.sock.setblocking(0)
+        self.sock.setblocking(False)
         self.sock.close()
 
 

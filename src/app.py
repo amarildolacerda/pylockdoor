@@ -3,6 +3,7 @@ from machine import reset
 import mqtt as mq
 from wifimgr import ifconfig
 from utime import sleep
+
 _N = None
 _T = True
 _F = False
@@ -45,11 +46,14 @@ try:
 
         cv(v)
 
+    primeira = True
+
     def loop(b=None):
-        global inLoop
+        global inLoop, primeira
         if inLoop:
             return
         try:
+
             try:
                 inLoop = True
                 if connectWifi():
@@ -66,9 +70,22 @@ try:
                     eventLoop(False)
             finally:
                 inLoop = False
+                if primeira:
+                    notifypnp()
+                    primeira = False
+
             return True
         except Exception as e:
             pass
+
+    def notifypnp():
+        try:
+            from broadcast import Alexa
+            from server import Broadcast
+
+            Alexa(ifconfig()[0]).send_notify(Broadcast())
+        except Exception as e:
+            print(str(e))
 
     def init():
         from config import restore
@@ -109,19 +126,20 @@ try:
         except:
             pass
         mqttConnect(ifconfig()[0])
+        from broadcast import Alexa
 
     def run():
         try:
             init()
-            #while True:
+            # while True:
             try:
-                    bind()
-                    srvrun(ifconfig()[0], loop)
+                bind()
+                srvrun(ifconfig()[0], loop)
             except:
-                    reset()
-            #while True:
+                reset()
+            # while True:
             #    loop()
-            #    sleep(5)         
+            #    sleep(5)
         except KeyboardInterrupt as e:
             pass
         except Exception as e:

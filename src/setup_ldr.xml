@@ -1,0 +1,7 @@
+            <service>
+                <serviceType>urn:schemas-upnp-org:service:LightSensor:1</serviceType>
+                <serviceId>urn:upnp-org:serviceId:LightSensor1</serviceId>
+                <controlURL>/lightsensor</controlURL>
+                <eventSubURL>/lightsensorevent</eventSubURL>
+                <SCPDURL>/lightsensorservice.xml</SCPDURL>
+            </service>

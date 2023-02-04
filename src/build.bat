@@ -68,19 +68,24 @@ ampy -d 0.5 --port %1 put mqtt.mpy
 ampy -d 0.5 --port %1 put ntp.mpy
 ampy -d 0.5 --port %1 put server.mpy
 ampy -d 0.5 --port %1 put wifimgr.mpy
-ampy -d 0.5 --port %1 put umqtt_simple.mpy
+rem ampy -d 0.5 --port %1 put umqtt_simple.mpy
 ampy -d 0.5 --port %1 put help.tmpl
 ampy -d 0.5 --port %1 put commandutils.mpy
 ampy -d 0.5 --port %1 put broadcast.mpy
 ampy -d 0.5 --port %1 put erro.html
-ampy -d 0.5 --port %1 put eventservice.xml
-ampy -d 0.5 --port %1 put help.tmpl
+ampy -d 0.5 --port %1 put eventservice_basic.xml
+rem ampy -d 0.5 --port %1 put eventservice_ldr.xml
 ampy -d 0.5 --port %1 put msearch.html
-ampy -d 0.5 --port %1 put setup.xml
-ampy -d 0.5 --port %1 put state.soap
+ampy -d 0.5 --port %1 put msearch_notify.html
+rem ampy -d 0.5 --port %1 put setup_basic.xml
+ampy -d 0.5 --port %1 put setup_base.xml
+rem ampy -d 0.5 --port %1 put setup_ldr.xml
+ampy -d 0.5 --port %1 put state_basic.soap
+rem ampy -d 0.5 --port %1 put state_ldr.soap
 ampy -d 0.5 --port %1 put setup.mpy
 ampy -d 0.5 --port %1 put pins.json
 ampy -d 0.5 --port %1 put gpio.mpy
+ampy -d 0.5 --port %1 put help.tmpl
 
 
 

@@ -1,8 +1,0 @@
-NOTIFY / HTTP/1.1
-HOST: http://{host}:8080
-CONTENT-TYPE: text/xml; charset="utf-8"
-CONTENT-LENGTH: {lenght}
-NT: upnp:event
-NTS: upnp:propchange
-SID: uuid:{uuid}
-SEQ: 0

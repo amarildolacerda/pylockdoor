@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<scpd xmlns="urn:schemas-upnp-org:service-1-0">
+  <actionList>
+    <action>
+      <name>GetBinaryState</name>
+      <argumentList>
+        <argument>
+          <name>BinaryState</name>
+          <direction>out</direction>
+          <relatedStateVariable>BinaryState</relatedStateVariable>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>SetBinaryState</name>
+      <argumentList>
+        <argument>
+          <name>BinaryState</name>
+          <direction>in</direction>
+          <relatedStateVariable>BinaryState</relatedStateVariable>
+        </argument>
+      </argumentList>
+    </action>
+  </actionList>
+  <serviceStateTable>
+    <stateVariable sendEvents="yes">
+      <name>BinaryState</name>
+      <dataType>Boolean</dataType>
+      <defaultValue>0</defaultValue>
+    </stateVariable>
+  </serviceStateTable>
+</scpd>

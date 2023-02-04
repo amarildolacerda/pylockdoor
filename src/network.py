@@ -28,4 +28,6 @@ class WLAN:
         s.connect(("8.8.8.8", 80))
         sock = s.getsockname()
         s.close()
-        return [sock[0],sock[1],0,0]    
+        return [sock[0],sock[1],0,0]   
+    def config(self,essid,password,authmode):
+        pass     
