@@ -50,6 +50,7 @@ def o(p1: str, v, mode, force=_F, topic=None):
     try:
         semaforo.append(p1)
         if p1==None: return 'event.o.p is None'
+
         if not checkTimer(0, p1, v, mode, gKey(gpio_timeon), force):
             checkTimer(1, p1, v, mode, gKey(gpio_timeoff), force)
         key = str(p1)
@@ -60,6 +61,9 @@ def o(p1: str, v, mode, force=_F, topic=None):
             from mqtt import p as mqttp
             from mqtt import tCmdOut
             mqttp((topic or tCmdOut())+'/' + key, str(v))
+            from setup import changed
+            changed(key,v)  
+
     except Exception as e:
         print('{} {}'.format('event.switch: ', e))
     finally:
@@ -107,7 +111,7 @@ def interruptTrigger(pin):
     for k in dados[PINS].keys():
         if dados[PINS][k] == pin:
             p = k
-        if p:    
+        if p: 
             o(str(p), pin.value(), None, _T)
 
 def init():
