@@ -7,9 +7,14 @@ def now():
    from utime import localtime
    t = localtime()
    return '{}-{}-{}T{}:{}:{}'.format(t[0],t[1],t[2],t[3],t[4],t[5])
+
+def localIP():
+    from wifimgr import ifconfig
+    return ifconfig()[0]
+
 class Alexa:
     def __init__(self,ip):
-        self.ip = ip
+        pass
     def sendto(self, dest, msg):
       try:  
         from socket import AF_INET, SOCK_DGRAM, socket
@@ -21,14 +26,14 @@ class Alexa:
       except Exception as e:
         print(str(e))  
     def send_msearch(self,  addr):
-        self.sendto(addr, rf("msearch.html").format(self.ip))
+        self.sendto(addr, rf("msearch.html").format(localIP()))
 
 def rf(n):  
         with open(n, 'r') as f:
                 return f.read()
 def discovery(sdr,addr, dt ):
         if dt.startswith(b"M-SEARCH") and dt.find(b'rootdevice')>0:
-                alexa = Alexa(dados[IFCONFIG][0])
+                alexa = Alexa(localIP())
                 alexa.send_msearch(addr)
         else: print(dt)
         return True
@@ -80,7 +85,8 @@ def handle_req(cli, dt):
         elif dt.find(b"/eventservice.xml") > 0:
            return mkrsp(cli,rf('eventservice.xml'),200,'application/xml')
         elif dt.find(b"/setup.xml") > 0:
-            return mkrsp(cli, rf('setup.xml').format(name=label(), uuid=uid),200,'application/xml' )
+            
+            return mkrsp(cli, rf('setup.xml').format(ip=localIP(),name=label(), uuid=uid),200,'application/xml' )
         elif (
             dt.find(b'#SetBinaryState')
             != -1
@@ -100,6 +106,7 @@ def handle_req(cli, dt):
 def http(cli,addr,req):
     try:
         import ure
+        url=''
         try:
                 cli.setblocking(False)
                 url = ure.search("(?:GET|POST) /(.*?)(?:\\?.*?)? HTTP",

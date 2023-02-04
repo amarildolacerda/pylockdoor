@@ -2,10 +2,6 @@ from machine import reset
 
 import mqtt as mq
 from wifimgr import ifconfig
-from utime import sleep
-_N = None
-_T = True
-_F = False
 
 try:
 
