@@ -1,3 +1,5 @@
+#include <ESP8266SSDP.h>
+
 /*
  * Example for how to use SinricPro Doorbell device:
  * - setup a doorbell device
@@ -12,6 +14,9 @@
  * - check full user documentation at https://sinricpro.github.io/esp8266-esp32-sdk
  * - visit https://github.com/sinricpro/esp8266-esp32-sdk/issues and check for existing issues or open a new one
  */
+
+
+#define LABEL "bancada"
 
 #ifdef ENABLE_DEBUG
 #define DEBUG_ESP_PORT Serial
@@ -29,7 +34,8 @@
 #include <FS.h>
 #include <LittleFS.h>
 
-
+#include <Espalexa.h>
+Espalexa espalexa;
 
 
 #include <WiFiManager.h>
@@ -100,9 +106,9 @@ int getAdc() {
   const int v_max = config["ldr_max"].as<int>();
   if (tmpAdc > v_max) rt = HIGH;  // quando acende a luz, sobe o medidor com a propria luz que foi acionada, para não desligar.
   if (tmpAdc < v_min) rt = LOW;
-  if (rt != ldrState ) {
+  if (rt != ldrState) {
     char buffer[64];
-    sprintf(buffer, "adc %d,ldrState %d, adcState %d  (%i,%i) ", tmpAdc, ldrState, rt,v_max,v_min);
+    sprintf(buffer, "adc %d,ldrState %d, adcState %d  (%i,%i) ", tmpAdc, ldrState, rt, v_max, v_min);
     debug(buffer);
   }
   return rt;
@@ -175,15 +181,16 @@ void setup() {
   Serial.printf("\r\n\r\n");
   setupWiFi();
   setupSinricPro();
- 
+
   if (!LittleFS.begin()) {
     Serial.println("LittleFS mount failed");
   }
- 
+
   setupTelnet();
-   
+
   restoreConfig();
   setupPins();
+  setupAlexa();
 }
 
 void setupTelnet() {
@@ -223,6 +230,7 @@ void loop() {
   SinricPro.handle();
   telnet.loop();
   loopEvent();
+  espalexa.loop();
 }
 
 String print(String msg) {
@@ -266,39 +274,40 @@ String *split(String s, const char delimiter) {
 
 
 String saveConfig() {
-  File configFile = LittleFS.open("/config.json", "w");
-  serializeJson(config,configFile);
-  configFile.close();
-  return "saved";
+  String rsp = "saved";
+  String json;
+  serializeJson(config,json);
+  writeFile("/config.json",json);
+  return rsp;
 }
 String restoreConfig() {
-  defaultConfig();
+  //defaultConfig();
+  String rt = "nao restaurou config";
   Serial.println("restoreConfig");
-  linha();
-  File configFile = LittleFS.open("/config.json", "r");
-  if (!configFile) return "Erro 2";
-  while (configFile.available()){
-    Serial.print(configFile.read());
+  String json = readFile("/config.json");
+  if (json){
+    deserializeJson(config,json);
+    rt = "restored";
   }
-  configFile.close();
+  Serial.println(json);
   linha();
-  return "restored";
+  return rt;
 }
-void linha(){
+void linha() {
   Serial.println("-------------------------------");
 }
 void defaultConfig() {
+  config["label"] = LABEL;
   config.createNestedObject("mode");
   config.createNestedObject("trigger");
   config.createNestedObject("stable");
   config["ldr_min"] = "5";
   config["ldr_max"] = "600";
-  config["debug"] = inDebug?"on":"off";
+  config["debug"] = inDebug ? "on" : "off";
   config["interval"] = "500";
 
   doCommand("gpio 0 mode adc");
   doCommand("set ldr_min 1");
-
 }
 
 void printConfig() {
@@ -324,14 +333,14 @@ String doCommand(String command) {
   String *cmd = split(command, ' ');
   printCmds(cmd);
   Serial.println(cmd[0]);
-  if (cmd[0]=="open")
-     return openFile(cmd[1]);
-  else if (cmd[0]=="help")
-     return help();
+  if (cmd[0] == "open")
+    return readFile(cmd[1]);
+  else if (cmd[0] == "help")
+    return help();
   else if (cmd[0] == "show") {
     return config.as<String>();
   } else if (cmd[0] == "reset") {
-    if (cmd[1]=="factory"){
+    if (cmd[1] == "factory") {
       defaultConfig();
       return "OK";
     }
@@ -342,7 +351,7 @@ String doCommand(String command) {
     return "OK";
   } else if (cmd[0] == "save") {
     return saveConfig();
-  } else if (cmd[0]=="restore"){
+  } else if (cmd[0] == "restore") {
     return restoreConfig();
   } else if (cmd[0] == "set") {
     if (cmd[2] == "none") {
@@ -420,8 +429,8 @@ void readPin(int pin, String mode) {
   }
 }
 
-void debug(String txt){
-  if (config["debug"] == "on"){
+void debug(String txt) {
+  if (config["debug"] == "on") {
     print(txt);
   } else {
     Serial.println(txt);
@@ -447,24 +456,47 @@ void writePin(int pin, int value) {
     digitalWrite(pin, value);
 }
 
-String help(){
-   String s = "set ldr_max x \r\n";
-   s += "set ldr_min x \r\n";
-   return s;  
-}
-
-String openFile(String f){
-  debug("Abrindo o arquivo: "+f);
-  File file = LittleFS.open(f, "r");
-  if (!file) {
-    return "Failed to open for reading";
-  }
-  String s = "";
-  while (file.available()){
-     Serial.print( file.read() );
-     
-  }
-  Serial.printf("conteudo: %s ",s);
-  file.close();
+String help() {
+  String s = "set ldr_max x \r\n";
+  s += "set ldr_min x \r\n";
   return s;
 }
+
+void writeFile(String f, String payload){
+  File file = LittleFS.open(f,"w");
+  file.println(payload);
+  file.close();
+}
+
+String readFile(String f) {
+  File file = LittleFS.open(f, "r");
+  if (!file) {
+    return "Falhou a abertura do arquivo para leitura";
+  }
+  String s = file.readString();
+  file.close();
+  linha();
+  Serial.println(s);
+  linha();
+  return s;
+}
+
+void setupAlexa(){
+  espalexa.begin();
+  espalexa.addDevice(config["label"], firstDeviceChanged);
+}
+
+void firstDeviceChanged(uint8_t brightness) {
+    if (brightness) {
+      digitalWrite(RELAY_PIN,HIGH);
+      Serial.print("ON, brightness ");
+      Serial.println(brightness);
+      print("RELAY ON");
+
+    }
+    else  {
+      digitalWrite(RELAY_PIN,LOW);
+      print("RELAY OFF");
+    }
+}
+
