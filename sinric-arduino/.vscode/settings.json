@@ -1,4 +1,6 @@
 {
+    "arduino.enableUSBDetection": true,
+    "arduino.path": "C:\\Users\\amari\\OneDrive\\família buscape\\Documentos\\Arduino\\libraries",
     "MicroPython.executeButton": [
         {
             "text": "▶",
@@ -17,4 +19,5 @@
             "priority": 4
         }
     ]
+    
 }

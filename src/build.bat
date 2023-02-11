@@ -1,5 +1,8 @@
 echo %2
 
+set b=%3
+if "%3"=="" set b=115200
+
 del *.mpy
 
 
@@ -43,44 +46,44 @@ echo compilando....
 
 
 
-
+if "%2"=="all" goto :todos
 if "%2"=="" goto :todos
-ampy -d 0.5 --port %1 put %2
+ampy -b %b% --port %1 put %2
 goto :fix
 
 
 :todos
+ampy -b %b% --port %1 ls
+ampy -b %b% --port %1 put boot.py
+ampy -b %b% --port %1 put commandutils.mpy	
+ampy -b %b% --port %1 put command8266.mpy
+ampy -b %b% --port %1 put config.mpy
 
-ampy -d 0.5 --port %1 put boot.py
-ampy -d 0.5 --port %1 put commandutils.mpy	
-ampy -d 0.5 --port %1 put command8266.mpy
-ampy -d 0.5 --port %1 put config.mpy
+ampy -b %b% --port %1 put configshow.mpy
 
-ampy -d 0.5 --port %1 put configshow.mpy
+ampy -b %b% --port %1 put csConfig.mpy
+ampy -b %b% --port %1 put csGpio.mpy
 
-ampy -d 0.5 --port %1 put csConfig.mpy
-ampy -d 0.5 --port %1 put csGpio.mpy
-
-ampy -d 0.5 --port %1 put event.mpy
-ampy -d 0.5 --port %1 put main.py
-ampy -d 0.5 --port %1 put app.mpy
-ampy -d 0.5 --port %1 put mqtt.mpy	
-ampy -d 0.5 --port %1 put ntp.mpy
-ampy -d 0.5 --port %1 put server.mpy
-ampy -d 0.5 --port %1 put wifimgr.mpy
-ampy -d 0.5 --port %1 put umqtt_simple.mpy
-ampy -d 0.5 --port %1 put help.tmpl
-ampy -d 0.5 --port %1 put commandutils.mpy
-ampy -d 0.5 --port %1 put broadcast.mpy
-ampy -d 0.5 --port %1 put erro.html
-ampy -d 0.5 --port %1 put eventservice.xml
-ampy -d 0.5 --port %1 put help.tmpl
-ampy -d 0.5 --port %1 put msearch.html
-ampy -d 0.5 --port %1 put setup.xml
-ampy -d 0.5 --port %1 put state.soap
-ampy -d 0.5 --port %1 put setup.mpy
-ampy -d 0.5 --port %1 put pins.json
-ampy -d 0.5 --port %1 put gpio.mpy
+ampy -b %b% --port %1 put event.mpy
+ampy -b %b% --port %1 put main.py
+ampy -b %b% --port %1 put app.mpy
+ampy -b %b% --port %1 put mqtt.mpy	
+ampy -b %b% --port %1 put ntp.mpy
+ampy -b %b% --port %1 put server.mpy
+ampy -b %b% --port %1 put wifimgr.mpy
+ampy -b %b% --port %1 put umqtt_simple.mpy
+ampy -b %b% --port %1 put help.tmpl
+ampy -b %b% --port %1 put commandutils.mpy
+ampy -b %b% --port %1 put broadcast.mpy
+ampy -b %b% --port %1 put erro.html
+ampy -b %b% --port %1 put eventservice.xml
+ampy -b %b% --port %1 put help.tmpl
+ampy -b %b% --port %1 put msearch.html
+ampy -b %b% --port %1 put setup.xml
+ampy -b %b% --port %1 put state.soap
+ampy -b %b% --port %1 put setup.mpy
+ampy -b %b% --port %1 put pins.json
+ampy -b %b% --port %1 put gpio.mpy
 
 
 

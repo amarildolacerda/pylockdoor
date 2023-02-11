@@ -1,15 +1,15 @@
 from micropython import const
 
-name = const("ldr")
-# name = None
-deviceType = const("ldr")
+#name = const("ldr")
+name = 'sala'
+deviceType = "basic" # const("ldr")
 # label=const('Interruptor')
-label = const("bancada")
+label = "board" # const("bancada")
 ssids = [["VIVOFIBRA-A360", "6C9FCEC12A"], ["micasa", "3938373635"], ["visitante", ""]]
 
 mqtt_host = "none"
 mqtt_port = const(1883)
-set_model = "15"
+set_model = None
 auto_pin = "4"
 interval = 0.3
 
@@ -17,7 +17,8 @@ interval = 0.3
 def configurar():
     from config import sKey, sMde
 
-    sMde("0", "adc")
+    if deviceType == "ldr":
+       sMde("0", "adc")
     # sKey('interval',60)
     # from command8266 import cmmd
     # cmmd('gpio 4 trigger 15 bistable')
