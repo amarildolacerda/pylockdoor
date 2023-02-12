@@ -61,18 +61,17 @@ DynamicJsonDocument config(SIZE_BUFFER);
 #define DOORBELL_ID "63dee83722e49e3cb5f91932"
 #define SWITCH_ID "63ded33a22e49e3cb5f90d3d"
 
-#define BAUD_RATE 115200  // Change baudrate to your need
+#define BAUD_RATE 115200 // Change baudrate to your need
 
 #define BUTTON_PIN 4
 #define RELAY_PIN 15
-#define inDebug false
+#define inDebug true
 unsigned long lastBtnPress;
-
+IPAddress localIP;
 int ldrState = 0;
 bool myPowerState = false;
 int tmpAdc = 0;
 int adcState = 0;
-String localIP;
 bool isConnected = false;
 
 ESPTelnet telnet;
@@ -87,32 +86,51 @@ void readPin(int pin, String mode);
 void initPinMode(int pin, const String m);
 void setupTelnet();
 String doCommand(String command);
+void checkTrigger(int pin, int value);
+JsonObject getTrigger();
+JsonObject getStable();
+String help();
+bool readFile(String filename, char *buffer, size_t maxLen);
+void linha();
+void loopEvent();
 
-bool onPowerState(const String &deviceId, bool &state) {
+bool onPowerState(const String &deviceId, bool &state)
+{
   Serial.printf("Device %s turned %s (via SinricPro) \r\n", deviceId.c_str(), state ? "on" : "off");
   myPowerState = state;
   digitalWrite(RELAY_PIN, myPowerState ? HIGH : LOW);
-  return true;  // request handled properly
+  return true; // request handled properly
 }
 
-void handleRelayState() {
-  if (int(myPowerState) != digitalRead(RELAY_PIN)) {
+String print(String msg)
+{
+  Serial.println(msg);
+  telnet.println(msg);
+  return msg;
+}
+
+void handleRelayState()
+{
+  if (int(myPowerState) != digitalRead(RELAY_PIN))
+  {
     myPowerState = digitalRead(RELAY_PIN) == HIGH;
     SinricProSwitch &mySwitch = SinricPro[SWITCH_ID];
-    mySwitch.sendPowerStateEvent(myPowerState);  // send the new powerState to SinricPro server
+    mySwitch.sendPowerStateEvent(myPowerState); // send the new powerState to SinricPro server
   }
 }
 
-int getAdc() {
+int getAdc()
+{
   tmpAdc = analogRead(0);
   int rt = ldrState;
   const int v_min = config["ldr_min"].as<int>();
   const int v_max = config["ldr_max"].as<int>();
   if (tmpAdc > v_max)
-    rt = HIGH;  // quando acende a luz, sobe o medidor com a propria luz que foi acionada, para não desligar.
+    rt = HIGH; // quando acende a luz, sobe o medidor com a propria luz que foi acionada, para não desligar.
   if (tmpAdc < v_min)
     rt = LOW;
-  if (rt != ldrState) {
+  if (rt != ldrState)
+  {
     char buffer[64];
     sprintf(buffer, "adc %d,ldrState %d, adcState %d  (%i,%i) ", tmpAdc, ldrState, rt, v_max, v_min);
     debug(buffer);
@@ -121,16 +139,21 @@ int getAdc() {
 }
 // checkButtonpress
 // reads if BUTTON_PIN gets LOW and send Event
-void checkButtonPress() {
+void checkButtonPress()
+{
   unsigned long actualMillis = millis();
 
   adcState = getAdc();
-  if (!isConnected) {
+  if (!isConnected)
+  {
     if (adcState != digitalRead(RELAY_PIN))
       digitalWrite(RELAY_PIN, adcState);
-  } else if (actualMillis - lastBtnPress > 60000 * 5 && (ldrState != adcState)) {
+  }
+  else if (actualMillis - lastBtnPress > 60000 * 5 && (ldrState != adcState))
+  {
     Serial.println(tmpAdc);
-    if (adcState == HIGH) {
+    if (adcState == HIGH)
+    {
       Serial.printf("Noite");
       // get Doorbell device back
       SinricProDoorbell &myDoorbell = SinricPro[DOORBELL_ID];
@@ -142,25 +165,27 @@ void checkButtonPress() {
       lastBtnPress = actualMillis;
     }
     // desliga o rele
-    if (adcState != digitalRead(RELAY_PIN)) {
+    if (adcState != digitalRead(RELAY_PIN))
+    {
       Serial.println(adcState ? "HIGH" : "LOW");
       digitalWrite(RELAY_PIN, adcState);
-      handleRelayState();  // if myPowerState indicates device turned on: turn on led (builtin led uses inverted logic: LOW = LED ON / HIGH = LED OFF)
+      handleRelayState(); // if myPowerState indicates device turned on: turn on led (builtin led uses inverted logic: LOW = LED ON / HIGH = LED OFF)
     }
-  } 
+  }
 }
 
 // setup function for WiFi connection
-void setupWiFi() {
+void setupWiFi()
+{
   Serial.printf("\r\n[Wifi]: Connecting");
   wifiManager.autoConnect("AutoConnectAP");
-  Serial.println(WiFi.localIP());
-  localIP = WiFi.localIP().toString().c_str();
-  Serial.printf("V: %s \r\n",VERSION);
+  localIP = WiFi.localIP();
+  Serial.printf("V: %s \r\n", VERSION);
 }
 
 // setup function for SinricPro
-void setupSinricPro() {
+void setupSinricPro()
+{
 
   // add doorbell device to SinricPro
   // SinricProDoorbell &myDoorbell = SinricPro[DOORBELL_ID];
@@ -168,145 +193,36 @@ void setupSinricPro() {
   mySwitch.onPowerState(onPowerState);
 
   // setup SinricPro
-  SinricPro.onConnected([]() {
+  SinricPro.onConnected([]()
+                        {
     isConnected = true;
-    Serial.printf("Connected to SinricPro\r\n");
-  });
-  SinricPro.onDisconnected([]() {
+    Serial.printf("Connected to SinricPro\r\n"); });
+  SinricPro.onDisconnected([]()
+                           {
     isConnected = false;
-    Serial.printf("Disconnected from SinricPro\r\n");
-  });
+    Serial.printf("Disconnected from SinricPro\r\n"); });
   // SinricPro.restoreDeviceStates(true);
   SinricPro.begin(APP_KEY, APP_SECRET);
   ldrState = getAdc() ? LOW : HIGH;
   lastBtnPress = millis() - 360000;
 }
 
-// main setup function
-void setup() {
-  pinMode(BUTTON_PIN, INPUT);
-  pinMode(RELAY_PIN, OUTPUT);  // define LED GPIO as output
-
-  Serial.begin(BAUD_RATE);
-  Serial.printf("\r\n\r\n");
-  setupWiFi();
-  setupSinricPro();
-
-  if (!LittleFS.begin()) {
-    Serial.println("LittleFS mount failed");
-  }
-
-  setupTelnet();
-
-  defaultConfig();
-  restoreConfig();
-  setupPins();
-  // setupAlexa();
-}
-
-void setupTelnet() {
-  telnet.onConnect(onTelnetConnect);
-  telnet.onInputReceived([](String str) {
-    print(doCommand(str));
-  });
-
-  Serial.print("- Telnet: ");
-  if (telnet.begin()) {
-    Serial.println("running");
-  } else {
-    Serial.println("error.");
-    errorMsg("Will reboot...");
-  }
-}
-void errorMsg(String msg) {
-  Serial.println(msg);
-  telnet.println(msg);
-}
-
-void onTelnetConnect(String ip) {
-  Serial.print("- Telnet: ");
-  Serial.print(ip);
-  Serial.println(" connected");
-  telnet.println("\nWelcome " + telnet.getIP());
-  telnet.println("(Use ^] + q  to disconnect.)");
-}
-void onTelnetDisconnect(String ip) {
-  Serial.print("- Telnet: ");
-  Serial.print(ip);
-  Serial.println(" disconnected");
-}
-
-void loop() {
-  checkButtonPress();
-  SinricPro.handle();
-  telnet.loop();
-  loopEvent();
-  // espalexa.loop();
-}
-
-String print(String msg) {
-  Serial.println(msg);
-  telnet.println(msg);
-  return msg;
-}
-void printCmds(String *cmd) {
-  Serial.println("command:");
-  for (int i = 0; i < sizeof(cmd); i++) {
-    if (cmd[i] != NULL) {
-      Serial.print(cmd[i]);
-      Serial.print(" ");
-    }
-  }
-  Serial.println("");
-}
-String *split(String s, const char delimiter) {
-  int count = 0;
-  int j = 0;
-  for (int i = 0; i < s.length(); i++) {
-    if (s[i] == delimiter) {
-      count++;
-    }
-  }
-
-  String *words = new String[count + 1];
-  int wordCount = 0;
-  j = 0;
-
-  for (int i = 0; i < s.length(); i++) {
-    if (s[i] == delimiter) {
-      wordCount++;
-      continue;
-    }
-    words[wordCount] += s[i];
-  }
-  //words[count+1] = 0;
-
-  return words;
-}
-
-String saveConfig() {
-  String rsp = "OK";
-  serializeJson(config, Serial);
-  File file = LittleFS.open("/config.json", "w");
-  if (serializeJson(config, file) == 0) rsp = "não gravou /config.json";
-  file.close();
-  return rsp;
-}
-
-
-
-String restoreConfig() {
+String restoreConfig()
+{
   String rt = "nao restaurou config";
   Serial.println("");
   linha();
-  try {
+  try
+  {
     String old = config.as<String>();
     File file = LittleFS.open("/config.json", "r");
-    if (!file) return "erro ao abrir /config.json";
+    if (!file)
+      return "erro ao abrir /config.json";
     String novo = file.readString();
     config.clear();
     auto error = deserializeJson(config, novo);
-    if (error) {
+    if (error)
+    {
       Serial.printf("lido: %s \r\n corrente: %s \r\n", novo, old);
       config.clear();
       deserializeJson(config, old);
@@ -316,17 +232,17 @@ String restoreConfig() {
     Serial.println("");
     rt = "OK";
     linha();
-  } catch (const char *e) {
+  }
+  catch (const char *e)
+  {
     return String(e);
   }
   Serial.println("");
   return rt;
 }
 
-void linha() {
-  Serial.println("-------------------------------");
-}
-void defaultConfig() {
+void defaultConfig()
+{
   config["label"] = LABEL;
   config.createNestedObject("mode");
   config.createNestedObject("trigger");
@@ -338,59 +254,201 @@ void defaultConfig() {
 
   doCommand("gpio 0 mode adc");
   doCommand("gpio 0 trigger 15 monostable");
-  //doCommand("set ldr_min 1");
+  doCommand("show");
 }
 
-void printConfig() {
-
-  serializeJson(config, Serial);
-}
-
-void setupPins() {
+void setupPins()
+{
   JsonObject mode = config["mode"];
-  for (JsonPair k : mode) {
+  for (JsonPair k : mode)
+  {
     int pin = String(k.key().c_str()).toInt();
     initPinMode(pin, k.value().as<String>());
     int trPin = getTrigger()[String(pin)];
     if (trPin)
     {
-      initPinMode(trPin,"out");
+      initPinMode(trPin, "out");
     }
   }
 }
 
-void initPinMode(int pin, const String m) {
+// main setup function
+void setup()
+{
+  pinMode(BUTTON_PIN, INPUT);
+  pinMode(RELAY_PIN, OUTPUT); // define LED GPIO as output
+
+  Serial.begin(BAUD_RATE);
+  Serial.printf("\r\n\r\n");
+  setupWiFi();
+  setupSinricPro();
+
+  if (!LittleFS.begin())
+  {
+    Serial.println("LittleFS mount failed");
+  }
+
+  setupTelnet();
+
+  defaultConfig();
+  restoreConfig();
+  setupPins();
+  // setupAlexa();
+}
+
+void onTelnetConnect(String ip)
+{
+  Serial.print("- Telnet: ");
+  Serial.print(ip);
+  Serial.println(" connected");
+  telnet.println("\nWelcome " + telnet.getIP());
+  telnet.println("(Use ^] + q  to disconnect.)");
+}
+void onTelnetDisconnect(String ip)
+{
+  Serial.print("- Telnet: ");
+  Serial.print(ip);
+  Serial.println(" disconnected");
+}
+
+void setupTelnet()
+{
+  telnet.onConnect(onTelnetConnect);
+  telnet.onInputReceived([](String str)
+                         { print(doCommand(str)); });
+
+  Serial.print("- Telnet: ");
+  if (telnet.begin())
+  {
+    Serial.println("running");
+  }
+  else
+  {
+    Serial.println("error.");
+    errorMsg("Will reboot...");
+  }
+}
+void errorMsg(String msg)
+{
+  Serial.println(msg);
+  telnet.println(msg);
+}
+
+void loop()
+{
+  checkButtonPress();
+  SinricPro.handle();
+  telnet.loop();
+  loopEvent();
+  // espalexa.loop();
+}
+
+void printCmds(String *cmd)
+{
+  Serial.println("command:");
+  for (int i = 0; i < sizeof(cmd); i++)
+  {
+    if (cmd[i] != NULL)
+    {
+      Serial.print(cmd[i]);
+      Serial.print(" ");
+    }
+  }
+  Serial.println("");
+}
+String *split(String s, const char delimiter)
+{
+  int count = 0;
+  int j = 0;
+  for (int i = 0; i < s.length(); i++)
+  {
+    if (s[i] == delimiter)
+    {
+      count++;
+    }
+  }
+
+  String *words = new String[count + 1];
+  int wordCount = 0;
+  j = 0;
+
+  for (int i = 0; i < s.length(); i++)
+  {
+    if (s[i] == delimiter)
+    {
+      wordCount++;
+      continue;
+    }
+    words[wordCount] += s[i];
+  }
+  // words[count+1] = 0;
+
+  return words;
+}
+
+String saveConfig()
+{
+  String rsp = "OK";
+  serializeJson(config, Serial);
+  File file = LittleFS.open("/config.json", "w");
+  if (serializeJson(config, file) == 0)
+    rsp = "não gravou /config.json";
+  file.close();
+  return rsp;
+}
+
+void linha()
+{
+  Serial.println("-------------------------------");
+}
+void printConfig()
+{
+
+  serializeJson(config, Serial);
+}
+
+void initPinMode(int pin, const String m)
+{
   if (m == "in")
     pinMode(pin, INPUT);
   else if (m == "out")
     pinMode(pin, OUTPUT);
 }
 
-String doCommand(String command) {
-  try {
+String doCommand(String command)
+{
+  try
+  {
     String *cmd = split(command, ' ');
     Serial.println(command);
-    Serial.println(cmd[0]);
-    if (cmd[0] == "format") {
+    if (cmd[0] == "format")
+    {
       LittleFS.format();
       return "formated";
-    } else if (cmd[0] == "open") {
+    }
+    else if (cmd[0] == "open")
+    {
       char json[1024];
       readFile(cmd[1], json, 1024);
       return String(json);
-    } else if (cmd[0] == "help")
+    }
+    else if (cmd[0] == "help")
       return help();
-    else if (cmd[0] == "show") {
+    else if (cmd[0] == "show")
+    {
       if (cmd[1] == "config")
         return config.as<String>();
       char buffer[32];
       FSInfo fs_info;
       LittleFS.info(fs_info);
 
-      sprintf(buffer, "{ \"ip\": %s, \"total\": %d, \"free\": %d }", localIP, fs_info.totalBytes, fs_info.totalBytes - fs_info.usedBytes);
+      sprintf(buffer, "{ \"ip\": %s, \"total\": %d, \"free\": %d }", localIP.toString(), fs_info.totalBytes, fs_info.totalBytes - fs_info.usedBytes);
       return buffer;
-    } else if (cmd[0] == "reset") {
-      if (cmd[1] == "factory") {
+    }
+    else if (cmd[0] == "reset")
+    {
+      if (cmd[1] == "factory")
+      {
         defaultConfig();
         return "OK";
       }
@@ -399,92 +457,129 @@ String doCommand(String command) {
       telnet.stop();
       ESP.restart();
       return "OK";
-    } else if (cmd[0] == "save") {
+    }
+    else if (cmd[0] == "save")
+    {
       return saveConfig();
-    } else if (cmd[0] == "restore") {
+    }
+    else if (cmd[0] == "restore")
+    {
       return restoreConfig();
-    } else if (cmd[0] == "set") {
-      if (cmd[2] == "none") {
+    }
+    else if (cmd[0] == "set")
+    {
+      if (cmd[2] == "none")
+      {
         config.remove(cmd[1]);
-      } else {
+      }
+      else
+      {
         config[cmd[1]] = cmd[2];
         printConfig();
       }
       return "OK";
-    } else if (cmd[0] == "get") {
+    }
+    else if (cmd[0] == "get")
+    {
       return config[cmd[1]];
-    } else if (cmd[0] == "gpio") {
+    }
+    else if (cmd[0] == "gpio")
+    {
       int pin = cmd[1].toInt();
-      if (cmd[2] == "get") {
+      if (cmd[2] == "get")
+      {
         int v = digitalRead(pin);
         return String(v);
-      } else if (cmd[2] == "set") {
+      }
+      else if (cmd[2] == "set")
+      {
         int v = cmd[3].toInt();
         Serial.printf("set pin %d to %d \r\n", pin, v);
         digitalWrite(pin, (v == 0) ? LOW : HIGH);
         return "OK";
-      } else if (cmd[2] == "mode") {
+      }
+      else if (cmd[2] == "mode")
+      {
         JsonObject mode = config["mode"];
         mode[cmd[1]] = cmd[3];
         initPinMode(cmd[1].toInt(), cmd[3]);
         printConfig();
         return "OK";
-      } else if (cmd[2] == "trigger") {
+      }
+      else if (cmd[2] == "trigger")
+      {
         // gpio 4 trigger 15 bistable
         JsonObject trigger = getTrigger();
         trigger[String(pin)] = cmd[3];
 
-        //0-monostable 1-monostableNC 2-bistable 3-bistableNC
+        // 0-monostable 1-monostableNC 2-bistable 3-bistableNC
         getStable()[String(pin)] = (cmd[4] == "bistable" ? 2 : 0) + (cmd[4].endsWith("NC") ? 1 : 0);
 
         return "OK";
       }
     }
     return "invalido";
-  } catch (const char *e) {
+  }
+  catch (const char *e)
+  {
     return String(e);
   }
 }
 
-JsonObject getMode() {
+JsonObject getMode()
+{
   return config["mode"].as<JsonObject>();
 }
-JsonObject getTrigger() {
+JsonObject getTrigger()
+{
   return config["trigger"].as<JsonObject>();
 }
-JsonObject getStable() {
+
+JsonObject getStable()
+{
   return config["stable"].as<JsonObject>();
 }
 
 unsigned long loopEventMillis = millis();
-void loopEvent() {
-  try {
+void loopEvent()
+{
+  try
+  {
     int interval;
-    try {
+    try
+    {
       interval = String(config["interval"]).toInt();
-    } catch (char e) {
+    }
+    catch (char e)
+    {
       interval = 500;
     }
-    if (millis() - loopEventMillis > interval) {
+    if (millis() - loopEventMillis > interval)
+    {
       JsonObject mode = config["mode"];
-      for (JsonPair k : mode) {
+      for (JsonPair k : mode)
+      {
         readPin(String(k.key().c_str()).toInt(), k.value().as<String>());
       }
       loopEventMillis = millis();
     }
-  } catch (const char *e) {
+  }
+  catch (const char *e)
+  {
     print(String(e));
   }
 }
 StaticJsonDocument<256> docPinValues;
-void readPin(int pin, String mode) {
+void readPin(int pin, String mode)
+{
   int oldValue = docPinValues[String(pin)];
   int newValue = 0;
   if (mode == "adc")
     newValue = analogRead(pin);
   else
     newValue = digitalRead(pin);
-  if (oldValue != newValue) {
+  if (oldValue != newValue)
+  {
     char buffer[32];
     sprintf(buffer, "pin %d : %d ", pin, newValue);
     debug(buffer);
@@ -493,58 +588,71 @@ void readPin(int pin, String mode) {
   }
 }
 
-void debug(String txt) {
-  if (config["debug"] == "on") {
+void debug(String txt)
+{
+  if (config["debug"] == "on")
+  {
     print(txt);
-  } 
+  }
 }
-void checkTrigger(int pin, int value) {
+void checkTrigger(int pin, int value)
+{
   String p = String(pin);
   JsonObject trig = getTrigger();
-  if (trig.containsKey(p)) {
+  if (trig.containsKey(p))
+  {
     int bistable = getStable()[String(pin)] || 0;
     int v = value;
-    if (bistable == 1|| bistable == 3) {
+    if (bistable == 1 || bistable == 3)
+    {
       v = 1 - v;
-    }                                                       // troca o sinal quando é NC
-    if ((bistable == 2 || bistable == 3) && v == 0) return;  // so aciona quando v for 1
-    //checa se troca o sinal NC
+    } // troca o sinal quando é NC
+    if ((bistable == 2 || bistable == 3) && v == 0)
+      return; // so aciona quando v for 1
+    // checa se troca o sinal NC
     String pinTo = trig[p];
     if (pinTo.toInt() != pin)
       writePin(pinTo.toInt(), v);
   }
 }
 
-void writePin(int pin, int value) {
+void writePin(int pin, int value)
+{
   String mode = getMode()[String(pin)];
   if (mode != NULL)
     if (mode == "adc")
       return;
-    else {
+    else
+    {
       digitalWrite(pin, value);
     }
-  else {
-    initPinMode(pin,"out");
+  else
+  {
+    initPinMode(pin, "out");
     digitalWrite(pin, value);
   }
 }
 
-String help() {
+String help()
+{
   String s = "set ldr_max x \r\n";
   s += "set ldr_min x \r\n";
   return s;
 }
 
-bool readFile(String filename, char *buffer, size_t maxLen) {
+bool readFile(String filename, char *buffer, size_t maxLen)
+{
   File file = LittleFS.open(filename, "r");
-  if (!file) {
+  if (!file)
+  {
     return false;
   }
   size_t len = file.size();
-  if (len > maxLen) {
+  if (len > maxLen)
+  {
     len = maxLen;
   }
-  file.readBytes(buffer, len);  //(buffer, len);
+  file.readBytes(buffer, len); //(buffer, len);
   buffer[len] = 0;
   file.close();
   return true;
@@ -555,13 +663,17 @@ bool readFile(String filename, char *buffer, size_t maxLen) {
 //   espalexa.addDevice(config["label"], firstDeviceChanged);
 // }
 
-void firstDeviceChanged(uint8_t brightness) {
-  if (brightness) {
+void firstDeviceChanged(uint8_t brightness)
+{
+  if (brightness)
+  {
     digitalWrite(RELAY_PIN, HIGH);
     Serial.print("ON, brightness ");
     Serial.println(brightness);
     print("RELAY ON");
-  } else {
+  }
+  else
+  {
     digitalWrite(RELAY_PIN, LOW);
     print("RELAY OFF");
   }

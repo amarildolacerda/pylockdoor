@@ -1,20 +1,5 @@
 
-/*
- * Example for how to use SinricPro Doorbell device:
- * - setup a doorbell device
- * - send event to sinricPro server if button is pressed
- *
- * If you encounter any issues:
- * - check the readme.md at https://github.com/sinricpro/esp8266-esp32-sdk/blob/master/README.md
- * - ensure all dependent libraries are installed
- *   - see https://github.com/sinricpro/esp8266-esp32-sdk/blob/master/README.md#arduinoide
- *   - see https://github.com/sinricpro/esp8266-esp32-sdk/blob/master/README.md#dependencies
- * - open serial monitor and check whats happening
- * - check full user documentation at https://sinricpro.github.io/esp8266-esp32-sdk
- * - visit https://github.com/sinricpro/esp8266-esp32-sdk/issues and check for existing issues or open a new one
- */
-
-#define LABEL "bancada"
+#define LABEL "sala"
 #define VERSION "1.0.0"
 
 #ifdef ENABLE_DEBUG
@@ -33,17 +18,23 @@
 #include <FS.h>
 #include <LittleFS.h>
 
-// #include <Espalexa.h>
-// Espalexa espalexa;
+#include <ESP8266WiFi.h> //https://github.com/esp8266/Arduino
+
+// needed for library
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <ArduinoOTA.h>
+
+DNSServer dnsServer;
 
 #include <WiFiManager.h>
+ESP8266WebServer server;
 WiFiManager wifiManager;
 
-#include "SinricPro.h"
-#include "SinricProDoorbell.h"
-#include "SinricProSwitch.h"
-
 #include "ESPTelnet.h"
+
+#include <Espalexa.h>
+Espalexa espalexa;
 
 #define SIZE_BUFFER 1024
 DynamicJsonDocument config(SIZE_BUFFER);
@@ -55,11 +46,6 @@ DynamicJsonDocument config(SIZE_BUFFER);
 
 #if defined ESP8266
 #endif
-
-#define APP_KEY "5176f8b7-0e16-429f-8f22-73d4093f7c40"
-#define APP_SECRET "66c53efa-f3ce-419d-abe5-ac3fdecf71d9-4a0a01d2-5bd0-4ae1-806e-7c7a02438d73"
-#define DOORBELL_ID "63dee83722e49e3cb5f91932"
-#define SWITCH_ID "63ded33a22e49e3cb5f90d3d"
 
 #define BAUD_RATE 115200 // Change baudrate to your need
 
@@ -76,7 +62,9 @@ bool isConnected = false;
 
 ESPTelnet telnet;
 
+//=========================================================================================
 // declaracoes
+//=========================================================================================
 void debug(String txt);
 void errorMsg(String msg);
 void firstDeviceChanged(uint8_t brightness);
@@ -93,12 +81,13 @@ bool readFile(String filename, char *buffer, size_t maxLen);
 void linha();
 void loopEvent();
 
-bool onPowerState(const String &deviceId, bool &state)
+//=========================================================================================
+#define getChipId() (ESP.getChipId())
+
+void setupAlexa()
 {
-  Serial.printf("Device %s turned %s (via SinricPro) \r\n", deviceId.c_str(), state ? "on" : "off");
-  myPowerState = state;
-  digitalWrite(RELAY_PIN, myPowerState ? HIGH : LOW);
-  return true; // request handled properly
+  espalexa.begin(&server);
+  espalexa.addDevice(config["label"], firstDeviceChanged);
 }
 
 String print(String msg)
@@ -108,22 +97,12 @@ String print(String msg)
   return msg;
 }
 
-void handleRelayState()
-{
-  if (int(myPowerState) != digitalRead(RELAY_PIN))
-  {
-    myPowerState = digitalRead(RELAY_PIN) == HIGH;
-    SinricProSwitch &mySwitch = SinricPro[SWITCH_ID];
-    mySwitch.sendPowerStateEvent(myPowerState); // send the new powerState to SinricPro server
-  }
-}
-
 int getAdc()
 {
   tmpAdc = analogRead(0);
   int rt = ldrState;
-  const int v_min = config["ldr_min"].as<int>();
-  const int v_max = config["ldr_max"].as<int>();
+  const int v_min = config["adc_min"].as<int>();
+  const int v_max = config["adc_max"].as<int>();
   if (tmpAdc > v_max)
     rt = HIGH; // quando acende a luz, sobe o medidor com a propria luz que foi acionada, para não desligar.
   if (tmpAdc < v_min)
@@ -136,42 +115,6 @@ int getAdc()
   }
   return rt;
 }
-// checkButtonpress
-// reads if BUTTON_PIN gets LOW and send Event
-void checkButtonPress()
-{
-  unsigned long actualMillis = millis();
-
-  adcState = getAdc();
-  if (!isConnected)
-  {
-    if (adcState != digitalRead(RELAY_PIN))
-      digitalWrite(RELAY_PIN, adcState);
-  }
-  else if (actualMillis - lastBtnPress > 60000 * 5 && (ldrState != adcState))
-  {
-    Serial.println(tmpAdc);
-    if (adcState == HIGH)
-    {
-      Serial.printf("Noite");
-      // get Doorbell device back
-      SinricProDoorbell &myDoorbell = SinricPro[DOORBELL_ID];
-      // send doorbell event
-      myDoorbell.sendDoorbellEvent();
-      Serial.print(" escura");
-      Serial.printf("... \r\n");
-      ldrState = adcState;
-      lastBtnPress = actualMillis;
-    }
-    // desliga o rele
-    if (adcState != digitalRead(RELAY_PIN))
-    {
-      Serial.println(adcState ? "HIGH" : "LOW");
-      digitalWrite(RELAY_PIN, adcState);
-      handleRelayState(); // if myPowerState indicates device turned on: turn on led (builtin led uses inverted logic: LOW = LED ON / HIGH = LED OFF)
-    }
-  }
-}
 
 // setup function for WiFi connection
 void setupWiFi()
@@ -179,32 +122,10 @@ void setupWiFi()
   Serial.printf("\r\n[Wifi]: Connecting");
   wifiManager.autoConnect("AutoConnectAP");
   localIP = WiFi.localIP();
-  Serial.printf("V: %s \r\n",  VERSION);
+  Serial.printf("V: %s \r\n", VERSION);
 }
 
 // setup function for SinricPro
-void setupSinricPro()
-{
-
-  // add doorbell device to SinricPro
-  // SinricProDoorbell &myDoorbell = SinricPro[DOORBELL_ID];
-  SinricProSwitch &mySwitch = SinricPro[SWITCH_ID];
-  mySwitch.onPowerState(onPowerState);
-
-  // setup SinricPro
-  SinricPro.onConnected([]()
-                        {
-    isConnected = true;
-    Serial.printf("Connected to SinricPro\r\n"); });
-  SinricPro.onDisconnected([]()
-                           {
-    isConnected = false;
-    Serial.printf("Disconnected from SinricPro\r\n"); });
-  // SinricPro.restoreDeviceStates(true);
-  SinricPro.begin(APP_KEY, APP_SECRET);
-  ldrState = getAdc() ? LOW : HIGH;
-  lastBtnPress = millis() - 360000;
-}
 
 String restoreConfig()
 {
@@ -246,14 +167,12 @@ void defaultConfig()
   config.createNestedObject("mode");
   config.createNestedObject("trigger");
   config.createNestedObject("stable");
-  config["ldr_min"] = "5";
-  config["ldr_max"] = "1000";
   config["debug"] = inDebug ? "on" : "off";
   config["interval"] = "500";
+  config["adc_min"] = "511";
+  config["adc_max"] = "512";
 
-  doCommand("gpio 0 mode adc");
-  doCommand("gpio 0 trigger 15 monostable");
-  doCommand("show");
+  doCommand("gpio 4 trigger 15 monostable");
 }
 
 void setupPins()
@@ -271,6 +190,35 @@ void setupPins()
   }
 }
 
+void setupOTA()
+{
+  ArduinoOTA.onStart([]()
+                     { Serial.println("Start"); });
+  ArduinoOTA.onEnd([]()
+                   { Serial.println("\nEnd"); });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total)
+                        { Serial.printf("Progress: %u%%\r", (progress / (total / 100))); });
+  ArduinoOTA.onError([](ota_error_t error)
+                     {
+      Serial.printf("Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+      else if (error == OTA_END_ERROR) Serial.println("End Failed"); });
+  ArduinoOTA.begin();
+}
+
+void setupServer()
+{
+  server.on("/reset", {[]()
+                       {
+                         //wifiManager.resetSettings();
+                         server.send(200, "text/plain", "/reset");
+                         //ESP.restart();
+                       }});
+}
+
 // main setup function
 void setup()
 {
@@ -280,19 +228,21 @@ void setup()
   Serial.begin(BAUD_RATE);
   Serial.printf("\r\n\r\n");
   setupWiFi();
-  setupSinricPro();
 
   if (!LittleFS.begin())
   {
     Serial.println("LittleFS mount failed");
   }
+  setupOTA();
+
+  setupServer();
 
   setupTelnet();
 
   defaultConfig();
   restoreConfig();
   setupPins();
-  // setupAlexa();
+  setupAlexa();
 }
 
 void onTelnetConnect(String ip)
@@ -335,11 +285,10 @@ void errorMsg(String msg)
 
 void loop()
 {
-  checkButtonPress();
-  SinricPro.handle();
+  ArduinoOTA.handle();
   telnet.loop();
   loopEvent();
-  // espalexa.loop();
+  espalexa.loop();
 }
 
 void printCmds(String *cmd)
@@ -357,8 +306,8 @@ void printCmds(String *cmd)
 }
 String *split(String s, const char delimiter)
 {
-  int count = 0;
-  int j = 0;
+  unsigned int count = 0;
+  unsigned int j = 0;
   for (int i = 0; i < s.length(); i++)
   {
     if (s[i] == delimiter)
@@ -368,7 +317,7 @@ String *split(String s, const char delimiter)
   }
 
   String *words = new String[count + 1];
-  int wordCount = 0;
+  unsigned int wordCount = 0;
   j = 0;
 
   for (int i = 0; i < s.length(); i++)
@@ -396,7 +345,6 @@ String saveConfig()
   return rsp;
 }
 
-
 void linha()
 {
   Serial.println("-------------------------------");
@@ -414,8 +362,6 @@ void initPinMode(int pin, const String m)
   else if (m == "out")
     pinMode(pin, OUTPUT);
 }
-
-
 
 String doCommand(String command)
 {
@@ -441,10 +387,12 @@ String doCommand(String command)
       if (cmd[1] == "config")
         return config.as<String>();
       char buffer[32];
+      char ip[20];
+      sprintf(ip, "%d.%d.%d.%d", localIP[0], localIP[1], localIP[2], localIP[3]);
       FSInfo fs_info;
       LittleFS.info(fs_info);
 
-      sprintf(buffer, "{ \"ip\": %s, \"total\": %d, \"free\": %d }", localIP.toString(), fs_info.totalBytes, fs_info.totalBytes - fs_info.usedBytes);
+      sprintf(buffer, "{ 'name': '%s', 'ip': '%s', 'total': %d, 'free': %d }", config["label"], ip, fs_info.totalBytes, fs_info.totalBytes - fs_info.usedBytes);
       return buffer;
     }
     else if (cmd[0] == "reset")
@@ -659,11 +607,6 @@ bool readFile(String filename, char *buffer, size_t maxLen)
   file.close();
   return true;
 }
-
-// void setupAlexa() {
-//   espalexa.begin();
-//   espalexa.addDevice(config["label"], firstDeviceChanged);
-// }
 
 void firstDeviceChanged(uint8_t brightness)
 {
