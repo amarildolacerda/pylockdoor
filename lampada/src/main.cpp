@@ -254,7 +254,6 @@ void setup()
 
   defaultConfig();
   restoreConfig();
-  config["debug"] = inDebug ? "on" : "off";
 
   setupPins();
   setupAlexa();
@@ -350,6 +349,7 @@ String *split(String s, const char delimiter)
 String saveConfig()
 {
   String rsp = "OK";
+  config["debug"] = inDebug ? "on" : "off";  // volta para o default para sempre ligar com debug desabilitado
   serializeJson(config, Serial);
   File file = LittleFS.open("/config.json", "w");
   if (serializeJson(config, file) == 0)
