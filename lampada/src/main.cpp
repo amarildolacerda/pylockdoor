@@ -51,7 +51,7 @@ DynamicJsonDocument config(SIZE_BUFFER);
 
 #define BUTTON_PIN 4
 #define RELAY_PIN 15
-#define inDebug true
+#define inDebug false
 unsigned long lastBtnPress;
 IPAddress localIP;
 int ldrState = 0;
@@ -254,6 +254,8 @@ void setup()
 
   defaultConfig();
   restoreConfig();
+  config["debug"] = inDebug ? "on" : "off";
+
   setupPins();
   setupAlexa();
 }
