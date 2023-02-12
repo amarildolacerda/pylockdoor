@@ -84,6 +84,18 @@ void loopEvent();
 //=========================================================================================
 #define getChipId() (ESP.getChipId())
 
+char *stringf(const char *format, ...)
+{
+  static char buffer[512];
+
+  va_list args;
+  va_start(args, format);
+  vsnprintf(buffer, sizeof(buffer), format, args);
+  va_end(args);
+
+  return buffer;
+}
+
 void setupAlexa()
 {
   espalexa.begin(&server);
@@ -103,7 +115,7 @@ int getAdc()
   int rt = ldrState;
   const int v_min = config["adc_min"].as<int>();
   const int v_max = config["adc_max"].as<int>();
-  if (tmpAdc > v_max)
+  if (tmpAdc >= v_max)
     rt = HIGH; // quando acende a luz, sobe o medidor com a propria luz que foi acionada, para não desligar.
   if (tmpAdc < v_min)
     rt = LOW;
@@ -143,7 +155,7 @@ String restoreConfig()
     auto error = deserializeJson(config, novo);
     if (error)
     {
-      Serial.printf("lido: %s \r\n corrente: %s \r\n", novo, old);
+      debug(stringf("lido: %s \r\n corrente: %s \r\n", novo, old));
       config.clear();
       deserializeJson(config, old);
       return "Error: " + String(novo);
@@ -211,12 +223,13 @@ void setupOTA()
 
 void setupServer()
 {
-  server.on("/reset", {[]()
-                       {
-                         //wifiManager.resetSettings();
-                         server.send(200, "text/plain", "/reset");
-                         //ESP.restart();
-                       }});
+  server.on("/show", {[]()
+                      {
+                        // wifiManager.resetSettings();
+                        String rt = doCommand("show");
+                        server.send(200, "application/json", "{\"result\":" + rt + "}");
+                        // ESP.restart();
+                      }});
 }
 
 // main setup function
@@ -294,7 +307,7 @@ void loop()
 void printCmds(String *cmd)
 {
   Serial.println("command:");
-  for (int i = 0; i < sizeof(cmd); i++)
+  for (unsigned int i = 0; i < sizeof(cmd); i++)
   {
     if (cmd[i] != NULL)
     {
@@ -307,8 +320,7 @@ void printCmds(String *cmd)
 String *split(String s, const char delimiter)
 {
   unsigned int count = 0;
-  unsigned int j = 0;
-  for (int i = 0; i < s.length(); i++)
+  for (unsigned int i = 0; i < s.length(); i++)
   {
     if (s[i] == delimiter)
     {
@@ -318,9 +330,8 @@ String *split(String s, const char delimiter)
 
   String *words = new String[count + 1];
   unsigned int wordCount = 0;
-  j = 0;
 
-  for (int i = 0; i < s.length(); i++)
+  for (unsigned int i = 0; i < s.length(); i++)
   {
     if (s[i] == delimiter)
     {
@@ -392,7 +403,7 @@ String doCommand(String command)
       FSInfo fs_info;
       LittleFS.info(fs_info);
 
-      sprintf(buffer, "{ 'name': '%s', 'ip': '%s', 'total': %d, 'free': %d }", config["label"], ip, fs_info.totalBytes, fs_info.totalBytes - fs_info.usedBytes);
+      sprintf(buffer, "{ 'name': '%s', 'ip': '%s', 'total': %d, 'free': %s }", String(config["label"]), ip, fs_info.totalBytes, String(fs_info.totalBytes - fs_info.usedBytes));
       return buffer;
     }
     else if (cmd[0] == "reset")
@@ -528,6 +539,9 @@ void readPin(int pin, String mode)
     newValue = analogRead(pin);
   else
     newValue = digitalRead(pin);
+
+  debug(stringf("readPin %d from %d to %d \r\n", pin, oldValue, newValue));
+
   if (oldValue != newValue)
   {
     char buffer[32];
@@ -561,6 +575,7 @@ void checkTrigger(int pin, int value)
       return; // so aciona quando v for 1
     // checa se troca o sinal NC
     String pinTo = trig[p];
+    debug(stringf("pin %s trigger %s to %d \r\n", p, pinTo, v));
     if (pinTo.toInt() != pin)
       writePin(pinTo.toInt(), v);
   }
@@ -581,12 +596,20 @@ void writePin(int pin, int value)
     initPinMode(pin, "out");
     digitalWrite(pin, value);
   }
+  debug(stringf("writePin %d to %d\r\n", pin, value));
 }
 
 String help()
 {
-  String s = "set ldr_max x \r\n";
-  s += "set ldr_min x \r\n";
+  String s = "";
+  s += "show config\r\n";
+  s += "gpio <pin> mode <in,out,adc>\r\n";
+  s += "gpio <pin> trigger <pin> [monostable,monostableNC,bistable,bistableNC]\r\n";
+  s += "gpio <pin> get\r\n";
+  s += "gpio <pin> set <n>\r\n";
+  s += "set interval 50\r\n";
+  s += "set adc_min 511 \r\n";
+  s += "set adc_max 512 \r\n";
   return s;
 }
 
