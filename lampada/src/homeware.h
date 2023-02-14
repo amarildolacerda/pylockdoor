@@ -37,6 +37,7 @@ public:
 #ifdef TELNET
     ESPTelnet telnet;
 #endif
+    bool inited = false;
     ESP8266WebServer *server;
     unsigned currentAdcState = 0;
     bool inDebug = false;
@@ -64,7 +65,9 @@ public:
 
 private:
     void setupPins();
+    void setupServer();
     void loopEvent();
+    void begin();
 #ifdef ALEXA
     void setupAlexa();
 #endif
