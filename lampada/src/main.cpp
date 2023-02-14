@@ -29,12 +29,9 @@ DNSServer dnsServer;
 ESP8266WebServer server;
 WiFiManager wifiManager;
 
-#include "ESPTelnet.h"
 
-#include <Espalexa.h>
-Espalexa espalexa;
 #include <homeware.h>
-Homeware homeware = Homeware();
+Homeware homeware = Homeware(&server);
 
 // Include libraries
 #if defined ESP8266 || defined ESP32
@@ -55,22 +52,15 @@ int tmpAdc = 0;
 int adcState = 0;
 bool isConnected = false;
 
-ESPTelnet telnet;
 
 //=========================================================================================
 // declaracoes
 //=========================================================================================
 void errorMsg(String msg);
 void firstDeviceChanged(uint8_t brightness);
-void setupTelnet();
 
 //=========================================================================================
 
-void setupAlexa()
-{
-  espalexa.begin(&server);
-  espalexa.addDevice(homeware.config["label"], firstDeviceChanged);
-}
 
 // setup function for WiFi connection
 void setupWiFi()
@@ -119,6 +109,7 @@ void setupServer()
                       }});
 }
 
+
 // main setup function
 void setup()
 {
@@ -133,57 +124,17 @@ void setup()
 
   setupServer();
 
-  setupTelnet();
   homeware.setup();
   defaultConfig();
 
-  setupAlexa();
+  homeware.espalexa.addDevice(homeware.config["label"], firstDeviceChanged);
 }
 
-void onTelnetConnect(String ip)
-{
-  Serial.print("- Telnet: ");
-  Serial.print(ip);
-  Serial.println(" connected");
-  telnet.println("\nWelcome " + telnet.getIP());
-  telnet.println("(Use ^] + q  to disconnect.)");
-}
-void onTelnetDisconnect(String ip)
-{
-  Serial.print("- Telnet: ");
-  Serial.print(ip);
-  Serial.println(" disconnected");
-}
-
-void setupTelnet()
-{
-  telnet.onConnect(onTelnetConnect);
-  telnet.onInputReceived([](String str)
-                         { homeware.print(homeware.doCommand(str)); });
-
-  Serial.print("- Telnet: ");
-  if (telnet.begin())
-  {
-    Serial.println("running");
-  }
-  else
-  {
-    Serial.println("error.");
-    errorMsg("Will reboot...");
-  }
-}
-void errorMsg(String msg)
-{
-  Serial.println(msg);
-  telnet.println(msg);
-}
 
 void loop()
 {
   ArduinoOTA.handle();
-  telnet.loop();
   homeware.loop();
-  espalexa.loop();
 }
 
 void printCmds(String *cmd)

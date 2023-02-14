@@ -21,6 +21,11 @@ void linha()
     Serial.println("-------------------------------");
 }
 
+Homeware::Homeware(ESP8266WebServer *externalServer)
+{
+    server = externalServer;
+}
+
 String Homeware::restoreConfig()
 {
     String rt = "nao restaurou config";
@@ -61,12 +66,25 @@ void Homeware::setup()
     {
         Serial.println("LittleFS mount failed");
     }
+
     defaultConfig();
     restoreConfig();
     setupPins();
+#ifdef ALEXA
+    setupAlexa();
+#endif
+#ifdef TELNET
+    setupTelnet();
+#endif
 }
 void Homeware::loop()
 {
+#ifdef ALEXA
+    espalexa.loop();
+#endif
+#ifdef TELNET
+    telnet.loop();
+#endif
     loopEvent();
 }
 
@@ -437,3 +455,42 @@ int Homeware::getAdcState(int pin)
     return rt;
 }
 uint32_t Homeware::getChipId() { return ESP.getChipId(); }
+
+#ifdef ALEXA
+void Homeware::setupAlexa()
+{
+    espalexa.begin(server);
+}
+#endif
+
+
+Homeware *myself;
+void Homeware::setupTelnet()
+{
+    myself = this;
+    telnet.onConnect([](String ip) {
+        Serial.print("- Telnet: ");
+        Serial.print(ip);
+        Serial.println(" connected");
+        myself->telnet.println("\nWelcome " + myself->telnet.getIP());
+        myself->telnet.println("(Use ^] + q  to disconnect.)");
+    });
+    telnet.onInputReceived([](String str)
+                           { myself->print(myself->doCommand(str)); });
+
+    Serial.print("- Telnet: ");
+    if (telnet.begin())
+    {
+        Serial.println("running");
+    }
+    else
+    {
+        Serial.println("error.");
+        errorMsg("Will reboot...");
+    }
+}
+void Homeware::errorMsg(String msg)
+{
+    Serial.println(msg);
+    telnet.println(msg);
+}

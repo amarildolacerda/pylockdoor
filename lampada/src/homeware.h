@@ -4,20 +4,39 @@
 #define homeware_def
 
 #include <ESP8266WiFi.h> //https://github.com/esp8266/Arduino
+#include <ESP8266WebServer.h>
+
 #include <ArduinoJson.h>
 
 #define LABEL "sala"
 #define VERSION "1.0.0"
+#define ALEXA
+#define TELNET
+
+#ifdef ALEXA
+#include <Espalexa.h>
+#endif
+#ifdef TELNET
+#include "ESPTelnet.h"
+#endif
 
 char *stringf(const char *format, ...);
 void linha();
 
-    class Homeware
+class Homeware
 {
 public:
+    Homeware(ESP8266WebServer *externalServer = nullptr);
     static constexpr int SIZE_BUFFER = 1024;
     DynamicJsonDocument config = DynamicJsonDocument(SIZE_BUFFER);
     IPAddress localIP = IPAddress(0, 0, 0, 0);
+#ifdef ALEXA
+    Espalexa espalexa = Espalexa();
+#endif
+#ifdef TELNET
+    ESPTelnet telnet;
+#endif
+    ESP8266WebServer *server;
     unsigned currentAdcState = 0;
     bool inDebug = false;
     void setup();
@@ -40,10 +59,17 @@ public:
     void debug(String txt);
     int getAdcState(int pin);
     uint32_t getChipId();
+    void errorMsg(String msg);
 
 private:
     void setupPins();
     void loopEvent();
+#ifdef ALEXA
+    void setupAlexa();
+#endif
+#ifdef TELNET
+    void setupTelnet();
+#endif
 };
 
 #endif
