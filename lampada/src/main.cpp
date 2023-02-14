@@ -63,30 +63,14 @@ ESPTelnet telnet;
 void errorMsg(String msg);
 void firstDeviceChanged(uint8_t brightness);
 void setupTelnet();
-void linha();
 
 //=========================================================================================
-#define getChipId() (ESP.getChipId())
-
-char *stringf(const char *format, ...)
-{
-  static char buffer[512];
-
-  va_list args;
-  va_start(args, format);
-  vsnprintf(buffer, sizeof(buffer), format, args);
-  va_end(args);
-
-  return buffer;
-}
 
 void setupAlexa()
 {
   espalexa.begin(&server);
   espalexa.addDevice(homeware.config["label"], firstDeviceChanged);
 }
-
-
 
 // setup function for WiFi connection
 void setupWiFi()
@@ -151,6 +135,7 @@ void setup()
 
   setupTelnet();
   homeware.setup();
+  defaultConfig();
 
   setupAlexa();
 }
@@ -215,10 +200,6 @@ void printCmds(String *cmd)
   Serial.println("");
 }
 
-void linha()
-{
-  Serial.println("-------------------------------");
-}
 
 
 

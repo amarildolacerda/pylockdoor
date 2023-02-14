@@ -4,6 +4,23 @@
 #include <FS.h>
 #include <LittleFS.h>
 
+char *stringf(const char *format, ...)
+{
+    static char buffer[512];
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+
+    return buffer;
+}
+
+void linha()
+{
+    Serial.println("-------------------------------");
+}
+
 String Homeware::restoreConfig()
 {
     String rt = "nao restaurou config";
@@ -270,7 +287,7 @@ String *split(String s, const char delimiter)
 String Homeware::print(String msg)
 {
     Serial.println(msg);
-    //telnet.println(msg);
+    // telnet.println(msg);
     return msg;
 }
 
@@ -315,7 +332,7 @@ String Homeware::doCommand(String command)
             }
             print("reiniciando...");
             delay(1000);
-            //telnet.stop();
+            // telnet.stop();
             ESP.restart();
             return "OK";
         }
@@ -400,16 +417,15 @@ void Homeware::debug(String txt)
     }
 }
 
-
 int Homeware::getAdcState(int pin)
 {
-   
+
     unsigned int tmpAdc = analogRead(pin);
     int rt = currentAdcState;
     const int v_min = config["adc_min"].as<int>();
     const int v_max = config["adc_max"].as<int>();
     if (tmpAdc >= v_max)
-        rt = HIGH; 
+        rt = HIGH;
     if (tmpAdc < v_min)
         rt = LOW;
     if (rt != currentAdcState)
@@ -420,3 +436,4 @@ int Homeware::getAdcState(int pin)
     }
     return rt;
 }
+uint32_t Homeware::getChipId() { return ESP.getChipId(); }

@@ -1,3 +1,5 @@
+
+
 #ifndef homeware_def
 #define homeware_def
 
@@ -7,7 +9,10 @@
 #define LABEL "sala"
 #define VERSION "1.0.0"
 
-class Homeware
+char *stringf(const char *format, ...);
+void linha();
+
+    class Homeware
 {
 public:
     static constexpr int SIZE_BUFFER = 1024;
@@ -34,6 +39,7 @@ public:
     void printConfig();
     void debug(String txt);
     int getAdcState(int pin);
+    uint32_t getChipId();
 
 private:
     void setupPins();
