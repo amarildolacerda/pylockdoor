@@ -13,6 +13,7 @@ public:
     static constexpr int SIZE_BUFFER = 1024;
     DynamicJsonDocument config = DynamicJsonDocument(SIZE_BUFFER);
     IPAddress localIP = IPAddress(0, 0, 0, 0);
+    unsigned currentAdcState = 0;
     bool inDebug = false;
     void setup();
     void loop();
@@ -32,6 +33,7 @@ public:
     String print(String msg);
     void printConfig();
     void debug(String txt);
+    int getAdcState(int pin);
 
 private:
     void setupPins();

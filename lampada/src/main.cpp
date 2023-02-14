@@ -87,24 +87,6 @@ void setupAlexa()
 }
 
 
-int getAdc()
-{
-  tmpAdc = analogRead(0);
-  int rt = ldrState;
-  const int v_min = homeware.config["adc_min"].as<int>();
-  const int v_max = homeware.config["adc_max"].as<int>();
-  if (tmpAdc >= v_max)
-    rt = HIGH; // quando acende a luz, sobe o medidor com a propria luz que foi acionada, para não desligar.
-  if (tmpAdc < v_min)
-    rt = LOW;
-  if (rt != ldrState)
-  {
-    char buffer[64];
-    sprintf(buffer, "adc %d,ldrState %d, adcState %d  (%i,%i) ", tmpAdc, ldrState, rt, v_max, v_min);
-    homeware.debug(buffer);
-  }
-  return rt;
-}
 
 // setup function for WiFi connection
 void setupWiFi()

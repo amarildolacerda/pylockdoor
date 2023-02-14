@@ -399,3 +399,24 @@ void Homeware::debug(String txt)
         print(txt);
     }
 }
+
+
+int Homeware::getAdcState(int pin)
+{
+   
+    unsigned int tmpAdc = analogRead(pin);
+    int rt = currentAdcState;
+    const int v_min = config["adc_min"].as<int>();
+    const int v_max = config["adc_max"].as<int>();
+    if (tmpAdc >= v_max)
+        rt = HIGH; 
+    if (tmpAdc < v_min)
+        rt = LOW;
+    if (rt != currentAdcState)
+    {
+        char buffer[64];
+        sprintf(buffer, "adc %d,currentAdcState %d, adcState %d  (%i,%i) ", tmpAdc, currentAdcState, rt, v_max, v_min);
+        debug(buffer);
+    }
+    return rt;
+}
