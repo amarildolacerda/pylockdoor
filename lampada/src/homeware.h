@@ -12,6 +12,7 @@
 #define VERSION "1.0.0"
 #define ALEXA
 #define TELNET
+#define OTA
 
 #ifdef ALEXA
 #include <Espalexa.h>
