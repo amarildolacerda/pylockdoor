@@ -67,7 +67,6 @@ void firstDeviceChanged(uint8_t brightness);
 void setupTelnet();
 String doCommand(String command);
 void linha();
-void loopEvent();
 
 //=========================================================================================
 #define getChipId() (ESP.getChipId())
@@ -229,7 +228,6 @@ void loop()
 {
   ArduinoOTA.handle();
   telnet.loop();
-  loopEvent();
   homeware.loop();
   espalexa.loop();
 }
@@ -400,36 +398,6 @@ String doCommand(String command)
   }
 }
 
-
-unsigned long loopEventMillis = millis();
-void loopEvent()
-{
-  try
-  {
-    unsigned long interval;
-    try
-    {
-      interval = String(homeware.config["interval"]).toInt();
-    }
-    catch (char e)
-    {
-      interval = 500;
-    }
-    if (millis() - loopEventMillis > interval)
-    {
-      JsonObject mode = homeware.config["mode"];
-      for (JsonPair k : mode)
-      {
-        homeware.readPin(String(k.key().c_str()).toInt(), k.value().as<String>());
-      }
-      loopEventMillis = millis();
-    }
-  }
-  catch (const char *e)
-  {
-    print(String(e));
-  }
-}
 void debug(String txt)
 {
   if (homeware.config["debug"] == "on")

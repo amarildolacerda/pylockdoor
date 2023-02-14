@@ -29,6 +29,7 @@ public:
 
 private:
     void setupPins();
+    void loopEvent();
 };
 
 #endif

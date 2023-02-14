@@ -46,6 +46,7 @@ void Homeware::setup()
 }
 void Homeware::loop()
 {
+    loopEvent();
 }
 
 void Homeware::defaultConfig()
@@ -202,4 +203,34 @@ bool Homeware::readFile(String filename, char *buffer, size_t maxLen)
     buffer[len] = 0;
     file.close();
     return true;
+}
+
+unsigned long loopEventMillis = millis();
+void Homeware::loopEvent()
+{
+    try
+    {
+        unsigned long interval;
+        try
+        {
+            interval = String(config["interval"]).toInt();
+        }
+        catch (char e)
+        {
+            interval = 500;
+        }
+        if (millis() - loopEventMillis > interval)
+        {
+            JsonObject mode = config["mode"];
+            for (JsonPair k : mode)
+            {
+                readPin(String(k.key().c_str()).toInt(), k.value().as<String>());
+            }
+            loopEventMillis = millis();
+        }
+    }
+    catch (const char *e)
+    {
+//        print(String(e));
+    }
 }
