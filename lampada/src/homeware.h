@@ -19,8 +19,11 @@ public:
     String saveConfig();
     void initPinMode(int pin, const String m);
     JsonObject getTrigger();
+    JsonObject getStable();
+    JsonObject getMode();
 
-        private : void setupPins();
+private:
+    void setupPins();
 };
 
 #endif

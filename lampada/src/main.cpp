@@ -69,7 +69,6 @@ void readPin(int pin, String mode);
 void setupTelnet();
 String doCommand(String command);
 void checkTrigger(int pin, int value);
-JsonObject getStable();
 String help();
 bool readFile(String filename, char *buffer, size_t maxLen);
 void linha();
@@ -393,7 +392,7 @@ String doCommand(String command)
         trigger[String(pin)] = cmd[3];
 
         // 0-monostable 1-monostableNC 2-bistable 3-bistableNC
-        getStable()[String(pin)] = (cmd[4] == "bistable" ? 2 : 0) + (cmd[4].endsWith("NC") ? 1 : 0);
+        homeware.getStable()[String(pin)] = (cmd[4] == "bistable" ? 2 : 0) + (cmd[4].endsWith("NC") ? 1 : 0);
 
         return "OK";
       }
@@ -406,15 +405,6 @@ String doCommand(String command)
   }
 }
 
-JsonObject getMode()
-{
-  return homeware.config["mode"].as<JsonObject>();
-}
-
-JsonObject getStable()
-{
-  return homeware.config["stable"].as<JsonObject>();
-}
 
 unsigned long loopEventMillis = millis();
 void loopEvent()
@@ -480,7 +470,7 @@ void checkTrigger(int pin, int value)
   JsonObject trig = homeware.getTrigger();
   if (trig.containsKey(p))
   {
-    int bistable = getStable()[String(pin)] || 0;
+    int bistable = homeware.getStable()[String(pin)] || 0;
     int v = value;
     if (bistable == 1 || bistable == 3)
     {
@@ -498,7 +488,7 @@ void checkTrigger(int pin, int value)
 
 void writePin(int pin, int value)
 {
-  String mode = getMode()[String(pin)];
+  String mode = homeware.getMode()[String(pin)];
   if (mode != NULL)
     if (mode == "adc")
       return;

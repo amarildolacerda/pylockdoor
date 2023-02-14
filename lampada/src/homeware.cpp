@@ -8,7 +8,7 @@ String Homeware::restoreConfig()
 {
     String rt = "nao restaurou config";
     Serial.println("");
-    //linha();
+    // linha();
     try
     {
         String old = config.as<String>();
@@ -20,7 +20,7 @@ String Homeware::restoreConfig()
         auto error = deserializeJson(config, novo);
         if (error)
         {
-            //debug(stringf("lido: %s \r\n corrente: %s \r\n", novo, old));
+            // debug(stringf("lido: %s \r\n corrente: %s \r\n", novo, old));
             config.clear();
             deserializeJson(config, old);
             return "Error: " + String(novo);
@@ -28,7 +28,7 @@ String Homeware::restoreConfig()
         serializeJson(config, Serial);
         Serial.println("");
         rt = "OK";
-        //linha();
+        // linha();
     }
     catch (const char *e)
     {
@@ -38,13 +38,14 @@ String Homeware::restoreConfig()
     return rt;
 }
 
-void Homeware::setup(){
+void Homeware::setup()
+{
     defaultConfig();
     restoreConfig();
     setupPins();
 }
-void Homeware::loop(){
-
+void Homeware::loop()
+{
 }
 
 void Homeware::defaultConfig()
@@ -57,8 +58,6 @@ void Homeware::defaultConfig()
     config["interval"] = "500";
     config["adc_min"] = "511";
     config["adc_max"] = "512";
-
-    
 }
 
 String Homeware::saveConfig()
@@ -99,4 +98,14 @@ void Homeware::setupPins()
 JsonObject Homeware::getTrigger()
 {
     return config["trigger"].as<JsonObject>();
+}
+
+JsonObject Homeware::getMode()
+{
+    return config["mode"].as<JsonObject>();
+}
+
+JsonObject Homeware::getStable()
+{
+    return config["stable"].as<JsonObject>();
 }
