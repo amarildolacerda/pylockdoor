@@ -82,13 +82,13 @@ void defaultConfig()
 
 void setupServer()
 {
-  server.on("/show", {[]()
-                      {
-                        // wifiManager.resetSettings();
-                        String rt = homeware.doCommand("show");
-                        server.send(200, "application/json", "{\"result\":" + rt + "}");
-                        // ESP.restart();
-                      }});
+  homeware.server->on("/reset", []()
+             {
+        wifiManager.resetSettings();
+        homeware.server->send(200, "text/plain", "reiniciando...");
+
+        ESP.reset(); });
+
 }
 
 
@@ -108,6 +108,7 @@ void setup()
   setupServer();
   defaultConfig();
   homeware.alexa.addDevice(homeware.config["label"], firstDeviceChanged);
+  homeware.begin();
 }
 
 

@@ -42,6 +42,7 @@ public:
     unsigned currentAdcState = 0;
     bool inDebug = false;
     void setup();
+    void begin();
     void loop();
     String restoreConfig();
     void defaultConfig();
@@ -67,7 +68,6 @@ private:
     void setupPins();
     void setupServer();
     void loopEvent();
-    void begin();
 #ifdef ALEXA
     void setupAlexa();
 #endif

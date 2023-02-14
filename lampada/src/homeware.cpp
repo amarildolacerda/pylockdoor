@@ -45,6 +45,7 @@ void Homeware::setupServer()
             myself->server->send(200, "application/json", "{\"result\":" + rt + "}");
             return;
         } });
+
 }
 String Homeware::restoreConfig()
 {
@@ -338,7 +339,7 @@ String *split(String s, const char delimiter)
 }
 
 String Homeware::print(String msg)
-{
+{   Serial.print("RSP: ");
     Serial.println(msg);
     telnet.println(msg);
     return msg;
@@ -349,6 +350,7 @@ String Homeware::doCommand(String command)
     try
     {
         String *cmd = split(command, ' ');
+        Serial.print("CMD: ");
         Serial.println(command);
         if (cmd[0] == "format")
         {
