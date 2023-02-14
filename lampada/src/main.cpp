@@ -137,40 +137,6 @@ void setupWiFi()
 
 // setup function for SinricPro
 
-String restoreConfig()
-{
-  String rt = "nao restaurou config";
-  Serial.println("");
-  linha();
-  try
-  {
-    String old = homeware.config.as<String>();
-    File file = LittleFS.open("/config.json", "r");
-    if (!file)
-      return "erro ao abrir /config.json";
-    String novo = file.readString();
-    homeware.config.clear();
-    auto error = deserializeJson(homeware.config, novo);
-    if (error)
-    {
-      debug(stringf("lido: %s \r\n corrente: %s \r\n", novo, old));
-      homeware.config.clear();
-      deserializeJson(homeware.config, old);
-      return "Error: " + String(novo);
-    }
-    serializeJson(homeware.config, Serial);
-    Serial.println("");
-    rt = "OK";
-    linha();
-  }
-  catch (const char *e)
-  {
-    return String(e);
-  }
-  Serial.println("");
-  return rt;
-}
-
 void defaultConfig()
 {
   homeware.config["label"] = LABEL;
@@ -251,7 +217,7 @@ void setup()
   setupTelnet();
 
   defaultConfig();
-  restoreConfig();
+  homeware.restoreConfig();
 
   setupPins();
   setupAlexa();
@@ -425,7 +391,7 @@ String doCommand(String command)
     }
     else if (cmd[0] == "restore")
     {
-      return restoreConfig();
+      return homeware.restoreConfig();
     }
     else if (cmd[0] == "set")
     {
