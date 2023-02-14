@@ -109,3 +109,65 @@ JsonObject Homeware::getStable()
 {
     return config["stable"].as<JsonObject>();
 }
+
+void Homeware::writePin(int pin, int value)
+{
+    String mode = getMode()[String(pin)];
+    if (mode != NULL)
+        if (mode == "adc")
+            return;
+        else
+        {
+            digitalWrite(pin, value);
+        }
+    else
+    {
+        initPinMode(pin, "out");
+        digitalWrite(pin, value);
+    }
+    //debug(stringf("writePin %d to %d\r\n", pin, value));
+}
+
+StaticJsonDocument<256> docPinValues;
+void Homeware::readPin(int pin, String mode)
+{
+    int oldValue = docPinValues[String(pin)];
+    int newValue = 0;
+    if (mode == "adc")
+        newValue = analogRead(pin);
+    else
+        newValue = digitalRead(pin);
+
+    //debug(stringf("readPin %d from %d to %d \r\n", pin, oldValue, newValue));
+
+    if (oldValue != newValue)
+    {
+        char buffer[32];
+        sprintf(buffer, "pin %d : %d ", pin, newValue);
+        //debug(buffer);
+        docPinValues[String(pin)] = newValue;
+        checkTrigger(pin, newValue);
+    }
+}
+
+void Homeware::checkTrigger(int pin, int value)
+{
+    String p = String(pin);
+    JsonObject trig = getTrigger();
+    if (trig.containsKey(p))
+    {
+        int bistable = getStable()[String(pin)] || 0;
+        int v = value;
+        if (bistable == 1 || bistable == 3)
+        {
+            v = 1 - v;
+        } // troca o sinal quando é NC
+        if ((bistable == 2 || bistable == 3) && v == 0)
+            return; // so aciona quando v for 1
+        // checa se troca o sinal NC
+        String pinTo = trig[p];
+        //debug(stringf("pin %s trigger %s to %d \r\n", p, pinTo, v));
+        if (pinTo.toInt() != pin)
+            writePin(pinTo.toInt(), v);
+    }
+}

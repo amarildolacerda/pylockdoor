@@ -21,6 +21,9 @@ public:
     JsonObject getTrigger();
     JsonObject getStable();
     JsonObject getMode();
+    void writePin(int pin, int value);
+    void readPin(int pin, String mode);
+    void checkTrigger(int pin, int value);
 
 private:
     void setupPins();
