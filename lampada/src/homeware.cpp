@@ -120,7 +120,7 @@ void Homeware::loop()
 
 void Homeware::defaultConfig()
 {
-    config["label"] = "LABEL";
+    config["label"] = LABEL;
     config.createNestedObject("mode");
     config.createNestedObject("trigger");
     config.createNestedObject("stable");
