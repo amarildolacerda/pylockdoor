@@ -298,17 +298,6 @@ String *split(String s, const char delimiter)
   return words;
 }
 
-String saveConfig()
-{
-  String rsp = "OK";
-  homeware.config["debug"] = inDebug ? "on" : "off"; // volta para o default para sempre ligar com debug desabilitado
-  serializeJson(homeware.config, Serial);
-  File file = LittleFS.open("/config.json", "w");
-  if (serializeJson(homeware.config, file) == 0)
-    rsp = "não gravou /config.json";
-  file.close();
-  return rsp;
-}
 
 void linha()
 {
@@ -375,7 +364,7 @@ String doCommand(String command)
     }
     else if (cmd[0] == "save")
     {
-      return saveConfig();
+      return homeware.saveConfig();
     }
     else if (cmd[0] == "restore")
     {

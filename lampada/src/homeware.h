@@ -16,6 +16,7 @@ public:
     void loop();
     String restoreConfig();
     void defaultConfig();
+    String saveConfig();
 };
 
 #endif

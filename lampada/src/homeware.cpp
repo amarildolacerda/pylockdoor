@@ -59,3 +59,15 @@ void Homeware::defaultConfig()
 
     
 }
+
+String Homeware::saveConfig()
+{
+    String rsp = "OK";
+    config["debug"] = inDebug ? "on" : "off"; // volta para o default para sempre ligar com debug desabilitado
+    serializeJson(config, Serial);
+    File file = LittleFS.open("/config.json", "w");
+    if (serializeJson(config, file) == 0)
+        rsp = "não gravou /config.json";
+    file.close();
+    return rsp;
+}
