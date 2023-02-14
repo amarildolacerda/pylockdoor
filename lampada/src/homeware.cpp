@@ -107,7 +107,7 @@ void Homeware::setup()
 void Homeware::loop()
 {
 #ifdef ALEXA
-    espalexa.loop();
+    alexa.loop();
 #endif
 #ifdef TELNET
     telnet.loop();
@@ -489,7 +489,7 @@ uint32_t Homeware::getChipId() { return ESP.getChipId(); }
 #ifdef ALEXA
 void Homeware::setupAlexa()
 {
-    espalexa.begin(server);
+    alexa.begin(server);
 }
 #endif
 

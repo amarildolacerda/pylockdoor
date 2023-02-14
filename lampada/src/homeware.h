@@ -32,7 +32,7 @@ public:
     DynamicJsonDocument config = DynamicJsonDocument(SIZE_BUFFER);
     IPAddress localIP = IPAddress(0, 0, 0, 0);
 #ifdef ALEXA
-    Espalexa espalexa = Espalexa();
+    Espalexa alexa = Espalexa();
 #endif
 #ifdef TELNET
     ESPTelnet telnet;

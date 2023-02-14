@@ -104,7 +104,7 @@ void setup()
   homeware.setup();
   setupServer();
   defaultConfig();
-  homeware.espalexa.addDevice(homeware.config["label"], firstDeviceChanged);
+  homeware.alexa.addDevice(homeware.config["label"], firstDeviceChanged);
 }
 
 
