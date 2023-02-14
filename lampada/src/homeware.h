@@ -8,7 +8,11 @@ class Homeware
 public:
     static constexpr int SIZE_BUFFER = 1024;
     DynamicJsonDocument config = DynamicJsonDocument(SIZE_BUFFER);
+    bool inDebug = false;
+    void setup();
+    void loop();
     String restoreConfig();
+    void defaultConfig();
 };
 
 #endif

@@ -139,15 +139,6 @@ void setupWiFi()
 
 void defaultConfig()
 {
-  homeware.config["label"] = LABEL;
-  homeware.config.createNestedObject("mode");
-  homeware.config.createNestedObject("trigger");
-  homeware.config.createNestedObject("stable");
-  homeware.config["debug"] = inDebug ? "on" : "off";
-  homeware.config["interval"] = "500";
-  homeware.config["adc_min"] = "511";
-  homeware.config["adc_max"] = "512";
-
   doCommand("gpio 4 trigger 15 monostable");
 }
 
@@ -215,9 +206,7 @@ void setup()
   setupServer();
 
   setupTelnet();
-
-  defaultConfig();
-  homeware.restoreConfig();
+  homeware.setup();
 
   setupPins();
   setupAlexa();
@@ -266,6 +255,7 @@ void loop()
   ArduinoOTA.handle();
   telnet.loop();
   loopEvent();
+  homeware.loop();
   espalexa.loop();
 }
 

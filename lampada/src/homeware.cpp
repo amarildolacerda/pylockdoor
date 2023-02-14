@@ -37,3 +37,25 @@ String Homeware::restoreConfig()
     Serial.println("");
     return rt;
 }
+
+void Homeware::setup(){
+    defaultConfig();
+    restoreConfig();
+}
+void Homeware::loop(){
+
+}
+
+void Homeware::defaultConfig()
+{
+    config["label"] = "LABEL";
+    config.createNestedObject("mode");
+    config.createNestedObject("trigger");
+    config.createNestedObject("stable");
+    config["debug"] = inDebug ? "on" : "off";
+    config["interval"] = "500";
+    config["adc_min"] = "511";
+    config["adc_max"] = "512";
+
+    
+}
