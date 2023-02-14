@@ -35,10 +35,8 @@ WiFiManager wifiManager;
 
 #include <Espalexa.h>
 Espalexa espalexa;
-
-#define SIZE_BUFFER 1024
-DynamicJsonDocument config(SIZE_BUFFER);
-#define kmode "mode"
+#include <homeware.h>
+Homeware homeware = Homeware();
 
 // Include libraries
 #if defined ESP8266 || defined ESP32
@@ -99,7 +97,7 @@ char *stringf(const char *format, ...)
 void setupAlexa()
 {
   espalexa.begin(&server);
-  espalexa.addDevice(config["label"], firstDeviceChanged);
+  espalexa.addDevice(homeware.config["label"], firstDeviceChanged);
 }
 
 String print(String msg)
@@ -113,8 +111,8 @@ int getAdc()
 {
   tmpAdc = analogRead(0);
   int rt = ldrState;
-  const int v_min = config["adc_min"].as<int>();
-  const int v_max = config["adc_max"].as<int>();
+  const int v_min = homeware.config["adc_min"].as<int>();
+  const int v_max = homeware.config["adc_max"].as<int>();
   if (tmpAdc >= v_max)
     rt = HIGH; // quando acende a luz, sobe o medidor com a propria luz que foi acionada, para não desligar.
   if (tmpAdc < v_min)
@@ -146,21 +144,21 @@ String restoreConfig()
   linha();
   try
   {
-    String old = config.as<String>();
+    String old = homeware.config.as<String>();
     File file = LittleFS.open("/config.json", "r");
     if (!file)
       return "erro ao abrir /config.json";
     String novo = file.readString();
-    config.clear();
-    auto error = deserializeJson(config, novo);
+    homeware.config.clear();
+    auto error = deserializeJson(homeware.config, novo);
     if (error)
     {
       debug(stringf("lido: %s \r\n corrente: %s \r\n", novo, old));
-      config.clear();
-      deserializeJson(config, old);
+      homeware.config.clear();
+      deserializeJson(homeware.config, old);
       return "Error: " + String(novo);
     }
-    serializeJson(config, Serial);
+    serializeJson(homeware.config, Serial);
     Serial.println("");
     rt = "OK";
     linha();
@@ -175,21 +173,21 @@ String restoreConfig()
 
 void defaultConfig()
 {
-  config["label"] = LABEL;
-  config.createNestedObject("mode");
-  config.createNestedObject("trigger");
-  config.createNestedObject("stable");
-  config["debug"] = inDebug ? "on" : "off";
-  config["interval"] = "500";
-  config["adc_min"] = "511";
-  config["adc_max"] = "512";
+  homeware.config["label"] = LABEL;
+  homeware.config.createNestedObject("mode");
+  homeware.config.createNestedObject("trigger");
+  homeware.config.createNestedObject("stable");
+  homeware.config["debug"] = inDebug ? "on" : "off";
+  homeware.config["interval"] = "500";
+  homeware.config["adc_min"] = "511";
+  homeware.config["adc_max"] = "512";
 
   doCommand("gpio 4 trigger 15 monostable");
 }
 
 void setupPins()
 {
-  JsonObject mode = config["mode"];
+  JsonObject mode = homeware.config["mode"];
   for (JsonPair k : mode)
   {
     int pin = String(k.key().c_str()).toInt();
@@ -349,10 +347,10 @@ String *split(String s, const char delimiter)
 String saveConfig()
 {
   String rsp = "OK";
-  config["debug"] = inDebug ? "on" : "off";  // volta para o default para sempre ligar com debug desabilitado
-  serializeJson(config, Serial);
+  homeware.config["debug"] = inDebug ? "on" : "off"; // volta para o default para sempre ligar com debug desabilitado
+  serializeJson(homeware.config, Serial);
   File file = LittleFS.open("/config.json", "w");
-  if (serializeJson(config, file) == 0)
+  if (serializeJson(homeware.config, file) == 0)
     rsp = "não gravou /config.json";
   file.close();
   return rsp;
@@ -365,7 +363,7 @@ void linha()
 void printConfig()
 {
 
-  serializeJson(config, Serial);
+  serializeJson(homeware.config, Serial);
 }
 
 void initPinMode(int pin, const String m)
@@ -398,14 +396,14 @@ String doCommand(String command)
     else if (cmd[0] == "show")
     {
       if (cmd[1] == "config")
-        return config.as<String>();
+        return homeware.config.as<String>();
       char buffer[32];
       char ip[20];
       sprintf(ip, "%d.%d.%d.%d", localIP[0], localIP[1], localIP[2], localIP[3]);
       FSInfo fs_info;
       LittleFS.info(fs_info);
 
-      sprintf(buffer, "{ 'name': '%s', 'ip': '%s', 'total': %d, 'free': %s }", String(config["label"]), ip, fs_info.totalBytes, String(fs_info.totalBytes - fs_info.usedBytes));
+      sprintf(buffer, "{ 'name': '%s', 'ip': '%s', 'total': %d, 'free': %s }", String(homeware.config["label"]), ip, fs_info.totalBytes, String(fs_info.totalBytes - fs_info.usedBytes));
       return buffer;
     }
     else if (cmd[0] == "reset")
@@ -433,18 +431,18 @@ String doCommand(String command)
     {
       if (cmd[2] == "none")
       {
-        config.remove(cmd[1]);
+        homeware.config.remove(cmd[1]);
       }
       else
       {
-        config[cmd[1]] = cmd[2];
+        homeware.config[cmd[1]] = cmd[2];
         printConfig();
       }
       return "OK";
     }
     else if (cmd[0] == "get")
     {
-      return config[cmd[1]];
+      return homeware.config[cmd[1]];
     }
     else if (cmd[0] == "gpio")
     {
@@ -463,7 +461,7 @@ String doCommand(String command)
       }
       else if (cmd[2] == "mode")
       {
-        JsonObject mode = config["mode"];
+        JsonObject mode = homeware.config["mode"];
         mode[cmd[1]] = cmd[3];
         initPinMode(cmd[1].toInt(), cmd[3]);
         printConfig();
@@ -491,16 +489,16 @@ String doCommand(String command)
 
 JsonObject getMode()
 {
-  return config["mode"].as<JsonObject>();
+  return homeware.config["mode"].as<JsonObject>();
 }
 JsonObject getTrigger()
 {
-  return config["trigger"].as<JsonObject>();
+  return homeware.config["trigger"].as<JsonObject>();
 }
 
 JsonObject getStable()
 {
-  return config["stable"].as<JsonObject>();
+  return homeware.config["stable"].as<JsonObject>();
 }
 
 unsigned long loopEventMillis = millis();
@@ -511,7 +509,7 @@ void loopEvent()
     unsigned long interval;
     try
     {
-      interval = String(config["interval"]).toInt();
+      interval = String(homeware.config["interval"]).toInt();
     }
     catch (char e)
     {
@@ -519,7 +517,7 @@ void loopEvent()
     }
     if (millis() - loopEventMillis > interval)
     {
-      JsonObject mode = config["mode"];
+      JsonObject mode = homeware.config["mode"];
       for (JsonPair k : mode)
       {
         readPin(String(k.key().c_str()).toInt(), k.value().as<String>());
@@ -556,7 +554,7 @@ void readPin(int pin, String mode)
 
 void debug(String txt)
 {
-  if (config["debug"] == "on")
+  if (homeware.config["debug"] == "on")
   {
     print(txt);
   }
