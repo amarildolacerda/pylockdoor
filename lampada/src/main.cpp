@@ -1,6 +1,4 @@
 
-#define LABEL "sala"
-#define VERSION "1.0.0"
 
 #ifdef ENABLE_DEBUG
 #define DEBUG_ESP_PORT Serial

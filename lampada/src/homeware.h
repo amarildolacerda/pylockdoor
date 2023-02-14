@@ -3,6 +3,9 @@
 
 #include <ArduinoJson.h>
 
+#define LABEL "sala"
+#define VERSION "1.0.0"
+
 class Homeware
 {
 public:
