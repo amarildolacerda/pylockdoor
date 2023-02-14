@@ -41,6 +41,7 @@ String Homeware::restoreConfig()
 void Homeware::setup(){
     defaultConfig();
     restoreConfig();
+    setupPins();
 }
 void Homeware::loop(){
 
@@ -78,4 +79,24 @@ void Homeware::initPinMode(int pin, const String m)
         pinMode(pin, INPUT);
     else if (m == "out")
         pinMode(pin, OUTPUT);
+}
+
+void Homeware::setupPins()
+{
+    JsonObject mode = config["mode"];
+    for (JsonPair k : mode)
+    {
+        int pin = String(k.key().c_str()).toInt();
+        initPinMode(pin, k.value().as<String>());
+        int trPin = getTrigger()[String(pin)];
+        if (trPin)
+        {
+            initPinMode(trPin, "out");
+        }
+    }
+}
+
+JsonObject Homeware::getTrigger()
+{
+    return config["trigger"].as<JsonObject>();
 }

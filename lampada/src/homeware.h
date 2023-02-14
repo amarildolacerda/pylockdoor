@@ -18,6 +18,9 @@ public:
     void defaultConfig();
     String saveConfig();
     void initPinMode(int pin, const String m);
+    JsonObject getTrigger();
+
+        private : void setupPins();
 };
 
 #endif

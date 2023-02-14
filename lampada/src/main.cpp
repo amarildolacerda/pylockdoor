@@ -69,7 +69,6 @@ void readPin(int pin, String mode);
 void setupTelnet();
 String doCommand(String command);
 void checkTrigger(int pin, int value);
-JsonObject getTrigger();
 JsonObject getStable();
 String help();
 bool readFile(String filename, char *buffer, size_t maxLen);
@@ -139,20 +138,6 @@ void defaultConfig()
   doCommand("gpio 4 trigger 15 monostable");
 }
 
-void setupPins()
-{
-  JsonObject mode = homeware.config["mode"];
-  for (JsonPair k : mode)
-  {
-    int pin = String(k.key().c_str()).toInt();
-    homeware.initPinMode(pin, k.value().as<String>());
-    int trPin = getTrigger()[String(pin)];
-    if (trPin)
-    {
-      homeware.initPinMode(trPin, "out");
-    }
-  }
-}
 
 void setupOTA()
 {
@@ -205,7 +190,6 @@ void setup()
   setupTelnet();
   homeware.setup();
 
-  setupPins();
   setupAlexa();
 }
 
@@ -405,7 +389,7 @@ String doCommand(String command)
       else if (cmd[2] == "trigger")
       {
         // gpio 4 trigger 15 bistable
-        JsonObject trigger = getTrigger();
+        JsonObject trigger = homeware.getTrigger();
         trigger[String(pin)] = cmd[3];
 
         // 0-monostable 1-monostableNC 2-bistable 3-bistableNC
@@ -425,10 +409,6 @@ String doCommand(String command)
 JsonObject getMode()
 {
   return homeware.config["mode"].as<JsonObject>();
-}
-JsonObject getTrigger()
-{
-  return homeware.config["trigger"].as<JsonObject>();
 }
 
 JsonObject getStable()
@@ -497,7 +477,7 @@ void debug(String txt)
 void checkTrigger(int pin, int value)
 {
   String p = String(pin);
-  JsonObject trig = getTrigger();
+  JsonObject trig = homeware.getTrigger();
   if (trig.containsKey(p))
   {
     int bistable = getStable()[String(pin)] || 0;
