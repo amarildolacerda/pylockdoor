@@ -171,3 +171,17 @@ void Homeware::checkTrigger(int pin, int value)
             writePin(pinTo.toInt(), v);
     }
 }
+
+String Homeware::help()
+{
+    String s = "";
+    s += "show config\r\n";
+    s += "gpio <pin> mode <in,out,adc>\r\n";
+    s += "gpio <pin> trigger <pin> [monostable,monostableNC,bistable,bistableNC]\r\n";
+    s += "gpio <pin> get\r\n";
+    s += "gpio <pin> set <n>\r\n";
+    s += "set interval 50\r\n";
+    s += "set adc_min 511 \r\n";
+    s += "set adc_max 512 \r\n";
+    return s;
+}

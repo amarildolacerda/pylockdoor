@@ -66,8 +66,6 @@ void errorMsg(String msg);
 void firstDeviceChanged(uint8_t brightness);
 void setupTelnet();
 String doCommand(String command);
-void checkTrigger(int pin, int value);
-String help();
 bool readFile(String filename, char *buffer, size_t maxLen);
 void linha();
 void loopEvent();
@@ -308,7 +306,7 @@ String doCommand(String command)
       return String(json);
     }
     else if (cmd[0] == "help")
-      return help();
+      return homeware.help();
     else if (cmd[0] == "show")
     {
       if (cmd[1] == "config")
@@ -442,19 +440,6 @@ void debug(String txt)
 }
 
 
-String help()
-{
-  String s = "";
-  s += "show config\r\n";
-  s += "gpio <pin> mode <in,out,adc>\r\n";
-  s += "gpio <pin> trigger <pin> [monostable,monostableNC,bistable,bistableNC]\r\n";
-  s += "gpio <pin> get\r\n";
-  s += "gpio <pin> set <n>\r\n";
-  s += "set interval 50\r\n";
-  s += "set adc_min 511 \r\n";
-  s += "set adc_max 512 \r\n";
-  return s;
-}
 
 bool readFile(String filename, char *buffer, size_t maxLen)
 {

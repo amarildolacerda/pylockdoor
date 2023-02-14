@@ -24,6 +24,7 @@ public:
     void writePin(int pin, int value);
     void readPin(int pin, String mode);
     void checkTrigger(int pin, int value);
+    String help();
 
 private:
     void setupPins();
