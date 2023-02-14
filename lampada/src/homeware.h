@@ -17,6 +17,7 @@ public:
     String restoreConfig();
     void defaultConfig();
     String saveConfig();
+    void initPinMode(int pin, const String m);
 };
 
 #endif

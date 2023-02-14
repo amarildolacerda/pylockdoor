@@ -66,7 +66,6 @@ void errorMsg(String msg);
 void firstDeviceChanged(uint8_t brightness);
 void writePin(int pin, int value);
 void readPin(int pin, String mode);
-void initPinMode(int pin, const String m);
 void setupTelnet();
 String doCommand(String command);
 void checkTrigger(int pin, int value);
@@ -146,11 +145,11 @@ void setupPins()
   for (JsonPair k : mode)
   {
     int pin = String(k.key().c_str()).toInt();
-    initPinMode(pin, k.value().as<String>());
+    homeware.initPinMode(pin, k.value().as<String>());
     int trPin = getTrigger()[String(pin)];
     if (trPin)
     {
-      initPinMode(trPin, "out");
+      homeware.initPinMode(trPin, "out");
     }
   }
 }
@@ -309,13 +308,6 @@ void printConfig()
   serializeJson(homeware.config, Serial);
 }
 
-void initPinMode(int pin, const String m)
-{
-  if (m == "in")
-    pinMode(pin, INPUT);
-  else if (m == "out")
-    pinMode(pin, OUTPUT);
-}
 
 String doCommand(String command)
 {
@@ -406,7 +398,7 @@ String doCommand(String command)
       {
         JsonObject mode = homeware.config["mode"];
         mode[cmd[1]] = cmd[3];
-        initPinMode(cmd[1].toInt(), cmd[3]);
+        homeware.initPinMode(cmd[1].toInt(), cmd[3]);
         printConfig();
         return "OK";
       }
@@ -536,7 +528,7 @@ void writePin(int pin, int value)
     }
   else
   {
-    initPinMode(pin, "out");
+    homeware.initPinMode(pin, "out");
     digitalWrite(pin, value);
   }
   debug(stringf("writePin %d to %d\r\n", pin, value));

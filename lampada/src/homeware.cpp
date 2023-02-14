@@ -71,3 +71,11 @@ String Homeware::saveConfig()
     file.close();
     return rsp;
 }
+
+void Homeware::initPinMode(int pin, const String m)
+{
+    if (m == "in")
+        pinMode(pin, INPUT);
+    else if (m == "out")
+        pinMode(pin, OUTPUT);
+}
