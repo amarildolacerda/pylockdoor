@@ -73,7 +73,10 @@ void setupWiFi()
 
 void defaultConfig()
 {
+  homeware.doCommand("gpio 4 mode in");
+  homeware.doCommand("gpio 15 mode out");
   homeware.doCommand("gpio 4 trigger 15 monostable");
+  homeware.printConfig();
 }
 
 

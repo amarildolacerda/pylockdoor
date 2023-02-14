@@ -49,8 +49,8 @@ public:
     JsonObject getTrigger();
     JsonObject getStable();
     JsonObject getMode();
-    void writePin(int pin, int value);
-    void readPin(int pin, String mode);
+    int writePin(const int pin, const int value);
+    int readPin(const int pin, const String mode);
     void checkTrigger(int pin, int value);
     String help();
     bool readFile(String filename, char *buffer, size_t maxLen);

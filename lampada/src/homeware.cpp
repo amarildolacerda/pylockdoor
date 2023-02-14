@@ -8,7 +8,6 @@
 #include <ArduinoOTA.h>
 #endif
 
-
 void setupOTA()
 {
     ArduinoOTA.onStart([]()
@@ -98,7 +97,7 @@ void Homeware::setup()
     setupOTA();
 #endif
 #ifdef ALEXA
-        setupAlexa();
+    setupAlexa();
 #endif
 #ifdef TELNET
     setupTelnet();
@@ -106,16 +105,16 @@ void Homeware::setup()
 }
 void Homeware::loop()
 {
+    loopEvent();
 #ifdef ALEXA
     alexa.loop();
 #endif
 #ifdef TELNET
     telnet.loop();
 #endif
-    loopEvent();
-#ifdef OTA    
+#ifdef OTA
     ArduinoOTA.handle();
-#endif    
+#endif
 }
 
 void Homeware::defaultConfig()
@@ -180,12 +179,12 @@ JsonObject Homeware::getStable()
     return config["stable"].as<JsonObject>();
 }
 
-void Homeware::writePin(int pin, int value)
+int Homeware::writePin(const int pin, const int value)
 {
     String mode = getMode()[String(pin)];
     if (mode != NULL)
         if (mode == "adc")
-            return;
+            return -1;
         else
         {
             digitalWrite(pin, value);
@@ -195,11 +194,11 @@ void Homeware::writePin(int pin, int value)
         initPinMode(pin, "out");
         digitalWrite(pin, value);
     }
-    // debug(stringf("writePin %d to %d\r\n", pin, value));
+    return value;
 }
 
 StaticJsonDocument<256> docPinValues;
-void Homeware::readPin(int pin, String mode)
+int Homeware::readPin(const int pin, const String mode)
 {
     int oldValue = docPinValues[String(pin)];
     int newValue = 0;
@@ -208,16 +207,17 @@ void Homeware::readPin(int pin, String mode)
     else
         newValue = digitalRead(pin);
 
-    // debug(stringf("readPin %d from %d to %d \r\n", pin, oldValue, newValue));
+    debug(stringf("readPin %d from %d to %d \r\n", pin, oldValue, newValue));
 
     if (oldValue != newValue)
     {
         char buffer[32];
         sprintf(buffer, "pin %d : %d ", pin, newValue);
-        // debug(buffer);
+        debug(buffer);
         docPinValues[String(pin)] = newValue;
         checkTrigger(pin, newValue);
     }
+    return newValue;
 }
 
 void Homeware::checkTrigger(int pin, int value)
@@ -236,7 +236,7 @@ void Homeware::checkTrigger(int pin, int value)
             return; // so aciona quando v for 1
         // checa se troca o sinal NC
         String pinTo = trig[p];
-        // debug(stringf("pin %s trigger %s to %d \r\n", p, pinTo, v));
+        debug(stringf("pin %s trigger %s to %d \r\n", p, pinTo, v));
         if (pinTo.toInt() != pin)
             writePin(pinTo.toInt(), v);
     }
@@ -300,7 +300,7 @@ void Homeware::loopEvent()
     }
     catch (const char *e)
     {
-        //        print(String(e));
+        print(String(e));
     }
 }
 
@@ -335,7 +335,7 @@ String *split(String s, const char delimiter)
 String Homeware::print(String msg)
 {
     Serial.println(msg);
-    // telnet.println(msg);
+    telnet.println(msg);
     return msg;
 }
 
@@ -420,16 +420,14 @@ String Homeware::doCommand(String command)
             else if (cmd[2] == "set")
             {
                 int v = cmd[3].toInt();
-                Serial.printf("set pin %d to %d \r\n", pin, v);
-                digitalWrite(pin, (v == 0) ? LOW : HIGH);
-                return "OK";
+                writePin(pin, v);
+                return String(v);
             }
             else if (cmd[2] == "mode")
             {
                 JsonObject mode = config["mode"];
                 mode[cmd[1]] = cmd[3];
                 initPinMode(cmd[1].toInt(), cmd[3]);
-                printConfig();
                 return "OK";
             }
             else if (cmd[2] == "trigger")
@@ -493,18 +491,17 @@ void Homeware::setupAlexa()
 }
 #endif
 
-
 Homeware *myself;
 void Homeware::setupTelnet()
 {
     myself = this;
-    telnet.onConnect([](String ip) {
+    telnet.onConnect([](String ip)
+                     {
         Serial.print("- Telnet: ");
         Serial.print(ip);
         Serial.println(" connected");
         myself->telnet.println("\nWelcome " + myself->telnet.getIP());
-        myself->telnet.println("(Use ^] + q  to disconnect.)");
-    });
+        myself->telnet.println("(Use ^] + q  to disconnect.)"); });
     telnet.onInputReceived([](String str)
                            { myself->print(myself->doCommand(str)); });
 
