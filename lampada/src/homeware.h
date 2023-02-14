@@ -25,6 +25,7 @@ public:
     void readPin(int pin, String mode);
     void checkTrigger(int pin, int value);
     String help();
+    bool readFile(String filename, char *buffer, size_t maxLen);
 
 private:
     void setupPins();

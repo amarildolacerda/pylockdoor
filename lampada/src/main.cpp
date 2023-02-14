@@ -66,7 +66,6 @@ void errorMsg(String msg);
 void firstDeviceChanged(uint8_t brightness);
 void setupTelnet();
 String doCommand(String command);
-bool readFile(String filename, char *buffer, size_t maxLen);
 void linha();
 void loopEvent();
 
@@ -302,7 +301,7 @@ String doCommand(String command)
     else if (cmd[0] == "open")
     {
       char json[1024];
-      readFile(cmd[1], json, 1024);
+      homeware.readFile(cmd[1], json, 1024);
       return String(json);
     }
     else if (cmd[0] == "help")
@@ -440,24 +439,6 @@ void debug(String txt)
 }
 
 
-
-bool readFile(String filename, char *buffer, size_t maxLen)
-{
-  File file = LittleFS.open(filename, "r");
-  if (!file)
-  {
-    return false;
-  }
-  size_t len = file.size();
-  if (len > maxLen)
-  {
-    len = maxLen;
-  }
-  file.readBytes(buffer, len); //(buffer, len);
-  buffer[len] = 0;
-  file.close();
-  return true;
-}
 
 void firstDeviceChanged(uint8_t brightness)
 {

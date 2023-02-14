@@ -125,7 +125,7 @@ void Homeware::writePin(int pin, int value)
         initPinMode(pin, "out");
         digitalWrite(pin, value);
     }
-    //debug(stringf("writePin %d to %d\r\n", pin, value));
+    // debug(stringf("writePin %d to %d\r\n", pin, value));
 }
 
 StaticJsonDocument<256> docPinValues;
@@ -138,13 +138,13 @@ void Homeware::readPin(int pin, String mode)
     else
         newValue = digitalRead(pin);
 
-    //debug(stringf("readPin %d from %d to %d \r\n", pin, oldValue, newValue));
+    // debug(stringf("readPin %d from %d to %d \r\n", pin, oldValue, newValue));
 
     if (oldValue != newValue)
     {
         char buffer[32];
         sprintf(buffer, "pin %d : %d ", pin, newValue);
-        //debug(buffer);
+        // debug(buffer);
         docPinValues[String(pin)] = newValue;
         checkTrigger(pin, newValue);
     }
@@ -166,7 +166,7 @@ void Homeware::checkTrigger(int pin, int value)
             return; // so aciona quando v for 1
         // checa se troca o sinal NC
         String pinTo = trig[p];
-        //debug(stringf("pin %s trigger %s to %d \r\n", p, pinTo, v));
+        // debug(stringf("pin %s trigger %s to %d \r\n", p, pinTo, v));
         if (pinTo.toInt() != pin)
             writePin(pinTo.toInt(), v);
     }
@@ -184,4 +184,22 @@ String Homeware::help()
     s += "set adc_min 511 \r\n";
     s += "set adc_max 512 \r\n";
     return s;
+}
+
+bool Homeware::readFile(String filename, char *buffer, size_t maxLen)
+{
+    File file = LittleFS.open(filename, "r");
+    if (!file)
+    {
+        return false;
+    }
+    size_t len = file.size();
+    if (len > maxLen)
+    {
+        len = maxLen;
+    }
+    file.readBytes(buffer, len); //(buffer, len);
+    buffer[len] = 0;
+    file.close();
+    return true;
 }
