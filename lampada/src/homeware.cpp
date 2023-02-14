@@ -40,6 +40,10 @@ String Homeware::restoreConfig()
 
 void Homeware::setup()
 {
+    if (!LittleFS.begin())
+    {
+        Serial.println("LittleFS mount failed");
+    }
     defaultConfig();
     restoreConfig();
     setupPins();
@@ -231,6 +235,167 @@ void Homeware::loopEvent()
     }
     catch (const char *e)
     {
-//        print(String(e));
+        //        print(String(e));
+    }
+}
+
+String *split(String s, const char delimiter)
+{
+    unsigned int count = 0;
+    for (unsigned int i = 0; i < s.length(); i++)
+    {
+        if (s[i] == delimiter)
+        {
+            count++;
+        }
+    }
+
+    String *words = new String[count + 1];
+    unsigned int wordCount = 0;
+
+    for (unsigned int i = 0; i < s.length(); i++)
+    {
+        if (s[i] == delimiter)
+        {
+            wordCount++;
+            continue;
+        }
+        words[wordCount] += s[i];
+    }
+    // words[count+1] = 0;
+
+    return words;
+}
+
+String Homeware::print(String msg)
+{
+    Serial.println(msg);
+    //telnet.println(msg);
+    return msg;
+}
+
+String Homeware::doCommand(String command)
+{
+    try
+    {
+        String *cmd = split(command, ' ');
+        Serial.println(command);
+        if (cmd[0] == "format")
+        {
+            LittleFS.format();
+            return "formated";
+        }
+        else if (cmd[0] == "open")
+        {
+            char json[1024];
+            readFile(cmd[1], json, 1024);
+            return String(json);
+        }
+        else if (cmd[0] == "help")
+            return help();
+        else if (cmd[0] == "show")
+        {
+            if (cmd[1] == "config")
+                return config.as<String>();
+            char buffer[32];
+            char ip[20];
+            sprintf(ip, "%d.%d.%d.%d", localIP[0], localIP[1], localIP[2], localIP[3]);
+            FSInfo fs_info;
+            LittleFS.info(fs_info);
+
+            sprintf(buffer, "{ 'name': '%s', 'ip': '%s', 'total': %d, 'free': %s }", String(config["label"]), ip, fs_info.totalBytes, String(fs_info.totalBytes - fs_info.usedBytes));
+            return buffer;
+        }
+        else if (cmd[0] == "reset")
+        {
+            if (cmd[1] == "factory")
+            {
+                defaultConfig();
+                return "OK";
+            }
+            print("reiniciando...");
+            delay(1000);
+            //telnet.stop();
+            ESP.restart();
+            return "OK";
+        }
+        else if (cmd[0] == "save")
+        {
+            return saveConfig();
+        }
+        else if (cmd[0] == "restore")
+        {
+            return restoreConfig();
+        }
+        else if (cmd[0] == "set")
+        {
+            if (cmd[2] == "none")
+            {
+                config.remove(cmd[1]);
+            }
+            else
+            {
+                config[cmd[1]] = cmd[2];
+                printConfig();
+            }
+            return "OK";
+        }
+        else if (cmd[0] == "get")
+        {
+            return config[cmd[1]];
+        }
+        else if (cmd[0] == "gpio")
+        {
+            int pin = cmd[1].toInt();
+            if (cmd[2] == "get")
+            {
+                int v = digitalRead(pin);
+                return String(v);
+            }
+            else if (cmd[2] == "set")
+            {
+                int v = cmd[3].toInt();
+                Serial.printf("set pin %d to %d \r\n", pin, v);
+                digitalWrite(pin, (v == 0) ? LOW : HIGH);
+                return "OK";
+            }
+            else if (cmd[2] == "mode")
+            {
+                JsonObject mode = config["mode"];
+                mode[cmd[1]] = cmd[3];
+                initPinMode(cmd[1].toInt(), cmd[3]);
+                printConfig();
+                return "OK";
+            }
+            else if (cmd[2] == "trigger")
+            {
+                // gpio 4 trigger 15 bistable
+                JsonObject trigger = getTrigger();
+                trigger[String(pin)] = cmd[3];
+
+                // 0-monostable 1-monostableNC 2-bistable 3-bistableNC
+                getStable()[String(pin)] = (cmd[4] == "bistable" ? 2 : 0) + (cmd[4].endsWith("NC") ? 1 : 0);
+
+                return "OK";
+            }
+        }
+        return "invalido";
+    }
+    catch (const char *e)
+    {
+        return String(e);
+    }
+}
+void Homeware::printConfig()
+{
+
+    serializeJson(config, Serial);
+}
+
+void Homeware::debug(String txt)
+{
+    if (config["debug"] == "on")
+    {
+        print(txt);
     }
 }

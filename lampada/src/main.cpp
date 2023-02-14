@@ -49,7 +49,6 @@ Homeware homeware = Homeware();
 #define RELAY_PIN 15
 #define inDebug false
 unsigned long lastBtnPress;
-IPAddress localIP;
 int ldrState = 0;
 bool myPowerState = false;
 int tmpAdc = 0;
@@ -61,11 +60,9 @@ ESPTelnet telnet;
 //=========================================================================================
 // declaracoes
 //=========================================================================================
-void debug(String txt);
 void errorMsg(String msg);
 void firstDeviceChanged(uint8_t brightness);
 void setupTelnet();
-String doCommand(String command);
 void linha();
 
 //=========================================================================================
@@ -89,12 +86,6 @@ void setupAlexa()
   espalexa.addDevice(homeware.config["label"], firstDeviceChanged);
 }
 
-String print(String msg)
-{
-  Serial.println(msg);
-  telnet.println(msg);
-  return msg;
-}
 
 int getAdc()
 {
@@ -110,7 +101,7 @@ int getAdc()
   {
     char buffer[64];
     sprintf(buffer, "adc %d,ldrState %d, adcState %d  (%i,%i) ", tmpAdc, ldrState, rt, v_max, v_min);
-    debug(buffer);
+    homeware.debug(buffer);
   }
   return rt;
 }
@@ -120,7 +111,7 @@ void setupWiFi()
 {
   Serial.printf("\r\n[Wifi]: Connecting");
   wifiManager.autoConnect("AutoConnectAP");
-  localIP = WiFi.localIP();
+  homeware.localIP = WiFi.localIP();
   Serial.printf("V: %s \r\n", VERSION);
 }
 
@@ -128,7 +119,7 @@ void setupWiFi()
 
 void defaultConfig()
 {
-  doCommand("gpio 4 trigger 15 monostable");
+  homeware.doCommand("gpio 4 trigger 15 monostable");
 }
 
 
@@ -156,7 +147,7 @@ void setupServer()
   server.on("/show", {[]()
                       {
                         // wifiManager.resetSettings();
-                        String rt = doCommand("show");
+                        String rt = homeware.doCommand("show");
                         server.send(200, "application/json", "{\"result\":" + rt + "}");
                         // ESP.restart();
                       }});
@@ -172,10 +163,6 @@ void setup()
   Serial.printf("\r\n\r\n");
   setupWiFi();
 
-  if (!LittleFS.begin())
-  {
-    Serial.println("LittleFS mount failed");
-  }
   setupOTA();
 
   setupServer();
@@ -205,7 +192,7 @@ void setupTelnet()
 {
   telnet.onConnect(onTelnetConnect);
   telnet.onInputReceived([](String str)
-                         { print(doCommand(str)); });
+                         { homeware.print(homeware.doCommand(str)); });
 
   Serial.print("- Telnet: ");
   if (telnet.begin())
@@ -245,166 +232,13 @@ void printCmds(String *cmd)
   }
   Serial.println("");
 }
-String *split(String s, const char delimiter)
-{
-  unsigned int count = 0;
-  for (unsigned int i = 0; i < s.length(); i++)
-  {
-    if (s[i] == delimiter)
-    {
-      count++;
-    }
-  }
-
-  String *words = new String[count + 1];
-  unsigned int wordCount = 0;
-
-  for (unsigned int i = 0; i < s.length(); i++)
-  {
-    if (s[i] == delimiter)
-    {
-      wordCount++;
-      continue;
-    }
-    words[wordCount] += s[i];
-  }
-  // words[count+1] = 0;
-
-  return words;
-}
-
 
 void linha()
 {
   Serial.println("-------------------------------");
 }
-void printConfig()
-{
-
-  serializeJson(homeware.config, Serial);
-}
 
 
-String doCommand(String command)
-{
-  try
-  {
-    String *cmd = split(command, ' ');
-    Serial.println(command);
-    if (cmd[0] == "format")
-    {
-      LittleFS.format();
-      return "formated";
-    }
-    else if (cmd[0] == "open")
-    {
-      char json[1024];
-      homeware.readFile(cmd[1], json, 1024);
-      return String(json);
-    }
-    else if (cmd[0] == "help")
-      return homeware.help();
-    else if (cmd[0] == "show")
-    {
-      if (cmd[1] == "config")
-        return homeware.config.as<String>();
-      char buffer[32];
-      char ip[20];
-      sprintf(ip, "%d.%d.%d.%d", localIP[0], localIP[1], localIP[2], localIP[3]);
-      FSInfo fs_info;
-      LittleFS.info(fs_info);
-
-      sprintf(buffer, "{ 'name': '%s', 'ip': '%s', 'total': %d, 'free': %s }", String(homeware.config["label"]), ip, fs_info.totalBytes, String(fs_info.totalBytes - fs_info.usedBytes));
-      return buffer;
-    }
-    else if (cmd[0] == "reset")
-    {
-      if (cmd[1] == "factory")
-      {
-        defaultConfig();
-        return "OK";
-      }
-      print("reiniciando...");
-      delay(1000);
-      telnet.stop();
-      ESP.restart();
-      return "OK";
-    }
-    else if (cmd[0] == "save")
-    {
-      return homeware.saveConfig();
-    }
-    else if (cmd[0] == "restore")
-    {
-      return homeware.restoreConfig();
-    }
-    else if (cmd[0] == "set")
-    {
-      if (cmd[2] == "none")
-      {
-        homeware.config.remove(cmd[1]);
-      }
-      else
-      {
-        homeware.config[cmd[1]] = cmd[2];
-        printConfig();
-      }
-      return "OK";
-    }
-    else if (cmd[0] == "get")
-    {
-      return homeware.config[cmd[1]];
-    }
-    else if (cmd[0] == "gpio")
-    {
-      int pin = cmd[1].toInt();
-      if (cmd[2] == "get")
-      {
-        int v = digitalRead(pin);
-        return String(v);
-      }
-      else if (cmd[2] == "set")
-      {
-        int v = cmd[3].toInt();
-        Serial.printf("set pin %d to %d \r\n", pin, v);
-        digitalWrite(pin, (v == 0) ? LOW : HIGH);
-        return "OK";
-      }
-      else if (cmd[2] == "mode")
-      {
-        JsonObject mode = homeware.config["mode"];
-        mode[cmd[1]] = cmd[3];
-        homeware.initPinMode(cmd[1].toInt(), cmd[3]);
-        printConfig();
-        return "OK";
-      }
-      else if (cmd[2] == "trigger")
-      {
-        // gpio 4 trigger 15 bistable
-        JsonObject trigger = homeware.getTrigger();
-        trigger[String(pin)] = cmd[3];
-
-        // 0-monostable 1-monostableNC 2-bistable 3-bistableNC
-        homeware.getStable()[String(pin)] = (cmd[4] == "bistable" ? 2 : 0) + (cmd[4].endsWith("NC") ? 1 : 0);
-
-        return "OK";
-      }
-    }
-    return "invalido";
-  }
-  catch (const char *e)
-  {
-    return String(e);
-  }
-}
-
-void debug(String txt)
-{
-  if (homeware.config["debug"] == "on")
-  {
-    print(txt);
-  }
-}
 
 
 
@@ -415,11 +249,11 @@ void firstDeviceChanged(uint8_t brightness)
     digitalWrite(RELAY_PIN, HIGH);
     Serial.print("ON, brightness ");
     Serial.println(brightness);
-    print("RELAY ON");
+    homeware.print("RELAY ON");
   }
   else
   {
     digitalWrite(RELAY_PIN, LOW);
-    print("RELAY OFF");
+    homeware.print("RELAY OFF");
   }
 }

@@ -1,6 +1,7 @@
 #ifndef homeware_def
 #define homeware_def
 
+#include <ESP8266WiFi.h> //https://github.com/esp8266/Arduino
 #include <ArduinoJson.h>
 
 #define LABEL "sala"
@@ -11,6 +12,7 @@ class Homeware
 public:
     static constexpr int SIZE_BUFFER = 1024;
     DynamicJsonDocument config = DynamicJsonDocument(SIZE_BUFFER);
+    IPAddress localIP = IPAddress(0, 0, 0, 0);
     bool inDebug = false;
     void setup();
     void loop();
@@ -26,6 +28,10 @@ public:
     void checkTrigger(int pin, int value);
     String help();
     bool readFile(String filename, char *buffer, size_t maxLen);
+    String doCommand(String command);
+    String print(String msg);
+    void printConfig();
+    void debug(String txt);
 
 private:
     void setupPins();
