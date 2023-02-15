@@ -479,6 +479,9 @@ public:
     // get hostname helper
     String getWiFiHostname();
 
+    void pageSend(const String payload);
+    String pageMake(const String stitle,const String payload);
+
     std::unique_ptr<DNSServer> dnsServer;
 
 #if defined(ESP32) && defined(WM_WEBSERVERSHIM)
@@ -722,6 +725,7 @@ private:
     String getScanItemOut();
     String getStaticOut();
     String getHTTPHead(String title);
+
     String getMenuOut();
     // helpers
     boolean isIp(String str);
