@@ -1,4 +1,5 @@
 #include <homeware.h>
+#include <functions.h>
 
 #include <ArduinoJson.h>
 #include <FS.h>
@@ -8,17 +9,6 @@
 #include <ElegantOTA.h>
 #endif
 
-char *stringf(const char *format, ...)
-{
-    static char buffer[512];
-
-    va_list args;
-    va_start(args, format);
-    vsnprintf(buffer, sizeof(buffer), format, args);
-    va_end(args);
-
-    return buffer;
-}
 
 void linha()
 {
@@ -153,6 +143,9 @@ void Homeware::initPinMode(int pin, const String m)
         pinMode(pin, INPUT);
     else if (m == "out")
         pinMode(pin, OUTPUT);
+    JsonObject mode = getMode();
+    if (!mode[String(pin)])
+        mode[String(pin)] = m;    
 }
 
 void Homeware::setupPins()
@@ -433,7 +426,6 @@ String Homeware::doCommand(String command)
             else if (cmd[2] == "mode")
             {
                 JsonObject mode = config["mode"];
-                mode[cmd[1]] = cmd[3];
                 initPinMode(cmd[1].toInt(), cmd[3]);
                 return "OK";
             }

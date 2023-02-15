@@ -21,7 +21,8 @@
 #include "ESPTelnet.h"
 #endif
 
-char *stringf(const char *format, ...);
+#include <functions.h>
+
 void linha();
 
 class Homeware

@@ -21,13 +21,14 @@
 // needed for library
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
+#include <portal.h>
+Portal portal = Portal();
 
 DNSServer dnsServer;
 
-#include <WiFiManager.h>
-ESP8266WebServer server;
-WiFiManager wifiManager;
+#include <ESP8266WiFi.h>
 
+ESP8266WebServer server;
 
 #include <homeware.h>
 Homeware homeware = Homeware(&server);
@@ -51,7 +52,6 @@ int tmpAdc = 0;
 int adcState = 0;
 bool isConnected = false;
 
-
 //=========================================================================================
 // declaracoes
 //=========================================================================================
@@ -63,54 +63,44 @@ void firstDeviceChanged(uint8_t brightness);
 // setup function for WiFi connection
 void setupWiFi()
 {
-  Serial.printf("\r\n[Wifi]: Connecting");
-  wifiManager.autoConnect("AutoConnectAP");
+  portal.autoConnect(homeware.config["label"]);
   homeware.localIP = WiFi.localIP();
   Serial.printf("V: %s \r\n", VERSION);
 }
-
 // setup function for SinricPro
 
 void defaultConfig()
 {
-  homeware.doCommand("gpio 4 mode in");
-  homeware.doCommand("gpio 15 mode out");
+  homeware.doCommand(stringf("gpio %d mode in",BUTTON_PIN));
+  homeware.doCommand(stringf("gpio %d mode out",RELAY_PIN));
   homeware.doCommand("gpio 4 trigger 15 monostable");
   homeware.printConfig();
 }
 
-
 void setupServer()
 {
   homeware.server->on("/reset", []()
-             {
-        wifiManager.resetSettings();
-        homeware.server->send(200, "text/plain", "reiniciando...");
-
-        ESP.reset(); });
-
+                      {
+        Serial.println("reiniciando");
+        portal.reset();
+        homeware.server->send(200, "text/html", "reiniciando..."); });
 }
-
 
 // main setup function
 void setup()
 {
-  pinMode(BUTTON_PIN, INPUT);
-  pinMode(RELAY_PIN, OUTPUT); // define LED GPIO as output
 
   Serial.begin(BAUD_RATE);
   Serial.printf("\r\n\r\n");
+ 
+  homeware.setup();
   setupWiFi();
 
-
-
-  homeware.setup();
   setupServer();
   defaultConfig();
   homeware.alexa.addDevice(homeware.config["label"], firstDeviceChanged);
   homeware.begin();
 }
-
 
 void loop()
 {
@@ -131,19 +121,14 @@ void printCmds(String *cmd)
   Serial.println("");
 }
 
-
 void firstDeviceChanged(uint8_t brightness)
 {
   if (brightness)
   {
-    digitalWrite(RELAY_PIN, HIGH);
-    Serial.print("ON, brightness ");
-    Serial.println(brightness);
-    homeware.print("RELAY ON");
+    homeware.writePin(RELAY_PIN,HIGH);
   }
   else
   {
-    digitalWrite(RELAY_PIN, LOW);
-    homeware.print("RELAY OFF");
+    homeware.writePin(RELAY_PIN, LOW);
   }
 }
