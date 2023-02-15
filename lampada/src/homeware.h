@@ -79,5 +79,6 @@ private:
 };
 
 extern Homeware homeware;
+extern ESP8266WebServer server;
 
 #endif

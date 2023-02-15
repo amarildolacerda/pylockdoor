@@ -19,14 +19,7 @@
 #include <ESP8266WiFi.h> //https://github.com/esp8266/Arduino
 
 // needed for library
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
 #include <portal.h>
-
-DNSServer dnsServer;
-
-ESP8266WebServer server;
-
 #include <homeware.h>
 
 // Include libraries

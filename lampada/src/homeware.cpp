@@ -146,8 +146,7 @@ void Homeware::initPinMode(int pin, const String m)
     else if (m == "out")
         pinMode(pin, OUTPUT);
     JsonObject mode = getMode();
-    if (!mode[String(pin)])
-        mode[String(pin)] = m;
+    mode[String(pin)] = m;
 }
 
 void Homeware::setupPins()
@@ -192,9 +191,10 @@ int Homeware::writePin(const int pin, const int value)
         }
     else
     {
-        initPinMode(pin, "out");
+        //initPinMode(pin, "out");
         digitalWrite(pin, value);
     }
+    Serial.println(stringf("writePin: %d value: %d",pin,value));
     return value;
 }
 
@@ -505,9 +505,9 @@ void Homeware::setupTelnet()
                      {
         Serial.print("- Telnet: ");
         Serial.print(ip);
-        Serial.println(" connected");
-        homeware.telnet.println("\nWelcome " + homeware.telnet.getIP());
-        homeware.telnet.println("(Use ^] + q  to disconnect.)"); });
+        Serial.println(" conectou");
+        homeware.telnet.println("\nOlá " + homeware.telnet.getIP());
+        homeware.telnet.println("(Use ^] + q  para desligar.)"); });
     telnet.onInputReceived([](String str)
                            { homeware.print(homeware.doCommand(str)); });
 
@@ -534,3 +534,4 @@ IPAddress Homeware::localIP()
 }
 
 Homeware homeware;
+ESP8266WebServer server;
