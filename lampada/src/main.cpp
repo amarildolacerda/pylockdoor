@@ -26,7 +26,6 @@ Portal portal = Portal();
 
 DNSServer dnsServer;
 
-#include <ESP8266WiFi.h>
 
 ESP8266WebServer server;
 
@@ -64,7 +63,6 @@ void firstDeviceChanged(uint8_t brightness);
 void setupWiFi()
 {
   portal.autoConnect(homeware.config["label"]);
-  homeware.localIP = WiFi.localIP();
   Serial.printf("V: %s \r\n", VERSION);
 }
 // setup function for SinricPro

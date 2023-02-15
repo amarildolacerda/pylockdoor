@@ -31,7 +31,7 @@ public:
     Homeware(ESP8266WebServer *externalServer = nullptr);
     static constexpr int SIZE_BUFFER = 1024;
     DynamicJsonDocument config = DynamicJsonDocument(SIZE_BUFFER);
-    IPAddress localIP = IPAddress(0, 0, 0, 0);
+    IPAddress localIP();
 #ifdef ALEXA
     Espalexa alexa = Espalexa();
 #endif
