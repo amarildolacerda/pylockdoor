@@ -7,6 +7,7 @@ Portal::Portal(ESP8266WebServer *externalServer ){
 }
 
 void Portal::autoConnect(const String label){
+    WiFi.mode(WIFI_STA);
     hostname = stringf("%s-%d", label, getChipId());
     //wifiManager.setCustomHeadElement("<a href=\"/show\">show</a>");
     wifiManager.setMinimumSignalQuality(30);
