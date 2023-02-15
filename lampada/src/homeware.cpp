@@ -76,6 +76,15 @@ void Homeware::begin()
 {
     if (inited)
         return;
+
+#ifdef ALEXA
+    setupAlexa();
+#endif
+#ifdef TELNET
+    setupTelnet();
+#endif
+    setupServer();
+
 #ifdef OTA
     ElegantOTA.begin(server);
 #endif
@@ -92,13 +101,6 @@ void Homeware::setup()
     defaultConfig();
     restoreConfig();
     setupPins();
-#ifdef ALEXA
-    setupAlexa();
-#endif
-#ifdef TELNET
-    setupTelnet();
-    setupServer();
-#endif
 }
 void Homeware::loop()
 {

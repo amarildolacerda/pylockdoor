@@ -26,7 +26,6 @@ Portal portal = Portal();
 
 DNSServer dnsServer;
 
-
 ESP8266WebServer server;
 
 #include <homeware.h>
@@ -58,19 +57,10 @@ void firstDeviceChanged(uint8_t brightness);
 
 //=========================================================================================
 
-
-// setup function for WiFi connection
-void setupWiFi()
-{
-  portal.autoConnect(homeware.config["label"]);
-  Serial.printf("V: %s \r\n", VERSION);
-}
-// setup function for SinricPro
-
 void defaultConfig()
 {
-  homeware.doCommand(stringf("gpio %d mode in",BUTTON_PIN));
-  homeware.doCommand(stringf("gpio %d mode out",RELAY_PIN));
+  homeware.doCommand(stringf("gpio %d mode in", BUTTON_PIN));
+  homeware.doCommand(stringf("gpio %d mode out", RELAY_PIN));
   homeware.doCommand("gpio 4 trigger 15 monostable");
   homeware.printConfig();
 }
@@ -90,9 +80,10 @@ void setup()
 
   Serial.begin(BAUD_RATE);
   Serial.printf("\r\n\r\n");
- 
+
   homeware.setup();
-  setupWiFi();
+  portal.autoConnect(homeware.config["label"]);
+  Serial.printf("Ver: %s \r\n", VERSION);
 
   setupServer();
   defaultConfig();
@@ -123,7 +114,7 @@ void firstDeviceChanged(uint8_t brightness)
 {
   if (brightness)
   {
-    homeware.writePin(RELAY_PIN,HIGH);
+    homeware.writePin(RELAY_PIN, HIGH);
   }
   else
   {
