@@ -12,7 +12,7 @@
 #define VERSION "1.0.0"
 #define ALEXA
 #define TELNET
-//#define OTA
+// #define OTA
 
 #ifdef ALEXA
 #include <Espalexa.h>
@@ -64,6 +64,7 @@ public:
     int getAdcState(int pin);
     uint32_t getChipId();
     void errorMsg(String msg);
+    JsonObject getValues();
 
 private:
     void setupPins();
@@ -77,6 +78,6 @@ private:
 #endif
 };
 
-extern Homeware homeware ;
+extern Homeware homeware;
 
 #endif

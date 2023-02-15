@@ -198,7 +198,12 @@ int Homeware::writePin(const int pin, const int value)
     return value;
 }
 
+
 StaticJsonDocument<256> docPinValues;
+JsonObject Homeware::getValues()
+{
+    return docPinValues.as<JsonObject>();
+}
 int Homeware::readPin(const int pin, const String mode)
 {
     int oldValue = docPinValues[String(pin)];
