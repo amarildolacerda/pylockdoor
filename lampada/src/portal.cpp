@@ -36,13 +36,13 @@ void Portal::reset()
     delay(1000);
 }
 
-String button(const String name, const char *link, const char *style = "", const String hidden = "")
+String button(const String name, const char *link, const char *style = "")
 {
-    return stringf("<br/><form action='%s' method='get'> %s <button %s>%s</button></form>", link, hidden, (style == "") ? "" : String(stringf("class='%s'", style)), name);
+    return stringf("<br/><form action='%s' method='get'><button %s>%s</button></form>", link, (style == "") ? "" : String(stringf("class='%s'", style)), name);
 }
-String input(const String name, const String value)
+String inputH(const String name, const String value)
 {
-    return String(stringf("<input type=\"text\" name=\"%s\" value=\"%s\">", name, value));
+    return String(stringf("<input type=\"hidden\" name=\"%s\" value=\"%s\">", name, value));
 }
 
 void setManager(WiFiManager *wf)
@@ -61,17 +61,17 @@ void Portal::setupServer()
         JsonObject mode = homeware.getMode();
         for (JsonPair k : mode)
         {   
-          if (k.value().as<String>()=="in"){
+          if (k.value().as<String>()=="out"){
               String p1 = k.key().c_str();
               String v1 = k.value().as<String>();
               int v = homeware.readPin(p1.toInt(), v1);
               String s = (v == 1) ? "ON" : (v > 0) ? String(v)
                                                    : "OFF";
-              String hd =input("p", p1);
-              hd += input("q", ((s == "ON") ? "OFF" : "ON"));
+              String hd =inputH("p", p1);
+              hd += inputH("q", ((s == "ON") ? "OFF" : "ON"));
               Serial.println(hd);
 
-              pg += button(s, "/pin", "D",hd );
+              pg += "<br/><form action='/pin' method='get'>"+hd+"<button class='D'>"+s+"</button></form>";
           }
         }
 
@@ -83,12 +83,8 @@ void Portal::setupServer()
                 //if (portal.server->hasArg("p") && portal.server->hasArg("q")){
                 String p = portal.server->arg("p");
                 String q = portal.server->arg("q");
-                Serial.println(p);
-                Serial.println(q);
-                //if (p && t){
-                    homeware.writePin(p.toInt(),(q=="ON")?1:0);
-                //}
-                //}
+                homeware.writePin(p.toInt(),(q=="ON")?1:0);
+                   // yield();
                 portal.server->sendHeader("Location", String("/"), true);
                 portal.server->send(302, "text/plain", ""); });
     server->on("/gs", []()
