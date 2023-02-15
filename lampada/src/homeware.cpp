@@ -372,7 +372,7 @@ String Homeware::doCommand(String command)
             FSInfo fs_info;
             LittleFS.info(fs_info);
 
-            sprintf(buffer, "{ 'name': '%s', 'ip': '%s', 'total': %d, 'free': %s }", String(config["label"]), ip, fs_info.totalBytes, String(fs_info.totalBytes - fs_info.usedBytes));
+            sprintf(buffer, "{ 'version':'%s', 'name': '%s', 'ip': '%s', 'total': %d, 'free': %s }",VERSION,  String(config["label"]), ip, fs_info.totalBytes, String(fs_info.totalBytes - fs_info.usedBytes));
             return buffer;
         }
         else if (cmd[0] == "reset")
