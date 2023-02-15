@@ -3,19 +3,19 @@
 #include <functions.h>
 #include <wm_strings_pt_BR.h>
 
-Portal *curPortal;
-Portal::Portal(ESP8266WebServer *externalServer)
+void Portal::setup(ESP8266WebServer *externalServer)
 {
     server = externalServer;
-    curPortal = this;
 }
 
-void Portal::autoConnect(const String label)
+void Portal::autoConnect(const String slabel)
 {
     WiFi.mode(WIFI_STA);
-    hostname = stringf("%s-local", label);
+    label = slabel;
+    hostname = stringf("%s.local", slabel);
     wifiManager.setMinimumSignalQuality(30);
     wifiManager.setDebugOutput(true);
+    wifiManager.setHostname(hostname);
     wifiManager.autoConnect(hostname);
     setupServer();
 }
@@ -34,14 +34,36 @@ void Portal::reset()
 
 String button(String name, String link, String style = "")
 {
-    return stringf("<br/><form action='%s' method='get'><button class='%s'>%s</button></form>", link, style, name);
+    return stringf("<br/><form action='%s' method='get'><button %s>%s</button></form>", link, style==""?"":stringf("class='%s'",style), name);
+}
+
+void setManager(WiFiManager *wf){
+    String hostname = stringf("%s-local", portal.label);
+    wf->setHostname(hostname);
+    wf->setTitle("Homeware");
 }
 void Portal::setupServer()
 {
     server->on("/", []()
                {
-        WiFiManager wf ;
-        String pg = button("GPIO", "/gpio");
+        WiFiManager wf  ;
+        setManager(&wf);
+    
+        String pg = button("GPIO", "/gs");
         pg += button("Recarregar","/");
-        curPortal->server->send(200, "text/html", wf.pageMake("Homeware",pg)); });
+        portal.server->send(200, "text/html", wf.pageMake("Homeware", pg)); });
+
+    server->on("/gs", []()
+               {
+        WiFiManager wf ;
+        setManager(&wf);
+
+        String pg = "GPIO Status<hr><br/>";
+        pg+="<table>";
+        pg+="<tr><td>pin</td><td>value</td></tr>";
+        pg+="</table>";
+        pg += button("Menu","/");
+        portal.server->send(200, "text/html", wf.pageMake("Homeware",pg)); });
 }
+
+Portal portal;

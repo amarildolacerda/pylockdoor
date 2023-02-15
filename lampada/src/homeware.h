@@ -28,7 +28,7 @@ void linha();
 class Homeware
 {
 public:
-    Homeware(ESP8266WebServer *externalServer = nullptr);
+    void setServer(ESP8266WebServer *externalServer = nullptr);
     static constexpr int SIZE_BUFFER = 1024;
     DynamicJsonDocument config = DynamicJsonDocument(SIZE_BUFFER);
     IPAddress localIP();
@@ -42,7 +42,7 @@ public:
     ESP8266WebServer *server;
     unsigned currentAdcState = 0;
     bool inDebug = false;
-    void setup();
+    void setup(ESP8266WebServer *externalServer = nullptr);
     void begin();
     void loop();
     String restoreConfig();
@@ -77,6 +77,6 @@ private:
 #endif
 };
 
-
+extern Homeware homeware ;
 
 #endif

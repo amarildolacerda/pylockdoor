@@ -71,7 +71,7 @@ const char HTTP_FORM_PARAM_HEAD[] PROGMEM = "<hr><br/>";
 const char HTTP_FORM_PARAM[] PROGMEM = "<br/><input id='{i}' name='{n}' maxlength='{l}' value='{v}' {c}>\n"; // do not remove newline!
 
 const char HTTP_SCAN_LINK[] PROGMEM = "<br/><form action='/wifi?refresh=1' method='POST'><button name='refresh' value='1'>Atualizar</button></form>";
-const char HTTP_SAVED[] PROGMEM = "<div class='msg'>Gravandos credenciais<br/>Tentando conectar.<br />Se falhar tente novamente</div>";
+const char HTTP_SAVED[] PROGMEM = "<div class='msg'>Gravando credenciais<br/>Tentando conectar.<br />Se falhar tente novamente</div>";
 const char HTTP_PARAMSAVED[] PROGMEM = "<div class='msg S'>Salvou<br/></div>";
 const char HTTP_END[] PROGMEM = "</div></body></html>";
 const char HTTP_ERASEBTN[] PROGMEM = "<br/><form action='/erase' method='get'><button class='D'>Apagar Config</button></form>";
@@ -83,7 +83,7 @@ const char HTTP_STATUS_OFF[] PROGMEM = "<div class='msg {c}'><strong>Não conect
 const char HTTP_STATUS_OFFPW[] PROGMEM = "<br/>Falha na autenticação";                                       // STATION_WRONG_PASSWORD,  no eps32
 const char HTTP_STATUS_OFFNOAP[] PROGMEM = "<br/>AP não encontrado";                                               // WL_NO_SSID_AVAIL
 const char HTTP_STATUS_OFFFAIL[] PROGMEM = "<br/>Não conectou";                                          // WL_CONNECT_FAILED
-const char HTTP_STATUS_NONE[] PROGMEM = "<div class='msg'>No AP set</div>";
+const char HTTP_STATUS_NONE[] PROGMEM = "<div class='msg'>configurar a rede wifi</div>";
 const char HTTP_BR[] PROGMEM = "<br/>";
 
 const char HTTP_STYLE[] PROGMEM = "<style>"

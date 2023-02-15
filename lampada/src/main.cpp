@@ -28,8 +28,6 @@ DNSServer dnsServer;
 ESP8266WebServer server;
 
 #include <homeware.h>
-Homeware homeware = Homeware(&server);
-Portal portal = Portal(&server);
 
 // Include libraries
 #if defined ESP8266 || defined ESP32
@@ -80,8 +78,8 @@ void setup()
 
   Serial.begin(BAUD_RATE);
   Serial.printf("\r\n\r\n");
-
-  homeware.setup();
+  homeware.setup(&server);
+  portal.setup(&server);
   portal.autoConnect(homeware.config["label"]);
   Serial.printf("Ver: %s \r\n", VERSION);
 
