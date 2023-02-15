@@ -16,27 +16,24 @@ void linha()
     Serial.println("-------------------------------");
 }
 
-Homeware *myself;
-Homeware::Homeware(ESP8266WebServer *externalServer)
+void Homeware::setServer(ESP8266WebServer *externalServer)
 {
     server = externalServer;
-    myself = this;
 }
 
 void Homeware::setupServer()
 {
     server->on("/cmd", []()
                {
-        if (myself->server->hasArg("q"))
+        if (homeware.server->hasArg("q"))
         {
-            String cmd = myself->server->arg("q");
-            String rt = myself->doCommand(cmd);
+            String cmd = homeware.server->arg("q");
+            String rt = homeware.doCommand(cmd);
             if (!rt.startsWith("{"))
                rt = "\""+rt+"\"";
-            myself->server->send(200, "application/json", "{\"result\":" + rt + "}");
+            homeware.server->send(200, "application/json", "{\"result\":" + rt + "}");
             return;
         } });
-
 }
 String Homeware::restoreConfig()
 {
@@ -91,8 +88,10 @@ void Homeware::begin()
     server->begin();
     inited = true;
 }
-void Homeware::setup()
+void Homeware::setup(ESP8266WebServer *externalServer )
 {
+    setServer(externalServer);
+
     if (!LittleFS.begin())
     {
         Serial.println("LittleFS mount failed");
@@ -148,7 +147,7 @@ void Homeware::initPinMode(int pin, const String m)
         pinMode(pin, OUTPUT);
     JsonObject mode = getMode();
     if (!mode[String(pin)])
-        mode[String(pin)] = m;    
+        mode[String(pin)] = m;
 }
 
 void Homeware::setupPins()
@@ -335,7 +334,8 @@ String *split(String s, const char delimiter)
 }
 
 String Homeware::print(String msg)
-{   Serial.print("RSP: ");
+{
+    Serial.print("RSP: ");
     Serial.println(msg);
     telnet.println(msg);
     return msg;
@@ -372,7 +372,7 @@ String Homeware::doCommand(String command)
             FSInfo fs_info;
             LittleFS.info(fs_info);
 
-            sprintf(buffer, "{ 'version':'%s', 'name': '%s', 'ip': '%s', 'total': %d, 'free': %s }",VERSION,  String(config["label"]), ip, fs_info.totalBytes, String(fs_info.totalBytes - fs_info.usedBytes));
+            sprintf(buffer, "{ 'version':'%s', 'name': '%s', 'ip': '%s', 'total': %d, 'free': %s }", VERSION, String(config["label"]), ip, fs_info.totalBytes, String(fs_info.totalBytes - fs_info.usedBytes));
             return buffer;
         }
         else if (cmd[0] == "reset")
@@ -501,10 +501,10 @@ void Homeware::setupTelnet()
         Serial.print("- Telnet: ");
         Serial.print(ip);
         Serial.println(" connected");
-        myself->telnet.println("\nWelcome " + myself->telnet.getIP());
-        myself->telnet.println("(Use ^] + q  to disconnect.)"); });
+        homeware.telnet.println("\nWelcome " + homeware.telnet.getIP());
+        homeware.telnet.println("(Use ^] + q  to disconnect.)"); });
     telnet.onInputReceived([](String str)
-                           { myself->print(myself->doCommand(str)); });
+                           { homeware.print(homeware.doCommand(str)); });
 
     Serial.print("- Telnet: ");
     if (telnet.begin())
@@ -523,6 +523,9 @@ void Homeware::errorMsg(String msg)
     telnet.println(msg);
 }
 
-IPAddress Homeware::localIP(){
+IPAddress Homeware::localIP()
+{
     return WiFi.localIP();
 }
+
+Homeware homeware;
