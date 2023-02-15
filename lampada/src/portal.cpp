@@ -2,6 +2,10 @@
 #include <portal.h>
 #include <functions.h>
 
+Portal::Portal(ESP8266WebServer *externalServer ){
+    server = externalServer;
+}
+
 void Portal::autoConnect(const String label){
     hostname = stringf("%s-%d", label, getChipId());
     wifiManager.setMinimumSignalQuality(30);

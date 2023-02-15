@@ -22,7 +22,6 @@
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <portal.h>
-Portal portal = Portal();
 
 DNSServer dnsServer;
 
@@ -30,6 +29,7 @@ ESP8266WebServer server;
 
 #include <homeware.h>
 Homeware homeware = Homeware(&server);
+Portal portal = Portal(&server);
 
 // Include libraries
 #if defined ESP8266 || defined ESP32
