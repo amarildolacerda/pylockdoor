@@ -9,6 +9,7 @@
 #include <ElegantOTA.h>
 #endif
 
+#include <ESP8266WiFi.h>
 
 void linha()
 {
@@ -364,7 +365,8 @@ String Homeware::doCommand(String command)
                 return config.as<String>();
             char buffer[32];
             char ip[20];
-            sprintf(ip, "%d.%d.%d.%d", localIP[0], localIP[1], localIP[2], localIP[3]);
+            IPAddress x = localIP();
+            sprintf(ip, "%d.%d.%d.%d", x[0], x[1], x[2], x[3]);
             FSInfo fs_info;
             LittleFS.info(fs_info);
 
@@ -517,4 +519,8 @@ void Homeware::errorMsg(String msg)
 {
     Serial.println(msg);
     telnet.println(msg);
+}
+
+IPAddress Homeware::localIP(){
+    return WiFi.localIP();
 }
