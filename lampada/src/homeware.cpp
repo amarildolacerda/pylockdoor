@@ -11,6 +11,7 @@
 #endif
 
 #include <ESP8266WiFi.h>
+#include <mqtt.h>
 
 void linha()
 {
@@ -87,6 +88,7 @@ void Homeware::begin()
     ElegantOTA.begin(server);
 #endif
     server->begin();
+    mqtt.setup();
     inited = true;
 }
 void Homeware::setup(ESP8266WebServer *externalServer)
@@ -114,6 +116,7 @@ void Homeware::loop()
 #ifdef TELNET
     telnet.loop();
 #endif
+  mqtt.loop();
   
 }
 
