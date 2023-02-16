@@ -130,6 +130,12 @@ void Homeware::defaultConfig()
     config["interval"] = "500";
     config["adc_min"] = "511";
     config["adc_max"] = "512";
+
+    config["mqtt_host"] = NULL;
+    config["mqtt_port"] = 1883;
+    config["mqtt_user"] = "homeware";
+    config["mqtt_password"] = "123456780";
+    config["mqtt_interval"] = 1;
    
 }
 
