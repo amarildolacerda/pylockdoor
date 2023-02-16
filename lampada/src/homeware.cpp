@@ -5,6 +5,7 @@
 #include <FS.h>
 #include <LittleFS.h>
 
+
 #ifdef OTA
 #include <ElegantOTA.h>
 #endif
@@ -88,7 +89,7 @@ void Homeware::begin()
     server->begin();
     inited = true;
 }
-void Homeware::setup(ESP8266WebServer *externalServer )
+void Homeware::setup(ESP8266WebServer *externalServer)
 {
     setServer(externalServer);
 
@@ -113,6 +114,7 @@ void Homeware::loop()
 #ifdef TELNET
     telnet.loop();
 #endif
+  
 }
 
 void Homeware::defaultConfig()
@@ -125,6 +127,7 @@ void Homeware::defaultConfig()
     config["interval"] = "500";
     config["adc_min"] = "511";
     config["adc_max"] = "512";
+   
 }
 
 String Homeware::saveConfig()
@@ -191,13 +194,12 @@ int Homeware::writePin(const int pin, const int value)
         }
     else
     {
-        //initPinMode(pin, "out");
+        // initPinMode(pin, "out");
         digitalWrite(pin, value);
     }
-    Serial.println(stringf("writePin: %d value: %d",pin,value));
+    Serial.println(stringf("writePin: %d value: %d", pin, value));
     return value;
 }
-
 
 StaticJsonDocument<256> docPinValues;
 JsonObject Homeware::getValues()
@@ -259,6 +261,7 @@ String Homeware::help()
     s += "set interval 50\r\n";
     s += "set adc_min 511 \r\n";
     s += "set adc_max 512 \r\n";
+  
     return s;
 }
 

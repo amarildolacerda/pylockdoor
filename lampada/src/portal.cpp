@@ -13,14 +13,52 @@ void Portal::setup(ESP8266WebServer *externalServer)
 
 void Portal::autoConnect(const String slabel)
 {
-    WiFi.mode(WIFI_STA);
     label = slabel;
-    hostname = stringf("%s.local", slabel);
-    WiFi.setHostname(hostname);
-    wifiManager.setMinimumSignalQuality(30);
-    wifiManager.setDebugOutput(true);
-    wifiManager.setHostname(hostname);
-    wifiManager.autoConnect(hostname);
+    unsigned start = millis();
+    unsigned timeLimitMsec = 10000;
+    WiFi.mode(WIFI_STA);
+
+    if (!homeware.config["ssid"])
+    {
+        Serial.println("SmartConfig.");
+        WiFi.beginSmartConfig();
+        while (!WiFi.smartConfigDone() && millis() - start < timeLimitMsec)
+        {
+            delay(500);
+            Serial.print(".");
+        }
+    }
+    else
+    {
+        WiFi.setAutoReconnect(true);
+        WiFi.setAutoConnect(true);
+        Serial.println("Conectando.");
+        WiFi.begin();
+        while ((WiFi.status() != WL_CONNECTED) && millis() - start < 5000)
+        {
+            delay(500);
+            Serial.print(".");
+        }
+    }
+    WiFi.stopSmartConfig();
+
+    bool connected = (WiFi.status() == WL_CONNECTED);
+
+    if (!connected)
+    {
+        hostname = stringf("%s.local", slabel);
+        WiFi.setHostname(hostname);
+        wifiManager.setMinimumSignalQuality(30);
+        wifiManager.setDebugOutput(true);
+        wifiManager.setHostname(hostname);
+        wifiManager.autoConnect(hostname);
+    }
+    connected = (WiFi.status() == WL_CONNECTED);
+    if (connected && !homeware.config["ssid"])
+    {
+        homeware.config["ssid"] = WiFi.SSID();
+        homeware.saveConfig();
+    }
     setupServer();
 }
 
@@ -32,6 +70,9 @@ void Portal::reset()
     WiFi.disconnect(true);
     WiFi.persistent(false);
     wifiManager.resetSettings();
+    homeware.config.remove("ssid");
+    homeware.config.remove("password");
+    homeware.saveConfig();
     ESP.reset();
     delay(1000);
 }
@@ -69,13 +110,14 @@ void Portal::setupServer()
                                                    : "OFF";
               String hd =inputH("p", p1);
               hd += inputH("q", ((s == "ON") ? "OFF" : "ON"));
-              Serial.println(hd);
+              //Serial.println(hd);
 
               pg += "<br/><form action='/pin' method='get'>"+hd+"<button class='D'>"+s+"</button></form>";
           }
         }
 
         pg += button("GPIO", "/gs");
+        pg += "<div style='height:100'></div><a href=\"/update\" class='D'>firmware</a>";
         portal.server->send(200, "text/html", wf.pageMake("Homeware", pg)); });
 
     server->on("/pin", []()
