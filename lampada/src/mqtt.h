@@ -33,6 +33,8 @@ public:
     String name;
     String user;
     String password;
+    String host;
+    int port;
     unsigned long interval = 1;
     String getTopic()
     {
@@ -49,16 +51,10 @@ public:
         else
             name = String(getChipId(), HEX);
         Serial.println(String(getChipId(), HEX));
-        this->prefix = aprefix;
-        if (ahost)
-        {
-            char x[128];
-            sprintf(x, "%s", ahost);
-            Serial.println(name);
-            Serial.println(x);
-            mqttClient.setServer(x, aport);
-            mqttClient.setCallback(callback);
-        }
+        prefix = aprefix;
+        host = ahost;
+        port = aport;
+        mqttClient.setCallback(callback);
     }
     void setUser(const String user, const String pass)
     {
@@ -101,12 +97,18 @@ private:
                 Serial.print("MQTT connection...");
                 String clientId = String(getChipId(), HEX);
                 Serial.println(clientId);
+
+                Serial.println(name.c_str());
+                Serial.println(host.c_str());
+                mqttClient.setServer(host.c_str(), port);
+
                 if (mqttClient.connect(clientId.c_str()))
                 {
                     Serial.println("connected");
                     send("/response", "online");
                     char subscribe[64];
                     sprintf(subscribe, "%s", getTopicIN());
+                    Serial.println(subscribe);
                     mqttClient.subscribe(subscribe);
                     return true;
                 }
