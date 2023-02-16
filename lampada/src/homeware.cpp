@@ -5,7 +5,6 @@
 #include <FS.h>
 #include <LittleFS.h>
 
-
 #ifdef OTA
 #include <ElegantOTA.h>
 #endif
@@ -88,7 +87,8 @@ void Homeware::begin()
     ElegantOTA.begin(server);
 #endif
     server->begin();
-    mqtt.setup();
+    mqtt.setup(config["mqtt_host"], config["mqtt_port"], config["mqtt_prefix"], (config["mqtt_name"]!=NULL) ? config["mqtt_name"] : config["label"]);
+    mqtt.setUser(config["mqtt_user"], config["mqtt_password"]);
     inited = true;
 }
 void Homeware::setup(ESP8266WebServer *externalServer)
@@ -116,8 +116,7 @@ void Homeware::loop()
 #ifdef TELNET
     telnet.loop();
 #endif
-  mqtt.loop();
-  
+    mqtt.loop();
 }
 
 void Homeware::defaultConfig()
@@ -131,12 +130,12 @@ void Homeware::defaultConfig()
     config["adc_min"] = "511";
     config["adc_max"] = "512";
 
-    config["mqtt_host"] = NULL;
+    config["mqtt_host"] = "mqtt://test.mosquitto.org";
     config["mqtt_port"] = 1883;
     config["mqtt_user"] = "homeware";
     config["mqtt_password"] = "123456780";
     config["mqtt_interval"] = 1;
-   
+    config["mqtt_prefix"] = "mesh";
 }
 
 String Homeware::saveConfig()
@@ -270,7 +269,7 @@ String Homeware::help()
     s += "set interval 50\r\n";
     s += "set adc_min 511 \r\n";
     s += "set adc_max 512 \r\n";
-  
+
     return s;
 }
 
