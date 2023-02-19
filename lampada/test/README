@@ -1,6 +1,9 @@
 
 
 =Configurações "board"=
-config["board"] = "esp8266" ou "lc"
+board = <"esp8266">
 
-quando board="lc" e comandar o pin=0 será enviado codigo especifico AT para o relay
+=Considerações sobre os pins=
+* mode "adc" ira retornar o valor do pin;
+* mode "ldr" ira retornar 1 ou 0 na faixa  adc_min< x >adc_max, deve esta associado a um PIN Analógico (ex: 0);
+* quando pin mode for "lc"  ira comandar codigo especifico AT para o relay, ignorando acao no pin fisico (pode utilizar um pin fora da faixa ex: 123);

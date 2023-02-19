@@ -243,6 +243,10 @@ int Homeware::readPin(const int pin, const String mode)
     {
         newValue = docPinValues[String(pin)];
     }
+    else if (mode = "ldr")
+    {
+        newValue = getAdcState(pin);
+    }
     else
         newValue = digitalRead(pin);
 
@@ -286,7 +290,7 @@ String Homeware::help()
     String s = "";
     s += "set board <esp8266>\r\n";
     s += "show config\r\n";
-    s += "gpio <pin> mode <in,out,adc,lc>\r\n";
+    s += "gpio <pin> mode <in,out,adc,lc,ldr>\r\n";
     s += "gpio <pin> trigger <pin> [monostable,monostableNC,bistable,bistableNC]\r\n";
     s += "gpio <pin> get\r\n";
     s += "gpio <pin> set <n>\r\n";
