@@ -127,6 +127,7 @@ void Homeware::defaultConfig()
     config.createNestedObject("mode");
     config.createNestedObject("trigger");
     config.createNestedObject("stable");
+    config.createNestedObject("device");
     config["debug"] = inDebug ? "on" : "off";
     config["interval"] = "500";
     config["adc_min"] = "511";
@@ -138,9 +139,6 @@ void Homeware::defaultConfig()
     config["mqtt_password"] = "123456780";
     config["mqtt_interval"] = 1;
     config["mqtt_prefix"] = "mesh";
-
-    config["atON"] = "A00101A2";  // Hex command to send to serial for open relay
-    config["atOFF"] = "A00100A1"; // Hex command to send to serial for close relay
 }
 
 String Homeware::saveConfig()
@@ -183,6 +181,10 @@ void Homeware::setupPins()
 JsonObject Homeware::getTrigger()
 {
     return config["trigger"].as<JsonObject>();
+}
+JsonObject Homeware::getDevices()
+{
+    return config["device"].as<JsonObject>();
 }
 
 JsonObject Homeware::getMode()
@@ -243,7 +245,7 @@ int Homeware::readPin(const int pin, const String mode)
     {
         newValue = docPinValues[String(pin)];
     }
-    else if (mode = "ldr")
+    else if (mode == "ldr")
     {
         newValue = getAdcState(pin);
     }
@@ -292,6 +294,7 @@ String Homeware::help()
     s += "show config\r\n";
     s += "gpio <pin> mode <in,out,adc,lc,ldr>\r\n";
     s += "gpio <pin> trigger <pin> [monostable,monostableNC,bistable,bistableNC]\r\n";
+    s += "gpio <pin> device <onoff> (usado na alexa)\r\n";
     s += "gpio <pin> get\r\n";
     s += "gpio <pin> set <n>\r\n";
     s += "set interval 50\r\n";
@@ -460,6 +463,7 @@ String Homeware::doCommand(String command)
         else if (cmd[0] == "gpio")
         {
             int pin = cmd[1].toInt();
+            String spin = cmd[1];
             if (cmd[2] == "none")
             {
                 config["mode"].remove(cmd[1]);
@@ -479,17 +483,23 @@ String Homeware::doCommand(String command)
             else if (cmd[2] == "mode")
             {
                 JsonObject mode = config["mode"];
-                initPinMode(cmd[1].toInt(), cmd[3]);
+                initPinMode(pin, cmd[3]);
+                return "OK";
+            }
+            else if (cmd[2] == "device")
+            {
+                JsonObject devices = getDevices();
+                devices[spin] = cmd[3];
                 return "OK";
             }
             else if (cmd[2] == "trigger")
             {
                 // gpio 4 trigger 15 bistable
                 JsonObject trigger = getTrigger();
-                trigger[String(pin)] = cmd[3];
+                trigger[spin] = cmd[3];
 
                 // 0-monostable 1-monostableNC 2-bistable 3-bistableNC
-                getStable()[String(pin)] = (cmd[4] == "bistable" ? 2 : 0) + (cmd[4].endsWith("NC") ? 1 : 0);
+                getStable()[spin] = (cmd[4] == "bistable" ? 2 : 0) + (cmd[4].endsWith("NC") ? 1 : 0);
 
                 return "OK";
             }
@@ -537,8 +547,47 @@ int Homeware::getAdcState(int pin)
 uint32_t Homeware::getChipId() { return ESP.getChipId(); }
 
 #ifdef ALEXA
+void onoffChanged(EspalexaDevice *d)
+{
+    if (d == nullptr)
+        return;          // this is good practice, but not required
+    int id = d->getId(); // * base 1
+    Serial.printf("Id: %d", id);
+    int value = d->getValue();
+    // procurar qual o pin associado pelo ID;
+    JsonObject devices = homeware.getDevices();
+    int index = 0;
+
+    for (JsonPair k : devices)
+    {
+        Serial.printf("%s %s %d", k.key().c_str(), k.value(), value);
+        if (index == (id - 1))
+        {
+            int pin = String(k.key().c_str()).toInt();
+            homeware.writePin(pin, (value == LOW) ? LOW : HIGH);
+        }
+        index += 1;
+    }
+}
+
 void Homeware::setupAlexa()
 {
+    JsonObject devices = getDevices();
+
+    Serial.println("\r\nDevices\r\n============================\r\n");
+    for (JsonPair k : devices)
+    {
+        Serial.printf("%s is %s\r\n", k.key().c_str(), k.value().as<String>());
+        String sName = config["label"];
+        sName += "-";
+        sName += k.key().c_str();
+        if (k.value().as<String>() == "onoff")
+        {
+            alexa.addDevice(sName, onoffChanged, EspalexaDeviceType::onoff); // non-dimmable device
+            Serial.printf("alexa: onoff em %s \r\n", sName);
+        }
+    }
+    Serial.println("============================");
     alexa.begin(server);
 }
 #endif

@@ -49,9 +49,12 @@ public:
     void defaultConfig();
     String saveConfig();
     void initPinMode(int pin, const String m);
+
     JsonObject getTrigger();
     JsonObject getStable();
     JsonObject getMode();
+    JsonObject getDevices();
+
     int writePin(const int pin, const int value);
     int readPin(const int pin, const String mode);
     void checkTrigger(int pin, int value);
@@ -65,19 +68,18 @@ public:
     uint32_t getChipId();
     void errorMsg(String msg);
     JsonObject getValues();
-    
 
-    private:
-        void setupPins();
-        void setupServer();
-        void loopEvent();
+private:
+    void setupPins();
+    void setupServer();
+    void loopEvent();
 #ifdef ALEXA
     void setupAlexa();
 #endif
 #ifdef TELNET
     void setupTelnet();
 #endif
-    };
+};
 
 extern Homeware homeware;
 extern ESP8266WebServer server;
