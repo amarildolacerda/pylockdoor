@@ -87,7 +87,7 @@ void Homeware::begin()
     ElegantOTA.begin(server);
 #endif
     server->begin();
-    mqtt.setup(config["mqtt_host"], config["mqtt_port"], config["mqtt_prefix"], (config["mqtt_name"]!=NULL) ? config["mqtt_name"] : config["label"]);
+    mqtt.setup(config["mqtt_host"], config["mqtt_port"], config["mqtt_prefix"], (config["mqtt_name"] != NULL) ? config["mqtt_name"] : config["label"]);
     mqtt.setUser(config["mqtt_user"], config["mqtt_password"]);
     inited = true;
 }
@@ -123,6 +123,7 @@ void Homeware::loop()
 void Homeware::defaultConfig()
 {
     config["label"] = LABEL;
+    config["board"] = "esp8266";
     config.createNestedObject("mode");
     config.createNestedObject("trigger");
     config.createNestedObject("stable");
@@ -137,6 +138,9 @@ void Homeware::defaultConfig()
     config["mqtt_password"] = "123456780";
     config["mqtt_interval"] = 1;
     config["mqtt_prefix"] = "mesh";
+
+    config["atON"] = "A00101A2";  // Hex command to send to serial for open relay
+    config["atOFF"] = "A00100A1"; // Hex command to send to serial for close relay
 }
 
 String Homeware::saveConfig()
@@ -191,12 +195,27 @@ JsonObject Homeware::getStable()
     return config["stable"].as<JsonObject>();
 }
 
+StaticJsonDocument<256> docPinValues;
+
 int Homeware::writePin(const int pin, const int value)
 {
     String mode = getMode()[String(pin)];
     if (mode != NULL)
         if (mode == "adc")
             return -1;
+        else if (pin == 0 && config["board"] == "lc")
+        {
+            byte relON[] = {0xA0, 0x01, 0x01, 0xA2}; // Hex command to send to serial for open relay
+            byte relOFF[] = {0xA0, 0x01, 0x00, 0xA1};
+            if (value == 0)
+            {
+                Serial.write(relOFF, sizeof(relOFF));
+            }
+            else
+                Serial.write(relON, sizeof(relON));
+            docPinValues[String(pin)] = value;
+        }
+
         else
         {
             digitalWrite(pin, value);
@@ -210,7 +229,6 @@ int Homeware::writePin(const int pin, const int value)
     return value;
 }
 
-StaticJsonDocument<256> docPinValues;
 JsonObject Homeware::getValues()
 {
     return docPinValues.as<JsonObject>();
@@ -221,6 +239,10 @@ int Homeware::readPin(const int pin, const String mode)
     int newValue = 0;
     if (mode == "adc")
         newValue = analogRead(pin);
+    else if (pin == 0 && config["board"] == "lc")
+    {
+        newValue = docPinValues[String(pin)];
+    }
     else
         newValue = digitalRead(pin);
 
@@ -262,6 +284,7 @@ void Homeware::checkTrigger(int pin, int value)
 String Homeware::help()
 {
     String s = "";
+    s += "set board <esp8266,lc>\r\n";
     s += "show config\r\n";
     s += "gpio <pin> mode <in,out,adc>\r\n";
     s += "gpio <pin> trigger <pin> [monostable,monostableNC,bistable,bistableNC]\r\n";

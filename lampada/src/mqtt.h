@@ -45,7 +45,6 @@ public:
         prefix = aprefix;
         host = ahost;
         port = aport;
-        mqttClient.setCallback(callback);
     }
     void setUser(const String user, const String pass)
     {
@@ -54,7 +53,9 @@ public:
     }
     void loop()
     {
-        if (host=="none") return;
+        enabled = !((host == NULL) || (host == "none"));
+        if (!enabled)
+            return;
         reconnect();
         mqttClient.loop();
 
@@ -71,9 +72,10 @@ public:
     {
         return mqttClient.connected();
     }
+    bool enabled = false;
     bool send(const char *subtopic, const char *payload)
     {
-        if (host == "none")
+        if (!enabled)
             return false;
         try
         {
@@ -102,7 +104,7 @@ private:
     unsigned long lastAlive = 0;
     bool reconnect()
     {
-        if (host == "none")
+        if (!enabled)
             return false;
         if (millis() - lastReconnect > 500)
             while (!isConnected())
