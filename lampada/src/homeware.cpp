@@ -109,6 +109,7 @@ void Homeware::loop()
     if (!inited)
         begin();
 
+    mqtt.loop();
     loopEvent();
 #ifdef ALEXA
     alexa.loop();

@@ -6,6 +6,7 @@
 #include <functions.h>
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
+#include <homeware.h>
 
 WiFiClient mqttWifiClient;
 PubSubClient mqttClient(mqttWifiClient);
@@ -14,17 +15,7 @@ unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
 char msg[MSG_BUFFER_SIZE];
 
-void callback(char *topic, byte *payload, unsigned int length)
-{
-    Serial.print("Message arrived [");
-    Serial.print(topic);
-    Serial.print("] ");
-    for (int i = 0; i < length; i++)
-    {
-        Serial.print((char)payload[i]);
-    }
-    Serial.println();
-}
+void callback(char *topic, byte *payload, unsigned int length);
 
 class MQTT
 {
@@ -63,8 +54,17 @@ public:
     }
     void loop()
     {
-        if (reconnect())
-            mqttClient.loop();
+        reconnect();
+        mqttClient.loop();
+
+        if (millis() - lastAlive > 60000)
+            sendAlive();
+    }
+    void sendAlive()
+    {
+        lastAlive = millis();
+        String rsp = homeware.doCommand("show");
+        send("/alive", rsp.c_str());
     }
     bool isConnected()
     {
@@ -72,26 +72,36 @@ public:
     }
     bool send(const char *subtopic, const char *payload)
     {
-        if (isConnected())
+        try
         {
-            char topic[64];
-            sprintf(topic, "%s/%s%s", prefix, name, subtopic);
-
-            sprintf(msg, payload);
-            Serial.println(topic);
-            Serial.println(msg);
-            return mqttClient.publish(topic, msg);
+            if (isConnected())
+            {
+                char topic[128];
+                sprintf(topic, "%s/%s%s", prefix, name, subtopic);
+                char msg[1024];
+                sprintf(msg, "%s", payload);
+                mqttClient.publish(topic, msg);
+                Serial.print("send: ");
+                Serial.println(msg);
+            }
         }
+
+        catch (int &e)
+        {
+            Serial.println(e);
+        }
+
         return false;
     }
 
 private:
     unsigned long lastReconnect = 0;
+    unsigned long lastAlive = 0;
     bool reconnect()
     {
         // Loop until we're reconnected
         if (millis() - lastReconnect > 500)
-            while (!mqttClient.connected())
+            while (!isConnected())
             {
                 lastReconnect = millis();
                 Serial.print("MQTT connection...");
@@ -105,17 +115,18 @@ private:
                 if (mqttClient.connect(clientId.c_str()))
                 {
                     Serial.println("connected");
-                    send("/response", "online");
+                    char ip[32];
+                    IPAddress x = homeware.localIP();
+                    sprintf(ip, "%s", x.toString().c_str());
+                    send("/ip", ip);
                     char subscribe[64];
-                    sprintf(subscribe, "%s", getTopicIN());
+                    sprintf(subscribe, "%s", getTopicIN().c_str());
                     Serial.println(subscribe);
                     mqttClient.subscribe(subscribe);
                     return true;
                 }
                 else
                 {
-                    //  Serial.print("failed, rc=");
-                    //  Serial.print(mqttClient.state());
                     Serial.println(" try again in 5 seconds");
                     return false;
                 }
@@ -124,7 +135,21 @@ private:
     }
 };
 
-MQTT mqtt;
 extern MQTT mqtt;
+MQTT mqtt;
+
+void callback(char *topic, byte *payload, unsigned int length)
+{
+    Serial.println("Message arrived [");
+    Serial.print(topic);
+    String cmd = "";
+    for (int i = 0; i < length; i++)
+        cmd += (char)payload[i];
+    Serial.println(cmd);
+    String result = homeware.doCommand(cmd);
+    mqtt.send("/response", result.c_str());
+    Serial.print("] ");
+    Serial.println();
+}
 
 #endif

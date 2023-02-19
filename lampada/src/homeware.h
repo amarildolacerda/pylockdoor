@@ -65,18 +65,19 @@ public:
     uint32_t getChipId();
     void errorMsg(String msg);
     JsonObject getValues();
+    
 
-private:
-    void setupPins();
-    void setupServer();
-    void loopEvent();
+    private:
+        void setupPins();
+        void setupServer();
+        void loopEvent();
 #ifdef ALEXA
     void setupAlexa();
 #endif
 #ifdef TELNET
     void setupTelnet();
 #endif
-};
+    };
 
 extern Homeware homeware;
 extern ESP8266WebServer server;
