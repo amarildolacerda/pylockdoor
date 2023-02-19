@@ -1,4 +1,4 @@
-Kkk#include <Arduino.h>
+#include <Arduino.h>
 #include <portal.h>
 #include <functions.h>
 #include <wm_strings_pt_BR.h>

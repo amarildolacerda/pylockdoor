@@ -54,6 +54,7 @@ public:
     }
     void loop()
     {
+        if (host=="none") return;
         reconnect();
         mqttClient.loop();
 
@@ -72,6 +73,8 @@ public:
     }
     bool send(const char *subtopic, const char *payload)
     {
+        if (host == "none")
+            return false;
         try
         {
             if (isConnected())
@@ -99,7 +102,8 @@ private:
     unsigned long lastAlive = 0;
     bool reconnect()
     {
-        // Loop until we're reconnected
+        if (host == "none")
+            return false;
         if (millis() - lastReconnect > 500)
             while (!isConnected())
             {
