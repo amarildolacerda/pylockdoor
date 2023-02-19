@@ -6,6 +6,8 @@
 
 #include <ESP8266WiFi.h>
 
+
+
 void Portal::setup(ESP8266WebServer *externalServer)
 {
     server = externalServer;
@@ -20,7 +22,7 @@ void Portal::autoConnect(const String slabel)
 
     if (!homeware.config["ssid"])
     {
-WiFi.mode(WIFI_AP_STA);
+        WiFi.mode(WIFI_AP_STA);
         Serial.println("SmartConfig.");
         WiFi.beginSmartConfig();
         while (!WiFi.smartConfigDone() && millis() - start < timeLimitMsec)
@@ -28,25 +30,13 @@ WiFi.mode(WIFI_AP_STA);
             delay(500);
             Serial.print(".");
         }
+        WiFi.stopSmartConfig();
     }
-    else
-    {
-        WiFi.setAutoReconnect(true);
-        WiFi.setAutoConnect(true);
-        Serial.println("Conectando.");
-        WiFi.begin();
-        while ((WiFi.status() != WL_CONNECTED) && millis() - start < 5000)
-        {
-            delay(500);
-            Serial.print(".");
-        }
-    }
-    WiFi.stopSmartConfig();
-WiFi.mode(WIFI_STA);
     bool connected = (WiFi.status() == WL_CONNECTED);
 
     if (!connected)
     {
+        WiFi.mode(WIFI_STA);
         hostname = stringf("%s.local", slabel);
         WiFi.setHostname(hostname);
         wifiManager.setMinimumSignalQuality(30);

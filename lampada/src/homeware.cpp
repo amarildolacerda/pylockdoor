@@ -203,7 +203,7 @@ int Homeware::writePin(const int pin, const int value)
     if (mode != NULL)
         if (mode == "adc")
             return -1;
-        else if (pin == 0 && config["board"] == "lc")
+        else if (mode == "lc")
         {
             byte relON[] = {0xA0, 0x01, 0x01, 0xA2}; // Hex command to send to serial for open relay
             byte relOFF[] = {0xA0, 0x01, 0x00, 0xA1};
@@ -239,7 +239,7 @@ int Homeware::readPin(const int pin, const String mode)
     int newValue = 0;
     if (mode == "adc")
         newValue = analogRead(pin);
-    else if (pin == 0 && config["board"] == "lc")
+    else if (mode == "lc")
     {
         newValue = docPinValues[String(pin)];
     }
@@ -284,9 +284,9 @@ void Homeware::checkTrigger(int pin, int value)
 String Homeware::help()
 {
     String s = "";
-    s += "set board <esp8266,lc>\r\n";
+    s += "set board <esp8266>\r\n";
     s += "show config\r\n";
-    s += "gpio <pin> mode <in,out,adc>\r\n";
+    s += "gpio <pin> mode <in,out,adc,lc>\r\n";
     s += "gpio <pin> trigger <pin> [monostable,monostableNC,bistable,bistableNC]\r\n";
     s += "gpio <pin> get\r\n";
     s += "gpio <pin> set <n>\r\n";
@@ -456,7 +456,12 @@ String Homeware::doCommand(String command)
         else if (cmd[0] == "gpio")
         {
             int pin = cmd[1].toInt();
-            if (cmd[2] == "get")
+            if (cmd[2] == "none")
+            {
+                config["mode"].remove(cmd[1]);
+                return "OK";
+            }
+            else if (cmd[2] == "get")
             {
                 int v = digitalRead(pin);
                 return String(v);
