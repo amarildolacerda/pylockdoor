@@ -1,4 +1,4 @@
-#include <Arduino.h>
+Kkk#include <Arduino.h>
 #include <portal.h>
 #include <functions.h>
 #include <wm_strings_pt_BR.h>
@@ -16,10 +16,11 @@ void Portal::autoConnect(const String slabel)
     label = slabel;
     unsigned start = millis();
     unsigned timeLimitMsec = 10000;
-    WiFi.mode(WIFI_STA);
+    
 
     if (!homeware.config["ssid"])
     {
+WiFi.mode(WIFI_AP_STA);
         Serial.println("SmartConfig.");
         WiFi.beginSmartConfig();
         while (!WiFi.smartConfigDone() && millis() - start < timeLimitMsec)
@@ -41,7 +42,7 @@ void Portal::autoConnect(const String slabel)
         }
     }
     WiFi.stopSmartConfig();
-
+WiFi.mode(WIFI_STA);
     bool connected = (WiFi.status() == WL_CONNECTED);
 
     if (!connected)
