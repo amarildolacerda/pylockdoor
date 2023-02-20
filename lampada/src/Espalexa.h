@@ -28,7 +28,7 @@
 #define ESPALEXA_MAXDEVICES 10 // this limit only has memory reasons, set it higher should you need to, max 128
 #endif
 
-#define ESPALEXA_DEBUG
+// #define ESPALEXA_DEBUG
 
 #ifdef ESPALEXA_ASYNC
 #ifdef ARDUINO_ARCH_ESP32
@@ -251,7 +251,7 @@ private:
 
     server->send(200, "text/xml", buf);
 
-    EA_DEBUGLN("Send setup.xml");
+    EA_DEBUGLN("Send description.xml");
     EA_DEBUGLN(buf);
   }
 
@@ -487,7 +487,10 @@ public:
 #else
   bool handleAlexaApiCall(String req, String body)
   {
+    Serial.println(req);
+    Serial.println(body);
 #endif
+
     EA_DEBUGLN("AlexaApiCall");
     if (req.indexOf("api") < 0)
       return false; // return if not an API call

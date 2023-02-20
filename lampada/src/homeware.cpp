@@ -12,6 +12,10 @@
 #include <ESP8266WiFi.h>
 #include <mqtt.h>
 
+#ifdef ALEXA
+void alexaTrigger(int pin, int value);
+#endif
+
 void linha()
 {
     Serial.println("-------------------------------");
@@ -240,7 +244,9 @@ int Homeware::readPin(const int pin, const String mode)
     int oldValue = docPinValues[String(pin)];
     int newValue = 0;
     if (mode == "adc")
+    {
         newValue = analogRead(pin);
+    }
     else if (mode == "lc")
     {
         newValue = docPinValues[String(pin)];
@@ -261,7 +267,11 @@ int Homeware::readPin(const int pin, const String mode)
         debug(buffer);
         docPinValues[String(pin)] = newValue;
         checkTrigger(pin, newValue);
+#ifdef ALEXA
+        alexaTrigger(pin, newValue);
+#endif
     }
+
     return newValue;
 }
 
@@ -547,24 +557,50 @@ int Homeware::getAdcState(int pin)
 uint32_t Homeware::getChipId() { return ESP.getChipId(); }
 
 #ifdef ALEXA
+void alexaTrigger(int pin, int value)
+{
+    for (int i = 0; i < ESPALEXA_MAXDEVICES; i++)
+    {
+        EspalexaDevice *d = homeware.alexa.getDevice(i);
+        if (d != nullptr && d->getValue() != value)
+        {
+            int id = d->getId();
+            int index = 0;
+            for (JsonPair k : homeware.getDevices())
+            {
+                if (index == id)
+                {
+                    d->setState(value != 0);
+                    if (value > 0 && k.value().as<String>() == "onoff")
+                    {
+                        d->setValue(value);
+                        d->setPercent(100);
+                    }
+                    Serial.printf("Alexa Pin %d setValue(%d)", pin, value);
+                }
+                index += 1;
+            }
+        }
+    }
+}
 void onoffChanged(EspalexaDevice *d)
 {
     if (d == nullptr)
         return;          // this is good practice, but not required
-    int id = d->getId(); // * base 1
-    Serial.printf("Id: %d", id);
-    int value = d->getValue();
+    int id = d->getId(); // * base 0
+    Serial.printf("\r\nId: %d \r\n", id);
+    bool value = d->getState();
     // procurar qual o pin associado pelo ID;
     JsonObject devices = homeware.getDevices();
     int index = 0;
 
     for (JsonPair k : devices)
     {
-        Serial.printf("%s %s %d", k.key().c_str(), k.value(), value);
-        if (index == (id - 1))
+        // Serial.printf("Alexa: %s %s %d", k.key().c_str(), k.value(), value);
+        if (index == (id))
         {
             int pin = String(k.key().c_str()).toInt();
-            homeware.writePin(pin, (value == LOW) ? LOW : HIGH);
+            homeware.writePin(pin, (value) ? HIGH : LOW);
         }
         index += 1;
     }

@@ -141,6 +141,16 @@ void Portal::setupServer()
         pg+="</tbody></table>";
         pg += button("Menu","/");
         portal.server->send(200, "text/html", wf.pageMake("Homeware",pg)); });
+
+#ifdef ALEXA
+    server->onNotFound([]()
+                       {
+	if (!homeware.alexa.handleAlexaApiCall(homeware.server->uri(),homeware.server->arg(0)))
+	{
+        homeware.server->send(404, "text/plain", "Not found");
+    } });
+#endif
+    
 }
 
 Portal portal;
