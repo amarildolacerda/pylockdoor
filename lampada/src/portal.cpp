@@ -6,8 +6,6 @@
 
 #include <ESP8266WiFi.h>
 
-
-
 void Portal::setup(ESP8266WebServer *externalServer)
 {
     server = externalServer;
@@ -18,7 +16,6 @@ void Portal::autoConnect(const String slabel)
     label = slabel;
     unsigned start = millis();
     unsigned timeLimitMsec = 10000;
-    
 
     if (!homeware.config["ssid"])
     {
@@ -92,19 +89,21 @@ void Portal::setupServer()
         String pg = "";
         JsonObject mode = homeware.getMode();
         for (JsonPair k : mode)
-        {   
-          if (k.value().as<String>()=="out"){
-              String p1 = k.key().c_str();
-              String v1 = k.value().as<String>();
-              int v = homeware.readPin(p1.toInt(), v1);
-              String s = (v == 1) ? "ON" : (v > 0) ? String(v)
-                                                   : "OFF";
-              String hd =inputH("p", p1);
-              hd += inputH("q", ((s == "ON") ? "OFF" : "ON"));
-              //Serial.println(hd);
+        {
+            String md = k.value().as<String>();
+            if (md == "out" || md == "lc")
+            {
+                String p1 = k.key().c_str();
+                String v1 = k.value().as<String>();
+                int v = homeware.readPin(p1.toInt(), v1);
+                String s = (v == 1) ? "ON" : (v > 0) ? String(v)
+                                                     : "OFF";
+                String hd = inputH("p", p1);
+                hd += inputH("q", ((s == "ON") ? "OFF" : "ON"));
+                // Serial.println(hd);
 
-              pg += "<br/><form action='/pin' method='get'>"+hd+"<button class='D'>"+s+"</button></form>";
-          }
+                pg += "<br/><form action='/pin' method='get'>" + hd + "<button class='D'>" + s + "</button></form>";
+            }
         }
 
         pg += button("GPIO", "/gs");
@@ -150,7 +149,6 @@ void Portal::setupServer()
         homeware.server->send(404, "text/plain", "Not found");
     } });
 #endif
-    
 }
 
 Portal portal;

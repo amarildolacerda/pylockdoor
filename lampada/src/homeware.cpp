@@ -635,7 +635,7 @@ void Homeware::setupTelnet()
         Serial.print("- Telnet: ");
         Serial.print(ip);
         Serial.println(" conectou");
-        homeware.telnet.println("\nOlá " + homeware.telnet.getIP());
+        homeware.telnet.println("\nhello " + homeware.telnet.getIP());
         homeware.telnet.println("(Use ^] + q  para desligar.)"); });
     telnet.onInputReceived([](String str)
                            { homeware.print(homeware.doCommand(str)); });
