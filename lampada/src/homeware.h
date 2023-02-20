@@ -8,7 +8,7 @@
 
 #include <ArduinoJson.h>
 
-#define LABEL "sala"
+#define LABEL String(getChipId(), HEX);
 #define VERSION "1.0.0"
 #define ALEXA
 #define TELNET
