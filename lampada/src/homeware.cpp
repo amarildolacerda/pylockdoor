@@ -137,7 +137,7 @@ void Homeware::defaultConfig()
     config["adc_min"] = "511";
     config["adc_max"] = "512";
 
-    config["mqtt_host"] = "test.mosquitto.org";
+    config["mqtt_host"] = "none";//"test.mosquitto.org";
     config["mqtt_port"] = 1883;
     config["mqtt_user"] = "homeware";
     config["mqtt_password"] = "123456780";
@@ -576,7 +576,7 @@ void alexaTrigger(int pin, int value)
                         d->setValue(value);
                         d->setPercent(100);
                     }
-                    Serial.printf("Alexa Pin %d setValue(%d)", pin, value);
+                    homeware.debug(stringf("Alexa Pin %d setValue(%d)", pin, value));
                 }
                 index += 1;
             }
@@ -596,7 +596,7 @@ void onoffChanged(EspalexaDevice *d)
 
     for (JsonPair k : devices)
     {
-        // Serial.printf("Alexa: %s %s %d", k.key().c_str(), k.value(), value);
+        homeware.debug(stringf("Alexa: %s %s %d", k.key().c_str(), k.value(), value));
         if (index == (id))
         {
             int pin = String(k.key().c_str()).toInt();
@@ -613,14 +613,14 @@ void Homeware::setupAlexa()
     Serial.println("\r\nDevices\r\n============================\r\n");
     for (JsonPair k : devices)
     {
-        Serial.printf("%s is %s\r\n", k.key().c_str(), k.value().as<String>());
+        debug(stringf("%s is %s\r\n", k.key().c_str(), k.value().as<String>()));
         String sName = config["label"];
         sName += "-";
         sName += k.key().c_str();
         if (k.value().as<String>() == "onoff")
         {
             alexa.addDevice(sName, onoffChanged, EspalexaDeviceType::onoff); // non-dimmable device
-            Serial.printf("alexa: onoff em %s \r\n", sName);
+            debug(stringf("alexa: onoff em %s \r\n", sName));
         }
     }
     Serial.println("============================");
