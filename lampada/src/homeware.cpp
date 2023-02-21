@@ -308,17 +308,22 @@ void Homeware::checkTrigger(int pin, int value)
     JsonObject trig = getTrigger();
     if (trig.containsKey(p))
     {
-        int bistable = getStable()[String(pin)] || 0;
-        int v = value;
-        if (bistable == 1 || bistable == 3)
-        {
-            v = 1 - v;
-        } // troca o sinal quando é NC
-        if ((bistable == 2 || bistable == 3) && v == 0)
-            return; // so aciona quando v for 1
-        // checa se troca o sinal NC
         String pinTo = trig[p];
-        debug(stringf("pin %s trigger %s to %d \r\n", p, pinTo, v));
+        if (!getStable().containsKey(p))
+            return;
+
+        int bistable = getStable()[p];
+        int v = value;
+
+        if ((bistable == 2 || bistable == 3))
+        {
+            if (v == 0)
+                return; // so aciona quando v for 1
+            switchPin(pinTo.toInt());   
+            return; 
+        }
+
+        Serial.println(stringf("pin %s trigger %s to %d stable %d \r\n", p, pinTo, v, bistable));
         if (pinTo.toInt() != pin)
             writePin(pinTo.toInt(), v);
     }
