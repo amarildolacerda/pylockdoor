@@ -431,6 +431,8 @@ String Homeware::doCommand(String command)
         {
             if (cmd[1] == "config")
                 return config.as<String>();
+            else if (cmd[1] == "gpio")
+                return showGpio();
             char buffer[32];
             char ip[20];
             IPAddress x = localIP();
@@ -529,6 +531,42 @@ String Homeware::doCommand(String command)
     {
         return String(e);
     }
+}
+
+String Homeware::showGpio()
+{
+    String r = "[";
+    for (JsonPair k : getMode())
+    {
+        String sPin = String(k.key().c_str());
+        String s = "'gpio': ";
+        s += sPin;
+        s += ", 'mode': '";
+        s += k.value().as<String>();
+        s += "'";
+
+        JsonObject trig = getTrigger();
+        if (trig.containsKey(sPin))
+        {
+            s += ", 'trigger': ";
+            s += String(trig[sPin]);
+
+            JsonObject stab = getStable();
+            String st = String(stab[sPin]);
+            s += " ";
+            s += st;
+        }
+        int value = readPin(sPin.toInt(), k.value().as<String>());
+        s += ", 'value': ";
+        s += String(value);
+
+        s = "{" + s + "}";
+        if (r.length() > 1)
+            r += ",";
+        r += s;
+    }
+    r += "]";
+    return r;
 }
 void Homeware::printConfig()
 {
