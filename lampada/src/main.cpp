@@ -50,20 +50,20 @@ void firstDeviceChanged(uint8_t brightness);
 
 void defaultConfig()
 {
-  //homeware.doCommand(stringf("gpio %d mode in", BUTTON_PIN));
-  //homeware.doCommand(stringf("gpio %d mode out", RELAY_PIN));
-  //homeware.doCommand("gpio 4 trigger 15 monostable");
-  //homeware.doCommand("gpio 15 device onoff");
-  //homeware.printConfig();
+  // homeware.doCommand(stringf("gpio %d mode in", BUTTON_PIN));
+  // homeware.doCommand(stringf("gpio %d mode out", RELAY_PIN));
+  // homeware.doCommand("gpio 4 trigger 15 monostable");
+  // homeware.doCommand("gpio 15 device onoff");
+  // homeware.printConfig();
 }
 
 void setupServer()
 {
-  homeware.server->on("/reset", []()
+  homeware.server->on("/clear", []()
                       {
         Serial.println("reiniciando");
-        portal.reset();
-        homeware.server->send(200, "text/html", "reiniciando..."); });
+        homeware.server->send(200, "text/html", "reiniciando...");
+        portal.reset(); });
 }
 
 // main setup function
@@ -79,7 +79,7 @@ void setup()
 
   setupServer();
   defaultConfig();
-  //homeware.alexa.addDevice(homeware.config["label"], firstDeviceChanged);
+  // homeware.alexa.addDevice(homeware.config["label"], firstDeviceChanged);
   homeware.begin();
 }
 

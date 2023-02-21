@@ -5,10 +5,9 @@
 
 const char HTTP_CHART_HEADER[] PROGMEM = "<script src = 'https://code.highcharts.com/highcharts.js'></script>"
                                          "<style>"
-                                         ".container {"
-                                         "width:200px;"
-                                         "height:200px;"
-                                         "color:red;"
+                                         ".container {min-width:260px;"
+                                         "max-width:500px;"
+                                         "height:250px;"
                                          "}"
                                          "</style>";
 const char HTTP_CHART_DIV[] PROGMEM = " <h2>{title}</h2><div id='{id}' class='container'></div>";

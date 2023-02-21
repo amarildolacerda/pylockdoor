@@ -57,7 +57,8 @@ public:
     JsonObject getDevices();
 
     int writePin(const int pin, const int value);
-    int readPin(const int pin, const String mode);
+    int readPin(const int pin, const String mode = "");
+    int switchPin(const int pin);
     void checkTrigger(int pin, int value);
     String help();
     bool readFile(String filename, char *buffer, size_t maxLen);

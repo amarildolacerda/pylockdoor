@@ -131,19 +131,55 @@ void setManager(WiFiManager *wf)
     wf->setHostname(hostname);
     wf->setTitle("Homeware");
 }
+
+const char BUTTON_SCRIPT[] PROGMEM =
+    "\r\nfunction buttonClick(buttonId, pinNumber)"
+    "{"
+    "\r\nconsole.log(buttonId,pinNumber);"
+    "\r\nvar xhr = new XMLHttpRequest();"
+    "\r\nxhr.onreadystatechange = function()"
+    "{"
+    "\r\nif (xhr.readyState == 4 &&xhr.status ==200)"
+    "{"
+    "\r\nvar button = document.getElementById(buttonId);"
+    "\r\nbutton.innerText = (xhr.responseText=='1')?'ON':'OFF';"
+    "\r\nbutton.value = xhr.responseText;"
+    "\r\nconsole.log('response',xhr.responseText);"
+    "\r\n}"
+    "};"
+    "\r\nvar button = document.getElementById(buttonId);"
+    "\r\nvar lnk = '/switch?p='+pinNumber; lnk+='&q='; \r\n lnk+=(button.value=='1')?'OFF':'ON';"
+    "\r\nconsole.log(lnk);"
+    "\r\nxhr.open('GET', lnk , true);"
+    "\r\nxhr.send();"
+    "\r\n}";
+
+/*
+const char HTTP_TIMER_RELOAD[] PROGMEM = "<script>setInterval(function(){"
+                                         "{code}"
+                                         "}, {t});"
+                                         "</ script> ";
+String timereload(String url = "/", int timeout = 1000)
+{
+    String s = FPSTR(HTTP_TIMER_RELOAD);
+    s.replace("{t}", String(timeout));
+    s.replace("{code}", stringf("window.location.href = '%s';", url));
+    return s;
+}
+*/
 void Portal::setupServer()
 {
     server->on("/", []()
                {
-        WiFiManager wf  ;
+        WiFiManager wf;
         setManager(&wf);
-        String s = "";
-        s+=FPSTR(HTTP_CHART_HEADER);
-        wf.setCustomHeadElement(s.c_str());
+        String head = "";
+        head += FPSTR(HTTP_CHART_HEADER);
 
         String pg = "";
         JsonObject mode = homeware.getMode();
         String charts = "";
+        String scp = "";
         for (JsonPair k : mode)
         {
             String md = k.value().as<String>();
@@ -154,34 +190,56 @@ void Portal::setupServer()
                 int v = homeware.readPin(p1.toInt(), v1);
                 String s = (v == 1) ? "ON" : (v > 0) ? String(v)
                                                      : "OFF";
-                String hd = inputH("p", p1);
-                hd += inputH("q", ((s == "ON") ? "OFF" : "ON"));
-                // Serial.println(hd);
+                String j = "<br/><button id='b{id}' class='D' value='{v}'>" + s + "</button></form>"; 
+                j.replace("{id}", p1);
+                j.replace("{v}",String(v));
+                pg += j;
+                j = "\r\nvar b{id} = document.getElementById('b{id}');\r\n";
+                j.replace("{id}", p1);
+                scp += j;
+                j = "\r\n b{id}.addEventListener('click', function() { buttonClick('b{id}', '{id}');});\r\n";
+                j.replace("{id}", p1);
+                scp += j;
+        }
 
-                pg += "<br/><form action='/set' method='get'>" + hd + "<button class='D'>" + s + "</button></form>";
-            }
-
-            // chart
-            if ( md=="adc" || md=="ldr" || md=="pwm" ){
-                Chart chart= Chart();
-                charts+=chart.render("p"+p1,"Pin "+p1+" - "+v1,"valor","/get?p="+p1);
-            }
+        // chart
+        if (md == "adc" || md == "ldr" || md == "pwm" || md == "dht")
+        {
+            Chart chart = Chart();
+            charts += chart.render("p" + p1, "Pin " + p1 + " - " + v1, "valor", "/get?p=" + p1);
+        }
         }
         pg += charts;
 
         pg += button("GPIO", "/gs");
+        pg += button("Reiniciar","/reset");
         pg += "<div style='height:100'></div><a href=\"/update\" class='D'>firmware</a>";
+
+        if (scp.length() > 0)
+        {
+        pg += "<script>\r\n";
+        pg += FPSTR(BUTTON_SCRIPT);
+            pg += scp;
+
+            pg += "\r\n</script>\r\n";
+        }
+        wf.setCustomHeadElement(head.c_str());
+
         portal.server->send(200, "text/html", wf.pageMake("Homeware", pg)); });
+
+    server->on("/switch", []()
+               {
+                String p = portal.server->arg("p");
+                int rsp = homeware.switchPin(p.toInt());
+                portal.server->send(200, "text/plain", String(rsp)); });
 
     server->on("/set", []()
                {
                 //if (portal.server->hasArg("p") && portal.server->hasArg("q")){
                 String p = portal.server->arg("p");
                 String q = portal.server->arg("q");
-                homeware.writePin(p.toInt(),(q=="ON")?1:0);
-                   // yield();
-                portal.server->sendHeader("Location", String("/"), true);
-                portal.server->send(302, "text/plain", ""); });
+                int rsp = homeware.writePin(p.toInt(), (q == "ON") ? 1 : 0);
+                portal.server->send(200, "text/plain", String(rsp)); });
     server->on("/get", []()
                { 
                String p = portal.server->arg("p");
@@ -189,6 +247,14 @@ void Portal::setupServer()
                Serial.print(p+": ");
                Serial.println(v);
                portal.server->send(200, "text/plain", String(v)); });
+    homeware.server->on("/reset", []()
+                        {
+                            //String pg = "reiniciando...{c}";
+                            //pg.replace("{c}", timereload("/", 1000));
+                            WiFiManager wf;
+        portal.server->send(200, "text/html", wf.pageMake("Homeware", "<a href='/'>reiniciando...</>"));
+    homeware.doCommand("reset"); });
+
     server->on("/gs", []()
                {
         WiFiManager wf ;
@@ -203,7 +269,8 @@ void Portal::setupServer()
             String p1 = k.key().c_str();
             String v1 = k.value().as<String>();
             int v = homeware.readPin(p1.toInt(), v1);
-            String s = (v==1)?"ON": (v>0)?  String(v):"OFF";
+            String s = (v==1)?"ON": (v>1)?  String(v):"OFF";
+
             pg += stringf("<tr><td>%s</td><td>%s</td><td>%s</td></tr>", p1, v1,s);
         }
 

@@ -204,6 +204,18 @@ JsonObject Homeware::getStable()
     return config["stable"].as<JsonObject>();
 }
 
+int Homeware::switchPin(const int pin){
+    String mode = getMode()[String(pin)];
+    if (mode=="out" || mode=="lc"){
+        int r = readPin(pin,mode);
+        return writePin(pin, 1-r);
+    } else
+    {
+        int r = readPin(pin, mode);
+        return writePin(pin, (r>0)?0:r);
+    }
+}
+
 StaticJsonDocument<256> docPinValues;
 
 int Homeware::writePin(const int pin, const int value)
@@ -244,23 +256,26 @@ JsonObject Homeware::getValues()
 {
     return docPinValues.as<JsonObject>();
 }
-int Homeware::readPin(const int pin, const String mode)
+int Homeware::readPin(const int pin, const String mode )
 {
+    String md = mode;
+    if (!md)
+       md = getMode()[String(pin)].as<String>();
     int oldValue = docPinValues[String(pin)];
     int newValue = 0;
-    if (mode == "pwm")
+    if (md == "pwm")
     {
         newValue = analogRead(pin);
     }
-    else if (mode == "adc")
+    else if (md == "adc")
     {
         newValue = analogRead(pin);
     }
-    else if (mode == "lc")
+    else if (md == "lc")
     {
         newValue = docPinValues[String(pin)];
     }
-    else if (mode == "ldr")
+    else if (md == "ldr")
     {
         newValue = getAdcState(pin);
     }
