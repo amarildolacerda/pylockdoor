@@ -36,7 +36,7 @@ const char HTTP_CHART_RENDER[] PROGMEM =
     "xAxis : {type : 'datetime',"
     "dateTimeLabelFormats:"
     "{"
-    "second : '%M:%S'"
+    "second : '%k:%S'"
     "}"
     "}"
     ","

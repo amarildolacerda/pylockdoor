@@ -164,7 +164,7 @@ void Portal::setupServer()
             // chart
             if ( md=="adc" || md=="ldr" || md=="pwm" ){
                 Chart chart= Chart();
-                charts+=chart.render("p"+p1,p1,"valor","/get?p="+p1);
+                charts+=chart.render("p"+p1,"Pin "+p1+" - "+v1,"valor","/get?p="+p1);
             }
         }
         pg += charts;
