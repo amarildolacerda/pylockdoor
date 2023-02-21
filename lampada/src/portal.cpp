@@ -85,7 +85,7 @@ void Portal::autoConnect(const String slabel)
         wifiManager.setConnectTimeout(30);
         wifiManager.setMinimumSignalQuality(30);
         wifiManager.setDebugOutput(true);
-        //        wifiManager.setHostname(hostname);
+        wifiManager.setHostname(hostname);
         wifiManager.setAPCallback([](WiFiManager *mgr)
                                   { Serial.println("looping...");
                                    homeware.loop(); });
