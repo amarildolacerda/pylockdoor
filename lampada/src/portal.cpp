@@ -41,6 +41,7 @@ void Portal::autoConnect(const String slabel)
     label = slabel;
     WiFi.onSoftAPModeStationConnected(&onStationConnected);
     WiFi.onSoftAPModeStationDisconnected(&onStationDisconnected);
+    WiFi.setAutoReconnect(true);
     if (homeware.config["password"] && homeware.config["ssid"])
     {
         WiFi.enableSTA(true);
