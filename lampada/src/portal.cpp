@@ -5,6 +5,7 @@
 #include <homeware.h>
 
 #include <ESP8266WiFi.h>
+#include <chart.h>
 
 void Portal::setup(ESP8266WebServer *externalServer)
 {
@@ -136,15 +137,20 @@ void Portal::setupServer()
                {
         WiFiManager wf  ;
         setManager(&wf);
+        String s = "";
+        s+=FPSTR(HTTP_CHART_HEADER);
+        wf.setCustomHeadElement(s.c_str());
+
         String pg = "";
         JsonObject mode = homeware.getMode();
+        String charts = "";
         for (JsonPair k : mode)
         {
             String md = k.value().as<String>();
+            String p1 = k.key().c_str();
+            String v1 = k.value().as<String>();
             if (md == "out" || md == "lc")
             {
-                String p1 = k.key().c_str();
-                String v1 = k.value().as<String>();
                 int v = homeware.readPin(p1.toInt(), v1);
                 String s = (v == 1) ? "ON" : (v > 0) ? String(v)
                                                      : "OFF";
@@ -152,15 +158,22 @@ void Portal::setupServer()
                 hd += inputH("q", ((s == "ON") ? "OFF" : "ON"));
                 // Serial.println(hd);
 
-                pg += "<br/><form action='/pin' method='get'>" + hd + "<button class='D'>" + s + "</button></form>";
+                pg += "<br/><form action='/set' method='get'>" + hd + "<button class='D'>" + s + "</button></form>";
+            }
+
+            // chart
+            if ( md=="adc" || md=="ldr" || md=="pwm" ){
+                Chart chart= Chart();
+                charts+=chart.render("p"+p1,p1,"valor","/get?p="+p1);
             }
         }
+        pg += charts;
 
         pg += button("GPIO", "/gs");
         pg += "<div style='height:100'></div><a href=\"/update\" class='D'>firmware</a>";
         portal.server->send(200, "text/html", wf.pageMake("Homeware", pg)); });
 
-    server->on("/pin", []()
+    server->on("/set", []()
                {
                 //if (portal.server->hasArg("p") && portal.server->hasArg("q")){
                 String p = portal.server->arg("p");
@@ -169,6 +182,13 @@ void Portal::setupServer()
                    // yield();
                 portal.server->sendHeader("Location", String("/"), true);
                 portal.server->send(302, "text/plain", ""); });
+    server->on("/get", []()
+               { 
+               String p = portal.server->arg("p");
+               int v = homeware.readPin(p.toInt(), String(homeware.getMode()[p]));
+               Serial.print(p+": ");
+               Serial.println(v);
+               portal.server->send(200, "text/plain", String(v)); });
     server->on("/gs", []()
                {
         WiFiManager wf ;
