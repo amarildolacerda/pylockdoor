@@ -54,7 +54,7 @@ void defaultConfig()
   //homeware.doCommand(stringf("gpio %d mode out", RELAY_PIN));
   //homeware.doCommand("gpio 4 trigger 15 monostable");
   //homeware.doCommand("gpio 15 device onoff");
-  homeware.printConfig();
+  //homeware.printConfig();
 }
 
 void setupServer()
