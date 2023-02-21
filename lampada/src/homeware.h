@@ -64,6 +64,8 @@ public:
     String doCommand(String command);
     String print(String msg);
     void printConfig();
+    String showGpio();
+
     void debug(String txt);
     int getAdcState(int pin);
     uint32_t getChipId();
