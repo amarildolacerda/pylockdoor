@@ -10,43 +10,93 @@ void Portal::setup(ESP8266WebServer *externalServer)
 {
     server = externalServer;
 }
+void Portal::loop()
+{
+    if ((WiFi.status() != WL_CONNECTED) || (WiFi.localIP().toString() == "0.0.0.0"))
+    {
+        WiFi.reconnect();
+    }
+}
+
+void onStationConnected(const WiFiEventSoftAPModeStationConnected &evt)
+{
+    homeware.connected = true;
+    Serial.print("Station connected: ");
+    // Serial.println(macToString(evt.mac));
+}
+
+void onStationDisconnected(const WiFiEventSoftAPModeStationDisconnected &evt)
+{
+    homeware.connected = false;
+    Serial.print("Station disconnected: ");
+    // Serial.println(macToString(evt.mac));
+}
 
 void Portal::autoConnect(const String slabel)
 {
-    label = slabel;
     unsigned start = millis();
-    unsigned timeLimitMsec = 10000;
+    unsigned timeLimitMsec = 20000;
 
-    if (!homeware.config["ssid"])
+    label = slabel;
+    WiFi.onSoftAPModeStationConnected(&onStationConnected);
+    WiFi.onSoftAPModeStationDisconnected(&onStationDisconnected);
+    if (homeware.config["password"] && homeware.config["ssid"])
     {
-        WiFi.mode(WIFI_AP_STA);
-        Serial.println("SmartConfig.");
-        WiFi.beginSmartConfig();
-        while (!WiFi.smartConfigDone() && millis() - start < timeLimitMsec)
+        WiFi.enableSTA(true);
+        WiFi.begin(homeware.config["ssid"], String(homeware.config["password"]));
+        Serial.println(String(homeware.config["ssid"]));
+        while (WiFi.status() != WL_CONNECTED && millis() - start < timeLimitMsec)
         {
             delay(500);
+
             Serial.print(".");
         }
-        WiFi.stopSmartConfig();
+        Serial.print("\r\nIP: ");
+        Serial.print(WiFi.localIP());
+        Serial.println("");
     }
+    /* NAO FUNCIONOU
+       unsigned start = millis();
+       unsigned timeLimitMsec = 30000;
+
+       if (!homeware.config["ssid"])
+       {
+           WiFi.softAPdisconnect();
+           WiFi.enableAP(false);
+           Serial.println("SmartConfig.");
+           WiFi.beginSmartConfig();
+           while (!WiFi.smartConfigDone() && millis() - start < timeLimitMsec)
+           {
+               delay(500);
+               Serial.print(".");
+           }
+           WiFi.stopSmartConfig();
+       }
+       */
     bool connected = (WiFi.status() == WL_CONNECTED);
 
     if (!connected)
     {
-        WiFi.mode(WIFI_STA);
+        WiFi.mode(WIFI_AP_STA);
         hostname = stringf("%s.local", slabel);
+        WiFi.softAP(hostname, "123456780");
         WiFi.setHostname(hostname);
+        wifiManager.setConfigPortalTimeout(180);
+        wifiManager.setConnectTimeout(30);
         wifiManager.setMinimumSignalQuality(30);
         wifiManager.setDebugOutput(true);
-        wifiManager.setHostname(hostname);
+        //        wifiManager.setHostname(hostname);
+        wifiManager.setAPCallback([](WiFiManager *mgr)
+                                  { Serial.println("looping...");
+                                   homeware.loop(); });
         wifiManager.autoConnect(hostname);
+        connected = (WiFi.status() == WL_CONNECTED);
     }
-    connected = (WiFi.status() == WL_CONNECTED);
-    if (connected && !homeware.config["ssid"])
-    {
-        homeware.config["ssid"] = WiFi.SSID();
-        homeware.saveConfig();
-    }
+
+    if (!connected)
+        ESP.reset();
+
+    homeware.connected = connected;
     setupServer();
 }
 

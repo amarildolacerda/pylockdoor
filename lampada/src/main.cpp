@@ -85,6 +85,7 @@ void setup()
 
 void loop()
 {
+  portal.loop(); // checa reconecta;
   homeware.loop();
 }
 

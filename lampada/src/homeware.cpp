@@ -97,6 +97,7 @@ void Homeware::begin()
 }
 void Homeware::setup(ESP8266WebServer *externalServer)
 {
+    analogWriteRange(1023);
     setServer(externalServer);
 
     if (!LittleFS.begin())
@@ -113,15 +114,17 @@ void Homeware::loop()
     if (!inited)
         begin();
 
-    mqtt.loop();
     loopEvent();
-#ifdef ALEXA
-    alexa.loop();
-#endif
 #ifdef TELNET
-    telnet.loop();
+    telnet.loop(); // se estive AP, pode conectar por telnet ou pelo browser.
 #endif
-    mqtt.loop();
+    if (connected)
+    {
+        mqtt.loop();
+#ifdef ALEXA
+        alexa.loop();
+#endif
+    }
 }
 
 void Homeware::defaultConfig()
@@ -137,7 +140,7 @@ void Homeware::defaultConfig()
     config["adc_min"] = "511";
     config["adc_max"] = "512";
 
-    config["mqtt_host"] = "none";//"test.mosquitto.org";
+    config["mqtt_host"] = "none"; //"test.mosquitto.org";
     config["mqtt_port"] = 1883;
     config["mqtt_user"] = "homeware";
     config["mqtt_password"] = "123456780";
@@ -208,7 +211,7 @@ int Homeware::writePin(const int pin, const int value)
     String mode = getMode()[String(pin)];
     if (mode != NULL)
         if (mode == "adc")
-            return -1;
+            analogWrite(pin, value);
         else if (mode == "lc")
         {
             byte relON[] = {0xA0, 0x01, 0x01, 0xA2}; // Hex command to send to serial for open relay
@@ -428,7 +431,7 @@ String Homeware::doCommand(String command)
             sprintf(ip, "%d.%d.%d.%d", x[0], x[1], x[2], x[3]);
             FSInfo fs_info;
             LittleFS.info(fs_info);
-
+            // ADC_MODE(ADC_VCC);
             sprintf(buffer, "{ 'version':'%s', 'name': '%s', 'ip': '%s', 'total': %d, 'free': %s }", VERSION, String(config["label"]), ip, fs_info.totalBytes, String(fs_info.totalBytes - fs_info.usedBytes));
             return buffer;
         }

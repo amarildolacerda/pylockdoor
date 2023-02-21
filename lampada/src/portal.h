@@ -14,6 +14,7 @@ public:
     void setup(ESP8266WebServer *externalServer = nullptr);
     void autoConnect(const String label);
     void reset();
+    void loop();
 
 private:
     void setupServer();

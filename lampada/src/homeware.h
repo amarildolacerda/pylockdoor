@@ -39,6 +39,7 @@ public:
     ESPTelnet telnet;
 #endif
     bool inited = false;
+    bool connected = false;
     ESP8266WebServer *server;
     unsigned currentAdcState = 0;
     bool inDebug = false;
