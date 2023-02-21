@@ -13,6 +13,7 @@
 #define ALEXA
 #define TELNET
 #define OTA
+#define GROOVE_ULTRASONIC
 
 #ifdef ALEXA
 #include <Espalexa.h>

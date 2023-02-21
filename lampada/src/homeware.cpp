@@ -12,9 +12,15 @@
 #include <ESP8266WiFi.h>
 #include <mqtt.h>
 
+#ifdef GROOVE_ULTRASONIC
+#include <Ultrasonic.h>
+#endif
+
 #ifdef ALEXA
 void alexaTrigger(int pin, int value);
 #endif
+
+StaticJsonDocument<256> docPinValues;
 
 void linha()
 {
@@ -219,14 +225,38 @@ int Homeware::switchPin(const int pin)
     }
 }
 
-StaticJsonDocument<256> docPinValues;
+#ifdef GROOVE_ULTRASONIC
+unsigned long ultimo_ultrasonic = 0;
+int grooveUltrasonic(int pin)
+{
+   if (millis()-ultimo_ultrasonic > (int(config["interval"])*5)){ 
+    Ultrasonic ultrasonic(pin);
+    long RangeInCentimeters;
+    RangeInCentimeters = ultrasonic.MeasureInCentimeters(); // two measurements should keep an interval
+    Serial.print(RangeInCentimeters);                       // 0~400cm
+    Serial.println(" cm");
+    ultimo_ultrasonic = millis();
+    return roundf(RangeInCentimeters);
+   } else {
+    return int(docPinValues[String(pin)]);
+   }
+}
+#endif
+
 
 int Homeware::writePin(const int pin, const int value)
 {
     String mode = getMode()[String(pin)];
+    int v = value;
     if (mode != NULL)
         if (mode == "pwm")
             analogWrite(pin, value);
+#ifdef GROOVE_ULTRASONIC
+        else if (mode == "gus")
+        {
+            int v = grooveUltrasonic(pin);
+        }
+#endif
         else if (mode == "adc")
             analogWrite(pin, value);
         else if (mode == "lc")
@@ -239,7 +269,6 @@ int Homeware::writePin(const int pin, const int value)
             }
             else
                 Serial.write(relON, sizeof(relON));
-            docPinValues[String(pin)] = value;
         }
 
         else
@@ -252,6 +281,7 @@ int Homeware::writePin(const int pin, const int value)
         digitalWrite(pin, value);
     }
     Serial.println(stringf("writePin: %d value: %d", pin, value));
+    docPinValues[String(pin)] = v;
     return value;
 }
 
@@ -259,6 +289,8 @@ JsonObject Homeware::getValues()
 {
     return docPinValues.as<JsonObject>();
 }
+
+
 int Homeware::readPin(const int pin, const String mode)
 {
     String md = mode;
@@ -270,6 +302,13 @@ int Homeware::readPin(const int pin, const String mode)
     {
         newValue = analogRead(pin);
     }
+#ifdef GROOVE_ULTRASONIC
+    else if (md == "gus")
+    {
+        // groove ultrasonic
+        newValue = grooveUltrasonic(pin);
+    }
+#endif
     else if (md == "adc")
     {
         newValue = analogRead(pin);
@@ -319,8 +358,8 @@ void Homeware::checkTrigger(int pin, int value)
         {
             if (v == 0)
                 return; // so aciona quando v for 1
-            switchPin(pinTo.toInt());   
-            return; 
+            switchPin(pinTo.toInt());
+            return;
         }
 
         Serial.println(stringf("pin %s trigger %s to %d stable %d \r\n", p, pinTo, v, bistable));
@@ -335,6 +374,7 @@ String Homeware::help()
     s += "set board <esp8266>\r\n";
     s += "show config\r\n";
     s += "gpio <pin> mode <in,out,adc,lc,ldr>\r\n";
+    s += "gpio <pin> mode gus (groove ultrasonic)\r\n";
     s += "gpio <pin> trigger <pin> [monostable,monostableNC,bistable,bistableNC]\r\n";
     s += "gpio <pin> device <onoff> (usado na alexa)\r\n";
     s += "gpio <pin> get\r\n";
