@@ -204,15 +204,18 @@ JsonObject Homeware::getStable()
     return config["stable"].as<JsonObject>();
 }
 
-int Homeware::switchPin(const int pin){
+int Homeware::switchPin(const int pin)
+{
     String mode = getMode()[String(pin)];
-    if (mode=="out" || mode=="lc"){
-        int r = readPin(pin,mode);
-        return writePin(pin, 1-r);
-    } else
+    if (mode == "out" || mode == "lc")
     {
         int r = readPin(pin, mode);
-        return writePin(pin, (r>0)?0:r);
+        return writePin(pin, 1 - r);
+    }
+    else
+    {
+        int r = readPin(pin, mode);
+        return writePin(pin, (r > 0) ? 0 : r);
     }
 }
 
@@ -256,11 +259,11 @@ JsonObject Homeware::getValues()
 {
     return docPinValues.as<JsonObject>();
 }
-int Homeware::readPin(const int pin, const String mode )
+int Homeware::readPin(const int pin, const String mode)
 {
     String md = mode;
     if (!md)
-       md = getMode()[String(pin)].as<String>();
+        md = getMode()[String(pin)].as<String>();
     int oldValue = docPinValues[String(pin)];
     int newValue = 0;
     if (md == "pwm")
@@ -530,7 +533,8 @@ String Homeware::doCommand(String command)
             }
             else if (cmd[2] == "trigger")
             {
-                // gpio 4 trigger 15 bistable
+                if (!cmd[4])
+                    return "cmd incompleto";
                 JsonObject trigger = getTrigger();
                 trigger[spin] = cmd[3];
 
@@ -548,6 +552,7 @@ String Homeware::doCommand(String command)
     }
 }
 
+const String optionStable[] = {"monostable", "monostableNC", "bistable", "bistableNC"};
 String Homeware::showGpio()
 {
     String r = "[";
@@ -565,9 +570,11 @@ String Homeware::showGpio()
         {
             s += ", 'trigger': ";
             s += String(trig[sPin]);
-
+            s += ", 'trigmode':'";
             JsonObject stab = getStable();
             String st = String(stab[sPin]);
+            s += optionStable[st.toInt()];
+            s += "'";
             s += " ";
             s += st;
         }
