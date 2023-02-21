@@ -210,7 +210,9 @@ int Homeware::writePin(const int pin, const int value)
 {
     String mode = getMode()[String(pin)];
     if (mode != NULL)
-        if (mode == "adc")
+        if (mode == "pwm")
+            analogWrite(pin, value);
+        else if (mode == "adc")
             analogWrite(pin, value);
         else if (mode == "lc")
         {
@@ -246,7 +248,11 @@ int Homeware::readPin(const int pin, const String mode)
 {
     int oldValue = docPinValues[String(pin)];
     int newValue = 0;
-    if (mode == "adc")
+    if (mode == "pwm")
+    {
+        newValue = analogRead(pin);
+    }
+    else if (mode == "adc")
     {
         newValue = analogRead(pin);
     }
