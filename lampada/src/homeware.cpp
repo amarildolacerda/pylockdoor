@@ -58,14 +58,21 @@ String Homeware::restoreConfig()
         if (!file)
             return "erro ao abrir /config.json";
         String novo = file.readString();
-        config.clear();
-        auto error = deserializeJson(config, novo);
+        DynamicJsonDocument doc = DynamicJsonDocument(1024);
+        auto error =deserializeJson(doc, novo);
         if (error)
         {
-            // debug(stringf("lido: %s \r\n corrente: %s \r\n", novo, old));
             config.clear();
             deserializeJson(config, old);
             return "Error: " + String(novo);
+        }
+        for (JsonPair k : doc.as<JsonObject>())
+        {
+            String key = k.key().c_str();
+            if (config.containsKey(key))
+            {
+                config[key] = doc[key];
+            }
         }
         serializeJson(config, Serial);
         Serial.println("");
@@ -152,6 +159,9 @@ void Homeware::defaultConfig()
     config["mqtt_password"] = "123456780";
     config["mqtt_interval"] = 1;
     config["mqtt_prefix"] = "mesh";
+    config["ap_ssid"] = "none";
+    config["ap_password"] = "123456780";
+    //config["sleep"] = "1";
 }
 
 String Homeware::saveConfig()
@@ -229,20 +239,22 @@ int Homeware::switchPin(const int pin)
 unsigned long ultimo_ultrasonic = 0;
 int grooveUltrasonic(int pin)
 {
-   if (millis()-ultimo_ultrasonic > (int(config["interval"])*5)){ 
-    Ultrasonic ultrasonic(pin);
-    long RangeInCentimeters;
-    RangeInCentimeters = ultrasonic.MeasureInCentimeters(); // two measurements should keep an interval
-    Serial.print(RangeInCentimeters);                       // 0~400cm
-    Serial.println(" cm");
-    ultimo_ultrasonic = millis();
-    return roundf(RangeInCentimeters);
-   } else {
-    return int(docPinValues[String(pin)]);
-   }
+    if (millis() - ultimo_ultrasonic > (int(homeware.config["interval"]) * 5))
+    {
+        Ultrasonic ultrasonic(pin);
+        long RangeInCentimeters;
+        RangeInCentimeters = ultrasonic.MeasureInCentimeters(); // two measurements should keep an interval
+        Serial.print(RangeInCentimeters);                       // 0~400cm
+        Serial.println(" cm");
+        ultimo_ultrasonic = millis();
+        return roundf(RangeInCentimeters);
+    }
+    else
+    {
+        return int(docPinValues[String(pin)]);
+    }
 }
 #endif
-
 
 int Homeware::writePin(const int pin, const int value)
 {
@@ -289,7 +301,6 @@ JsonObject Homeware::getValues()
 {
     return docPinValues.as<JsonObject>();
 }
-
 
 int Homeware::readPin(const int pin, const String mode)
 {
@@ -432,6 +443,12 @@ void Homeware::loopEvent()
     {
         print(String(e));
     }
+    /*if (int(config["sleep"]) > 0)
+    {
+        unsigned tempo = int(config["sleep"]) * 1000000;
+        ESP.deepSleep(tempo);
+    }
+    */
 }
 
 String *split(String s, const char delimiter)

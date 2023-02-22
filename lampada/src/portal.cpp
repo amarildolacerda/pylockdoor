@@ -79,9 +79,11 @@ void Portal::autoConnect(const String slabel)
 
     if (!connected)
     {
-        WiFi.mode(WIFI_AP_STA);
         hostname = stringf("%s.local", slabel);
-        WiFi.softAP(hostname, "123456780");
+        if (homeware.config["ap_ssid"]!="none"){
+        WiFi.mode(WIFI_AP_STA);
+           WiFi.softAP(String(homeware.config["ap_ssid"]), String(homeware.config["ap_password"]));
+           }
         WiFi.setHostname(hostname);
         wifiManager.setConfigPortalTimeout(180);
         wifiManager.setConnectTimeout(30);
