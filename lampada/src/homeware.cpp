@@ -387,7 +387,7 @@ String Homeware::help()
     s += "gpio <pin> mode <in,out,adc,lc,ldr>\r\n";
     s += "gpio <pin> mode gus (groove ultrasonic)\r\n";
     s += "gpio <pin> trigger <pin> [monostable,monostableNC,bistable,bistableNC]\r\n";
-    s += "gpio <pin> device <onoff> (usado na alexa)\r\n";
+    s += "gpio <pin> device <onoff,dimmable,color,whitespectrum> (usado na alexa)\r\n";
     s += "gpio <pin> get\r\n";
     s += "gpio <pin> set <n>\r\n";
     s += "set interval 50\r\n";
@@ -704,10 +704,23 @@ void alexaTrigger(int pin, int value)
                     if (String(pin) == k.key().c_str())
                     {
                         d->setState(value != 0);
-                        if (value > 0 && k.value().as<String>() == "onoff")
+                        String sType = k.value().as<String>();
+                        if (value > 0 && sType == "onoff")
                         {
                             d->setValue(value);
-                            d->setPercent(100);
+                            d->setPercent( (value>0)? 100:0);
+                        }
+                        else if (sType.startsWith("dimmable")){
+                            d->setValue(value);
+                            d->setPercent((value/1024)*100);
+                        }
+                        else if (sType.startsWith("white")){
+                            d->setValue(value);
+                        }
+                        else if (sType.startsWith("color"))
+                        {
+                            d->setValue(value);
+                            d->setPercent((value / 1024) * 100);
                         }
                         homeware.debug(stringf("Alexa Pin %d setValue(%d)", pin, value));
                     }
@@ -717,27 +730,78 @@ void alexaTrigger(int pin, int value)
         }
     }
 }
-void onoffChanged(EspalexaDevice *d)
+int findAlexaPin(EspalexaDevice *d)
 {
+
     if (d == nullptr)
-        return;          // this is good practice, but not required
+        return -1;       // this is good practice, but not required
     int id = d->getId(); // * base 0
     Serial.printf("\r\nId: %d \r\n", id);
-    bool value = d->getState();
-    // procurar qual o pin associado pelo ID;
     JsonObject devices = homeware.getDevices();
     int index = 0;
-
+    int pin = -1;
     for (JsonPair k : devices)
     {
-        homeware.debug(stringf("Alexa: %s %s %d", k.key().c_str(), k.value(), value));
+        homeware.debug(stringf("Alexa: %s %s %d", k.key().c_str(), k.value(), d->getValue()));
         if (index == (id))
         {
-            int pin = String(k.key().c_str()).toInt();
-            homeware.writePin(pin, (value) ? HIGH : LOW);
+            pin = String(k.key().c_str()).toInt();
+            break;
         }
         index += 1;
     }
+    return pin;
+}
+
+void onoffChanged(EspalexaDevice *d)
+{
+    int pin = findAlexaPin(d);
+    bool value = d->getState();
+    if (pin > -1)
+    {
+        homeware.writePin(pin, (value) ? HIGH : LOW);
+    }
+}
+
+void dimmableChanged(EspalexaDevice *d)
+{
+    int pin = findAlexaPin(d);
+    if (pin > -1)
+    {
+        uint8_t brightness = d->getValue();
+        uint8_t percent = d->getPercent();
+        uint8_t degrees = d->getDegrees(); // for heaters, HVAC, ...
+
+        Serial.print("B changed to ");
+        Serial.print(percent);
+        Serial.println("%");
+    }
+}
+void whitespectrumChanged(EspalexaDevice *d)
+{
+    if (d == nullptr)
+        return;
+    Serial.print("C changed to ");
+    Serial.print(d->getValue());
+    Serial.print(", colortemp ");
+    Serial.print(d->getCt());
+    Serial.print(" (");
+    Serial.print(d->getKelvin()); // this is more common than the hue mired values
+    Serial.println("K)");
+}
+
+void extendedcolorChanged(EspalexaDevice *d)
+{
+    if (d == nullptr)
+        return;
+    Serial.print("D changed to ");
+    Serial.print(d->getValue());
+    Serial.print(", color R");
+    Serial.print(d->getR());
+    Serial.print(", G");
+    Serial.print(d->getG());
+    Serial.print(", B");
+    Serial.println(d->getB());
 }
 
 void Homeware::setupAlexa()
@@ -751,10 +815,26 @@ void Homeware::setupAlexa()
         String sName = config["label"];
         sName += "-";
         sName += k.key().c_str();
-        if (k.value().as<String>() == "onoff")
+        String sValue = k.value().as<String>();
+        if (sValue == "onoff")
         {
             alexa.addDevice(sName, onoffChanged, EspalexaDeviceType::onoff); // non-dimmable device
-            debug(stringf("alexa: onoff em %s \r\n", sName));
+            debug(stringf("onoff em %s \r\n", sName));
+        }
+        else if (sValue.startsWith("dim"))
+        {
+            alexa.addDevice(sName, dimmableChanged, EspalexaDeviceType::dimmable); // non-dimmable device
+            debug(stringf("dimmable em %s \r\n", sName));
+        }
+        else if (sValue.startsWith("white"))
+        {
+            alexa.addDevice(sName, whitespectrumChanged, EspalexaDeviceType::whitespectrum); // non-dimmable device
+            debug(stringf("whitespectrum em %s \r\n", sName));
+        }
+        else if (sValue.startsWith("color"))
+        {
+            alexa.addDevice(sName, extendedcolorChanged, EspalexaDeviceType::extendedcolor); // color device
+            debug(stringf("extendedcolor em %s \r\n", sName));
         }
     }
     Serial.println("============================");
