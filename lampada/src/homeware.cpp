@@ -16,11 +16,21 @@
 #include <Ultrasonic.h>
 #endif
 
+#ifdef SINRIC
+#include "SinricPro.h"
+#include "SinricProMotionsensor.h"
+#endif
+
 #ifdef ALEXA
 void alexaTrigger(int pin, int value);
 #endif
 
+#ifdef SINRIC
+void sinricTrigger(int pin, int value);
+#endif
+
 StaticJsonDocument<256> docPinValues;
+int sinric_count = 0;
 
 void linha()
 {
@@ -137,6 +147,11 @@ void Homeware::loop()
 #ifdef ALEXA
         alexa.loop();
 #endif
+
+#ifdef SINRIC
+        if (sinric_count > 0)
+            SinricPro.handle();
+#endif
     }
 }
 
@@ -148,6 +163,7 @@ void Homeware::defaultConfig()
     config.createNestedObject("trigger");
     config.createNestedObject("stable");
     config.createNestedObject("device");
+    config.createNestedObject("app");
     config["debug"] = inDebug ? "on" : "off";
     config["interval"] = "500";
     config["adc_min"] = "511";
@@ -161,7 +177,10 @@ void Homeware::defaultConfig()
     config["mqtt_prefix"] = "mesh";
     config["ap_ssid"] = "none";
     config["ap_password"] = "123456780";
-    // config["sleep"] = "1";
+#ifdef SINRIC
+    config["app_key"] = "5176f8b7-0e16-429f-8f22-73d4093f7c40";
+    config["app_secret"] = "66c53efa-f3ce-419d-abe5-ac3fdecf71d9-4a0a01d2-5bd0-4ae1-806e-7c7a02438d73";
+#endif
 }
 
 String Homeware::saveConfig()
@@ -208,6 +227,10 @@ JsonObject Homeware::getTrigger()
 JsonObject Homeware::getDevices()
 {
     return config["device"].as<JsonObject>();
+}
+JsonObject Homeware::getApps()
+{
+    return config["app"].as<JsonObject>();
 }
 
 JsonObject Homeware::getMode()
@@ -346,6 +369,10 @@ int Homeware::readPin(const int pin, const String mode)
         checkTrigger(pin, newValue);
 #ifdef ALEXA
         alexaTrigger(pin, newValue);
+#endif
+
+#ifdef SINRIC
+        sinricTrigger(pin, newValue);
 #endif
     }
 
@@ -593,6 +620,12 @@ String Homeware::doCommand(String command)
                 devices[spin] = cmd[3];
                 return "OK";
             }
+            else if (cmd[2] == "app")
+            {
+                JsonObject devices = getApps();
+                devices[spin] = cmd[3];
+                return "OK";
+            }
             else if (cmd[2] == "trigger")
             {
                 if (!cmd[4])
@@ -687,6 +720,23 @@ int Homeware::getAdcState(int pin)
 }
 uint32_t Homeware::getChipId() { return ESP.getChipId(); }
 
+#ifdef SINRIC
+void sinricTrigger(int pin, int value)
+{
+    if (homeware.getApps()[String(pin)])
+    {
+        String sType = homeware.getDevices()[String(pin)];
+        if (sType.startsWith("motion"))
+        {
+            bool bValue = value > 0;
+            Serial.printf("Motion %s\r\n", bValue ? "detected" : "not detected");
+            SinricProMotionsensor &myMotionsensor = SinricPro[homeware.getApps()[String(pin)]]; // get motion sensor device
+            myMotionsensor.sendMotionEvent(bValue);
+        }
+    }
+}
+#endif
+
 #ifdef ALEXA
 void alexaTrigger(int pin, int value)
 {
@@ -699,27 +749,20 @@ void alexaTrigger(int pin, int value)
             int index = 0;
             for (JsonPair k : homeware.getDevices())
             {
+                String sType = k.value().as<String>();
+                if (sType != "onoff" && sType != "dimmable")
+                    continue;
                 if (index == id)
                 {
                     if (String(pin) == k.key().c_str())
                     {
                         d->setState(value != 0);
-                        String sType = k.value().as<String>();
                         if (value > 0 && sType == "onoff")
                         {
                             d->setValue(value);
                             d->setPercent((value > 0) ? 100 : 0);
                         }
                         else if (sType.startsWith("dimmable"))
-                        {
-                            d->setValue(value);
-                            d->setPercent((value / 1024) * 100);
-                        }
-                        else if (sType.startsWith("white"))
-                        {
-                            d->setValue(value);
-                        }
-                        else if (sType.startsWith("color"))
                         {
                             d->setValue(value);
                             d->setPercent((value / 1024) * 100);
@@ -770,49 +813,19 @@ void dimmableChanged(EspalexaDevice *d)
     int pin = findAlexaPin(d);
     if (pin > -1)
     {
-        uint8_t brightness = d->getValue();
-        uint8_t percent = d->getPercent();
-        uint8_t degrees = d->getDegrees(); // for heaters, HVAC, ...
-
-        Serial.print("B changed to ");
-        Serial.print(percent);
-        Serial.println("%");
-        homeware.writePin(pin, d->getValue() );
+        homeware.writePin(pin, d->getValue());
     }
 }
-void whitespectrumChanged(EspalexaDevice *d)
-{
-    if (d == nullptr)
-        return;
 
-    Serial.print("C changed to ");
-    Serial.print(d->getValue());
-    Serial.print(", colortemp ");
-    Serial.print(d->getCt());
-    Serial.print(" (");
-    Serial.print(d->getKelvin()); // this is more common than the hue mired values
-    Serial.println("K)");
-    int pin = findAlexaPin(d);
-    if (pin > -1)
-        homeware.writePin(pin, d->getValue());
-}
-
-void extendedcolorChanged(EspalexaDevice *d)
+#ifdef SINRIC
+bool mySinricMotionState = false;
+bool onSinricMotionState(const String &deviceId, bool &state)
 {
-    if (d == nullptr)
-        return;
-    Serial.print("D changed to ");
-    Serial.print(d->getValue());
-    Serial.print(", color R");
-    Serial.print(d->getR());
-    Serial.print(", G");
-    Serial.print(d->getG());
-    Serial.print(", B");
-    Serial.println(d->getB());
-    int pin = findAlexaPin(d);
-    if (pin > -1)
-        homeware.writePin(pin, d->getValue());
+    Serial.printf("Device %s turned %s (via SinricPro) \r\n", deviceId.c_str(), state ? "on" : "off");
+    mySinricMotionState = state;
+    return true; // req
 }
+#endif
 
 void Homeware::setupAlexa()
 {
@@ -834,16 +847,28 @@ void Homeware::setupAlexa()
         {
             alexa.addDevice(sName, dimmableChanged, EspalexaDeviceType::dimmable); // non-dimmable device
         }
-        else if (sValue.startsWith("white"))
+#ifdef SINRIC
+        else if (sValue.startsWith("motion") && getApps()[k.key().c_str()])
         {
-            alexa.addDevice(sName, whitespectrumChanged, EspalexaDeviceType::whitespectrum); // non-dimmable device
+            SinricProMotionsensor &myMotionsensor = SinricPro[getApps()[k.key().c_str()]];
+            myMotionsensor.onPowerState(onSinricMotionState);
+            sinric_count += 1;
         }
-        else if (sValue.startsWith("color"))
-        {
-            alexa.addDevice(sName, extendedcolorChanged, EspalexaDeviceType::extendedcolor); // color device
-        }
+#endif
     }
     Serial.println("============================");
+
+#ifdef SINRIC
+    if (sinric_count > 0)
+    {
+        SinricPro.onConnected([]()
+                              { Serial.printf("Connected to SinricPro\r\n"); });
+        SinricPro.onDisconnected([]()
+                                 { Serial.printf("Disconnected from SinricPro\r\n"); });
+        SinricPro.begin(config["app_key"], config["app_secret"]);
+    }
+#endif
+
     alexa.begin(server);
 }
 #endif

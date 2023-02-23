@@ -11,6 +11,7 @@
 #define LABEL String(getChipId(), HEX);
 #define VERSION "1.0.0"
 #define ALEXA
+#define SINRIC
 #define TELNET
 #define OTA
 #define GROOVE_ULTRASONIC
@@ -56,8 +57,9 @@ public:
     JsonObject getStable();
     JsonObject getMode();
     JsonObject getDevices();
+    JsonObject getApps();
 
-    int writePin(const int pin, const int value);
+        int writePin(const int pin, const int value);
     int readPin(const int pin, const String mode = "");
     int switchPin(const int pin);
     void checkTrigger(int pin, int value);
