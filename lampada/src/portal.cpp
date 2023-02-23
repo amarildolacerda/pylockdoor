@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <portal.h>
 #include <functions.h>
-#include <wm_strings_pt_BR.h>
+// #include <wm_strings_pt_BR.h>
 #include <homeware.h>
 
 #include <ESP8266WiFi.h>
@@ -39,11 +39,10 @@ void Portal::autoConnect(const String slabel)
     unsigned timeLimitMsec = 20000;
 
     label = slabel;
-    WiFi.onSoftAPModeStationConnected(&onStationConnected);
-    WiFi.onSoftAPModeStationDisconnected(&onStationDisconnected);
-    WiFi.setAutoReconnect(true);
     if (homeware.config["password"] && homeware.config["ssid"])
     {
+        WiFi.onSoftAPModeStationConnected(&onStationConnected);
+        WiFi.onSoftAPModeStationDisconnected(&onStationDisconnected);
         WiFi.enableSTA(true);
         WiFi.begin(homeware.config["ssid"], String(homeware.config["password"]));
         Serial.println(String(homeware.config["ssid"]));
@@ -57,43 +56,20 @@ void Portal::autoConnect(const String slabel)
         Serial.print(WiFi.localIP());
         Serial.println("");
     }
-    /* NAO FUNCIONOU
-       unsigned start = millis();
-       unsigned timeLimitMsec = 30000;
 
-       if (!homeware.config["ssid"])
-       {
-           WiFi.softAPdisconnect();
-           WiFi.enableAP(false);
-           Serial.println("SmartConfig.");
-           WiFi.beginSmartConfig();
-           while (!WiFi.smartConfigDone() && millis() - start < timeLimitMsec)
-           {
-               delay(500);
-               Serial.print(".");
-           }
-           WiFi.stopSmartConfig();
-       }
-       */
     bool connected = (WiFi.status() == WL_CONNECTED);
 
     if (!connected)
     {
         hostname = stringf("%s.local", slabel);
-        if (homeware.config["ap_ssid"]!="none"){
-        WiFi.mode(WIFI_AP_STA);
-           WiFi.softAP(String(homeware.config["ap_ssid"]), String(homeware.config["ap_password"]));
-           }
-        WiFi.setHostname(hostname);
         wifiManager.setConfigPortalTimeout(180);
-        wifiManager.setConnectTimeout(30);
-        wifiManager.setMinimumSignalQuality(30);
-        wifiManager.setDebugOutput(true);
-        wifiManager.setHostname(hostname);
-        wifiManager.setAPCallback([](WiFiManager *mgr)
-                                  { Serial.println("looping...");
-                                   homeware.loop(); });
-        wifiManager.autoConnect(hostname);
+        wifiManager.setDebugOutput(false);
+        if (homeware.config["ap_ssid"] != "none")
+        {
+            wifiManager.autoConnect(homeware.config["ap_ssid"], homeware.config["ap_password"]);
+        }
+        else
+            wifiManager.autoConnect(hostname);
         connected = (WiFi.status() == WL_CONNECTED);
     }
 
@@ -106,17 +82,7 @@ void Portal::autoConnect(const String slabel)
 
 void Portal::reset()
 {
-    WiFiManager wifiManager;
-    WiFi.mode(WIFI_STA);
-    WiFi.persistent(true);
-    WiFi.disconnect(true);
-    WiFi.persistent(false);
-    wifiManager.resetSettings();
-    homeware.config.remove("ssid");
-    homeware.config.remove("password");
-    homeware.saveConfig();
-    ESP.reset();
-    delay(1000);
+    homeware.resetWiFi();
 }
 
 String button(const String name, const char *link, const char *style = "")
@@ -131,8 +97,10 @@ String inputH(const String name, const String value)
 void setManager(WiFiManager *wf)
 {
     String hostname = stringf("%s-local", portal.label);
+#ifdef WIFI_NEW
     wf->setHostname(hostname);
     wf->setTitle("Homeware");
+#endif
 }
 
 const char BUTTON_SCRIPT[] PROGMEM =
@@ -172,6 +140,8 @@ String timereload(String url = "/", int timeout = 1000)
 */
 void Portal::setupServer()
 {
+#ifdef WIFI_NEW
+
     server->on("/", []()
                {
         WiFiManager wf;
@@ -280,6 +250,7 @@ void Portal::setupServer()
         pg+="</tbody></table>";
         pg += button("Menu","/");
         portal.server->send(200, "text/html", wf.pageMake("Homeware",pg)); });
+#endif
 
 #ifdef ALEXA
     server->onNotFound([]()

@@ -17,7 +17,7 @@ char msg[MSG_BUFFER_SIZE];
 
 void callback(char *topic, byte *payload, unsigned int length);
 
-class MQTT
+class Mqtt
 {
 public:
     String prefix;
@@ -54,11 +54,11 @@ public:
     void loop()
     {
         enabled = !((host == NULL) || (host == "none"));
-        if (!enabled)
-            return;
-        reconnect();
-        mqttClient.loop();
-
+        if (enabled)
+        {
+            reconnect();
+            mqttClient.loop();
+        }
         if (millis() - lastAlive > 60000)
             sendAlive();
     }
@@ -66,6 +66,7 @@ public:
     {
         lastAlive = millis();
         String rsp = homeware.doCommand("show");
+        Serial.println(rsp);
         send("/alive", rsp.c_str());
     }
     bool isConnected()
@@ -141,8 +142,8 @@ private:
     }
 };
 
-extern MQTT mqtt;
-MQTT mqtt;
+extern Mqtt mqtt;
+Mqtt mqtt;
 
 void callback(char *topic, byte *payload, unsigned int length)
 {

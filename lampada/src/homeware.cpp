@@ -5,12 +5,23 @@
 #include <FS.h>
 #include <LittleFS.h>
 
+#include <options.h>
+
+#ifdef WIFI_NEW
+#include <WManager.h>
+#else
+#include <WiFiManager.h>
+#endif
+
 #ifdef OTA
 #include <ElegantOTA.h>
 #endif
 
 #include <ESP8266WiFi.h>
+
+#ifdef MQTT
 #include <mqtt.h>
+#endif
 
 #ifdef GROOVE_ULTRASONIC
 #include <Ultrasonic.h>
@@ -79,10 +90,7 @@ String Homeware::restoreConfig()
         for (JsonPair k : doc.as<JsonObject>())
         {
             String key = k.key().c_str();
-            if (config.containsKey(key))
-            {
-                config[key] = doc[key];
-            }
+            config[key] = doc[key]; // pode ter variaveis gravadas que nao tem no default inicial; ex: ssid
         }
         serializeJson(config, Serial);
         Serial.println("");
@@ -105,17 +113,19 @@ void Homeware::begin()
 #ifdef ALEXA
     setupAlexa();
 #endif
+    setupServer();
 #ifdef TELNET
     setupTelnet();
 #endif
-    setupServer();
 
 #ifdef OTA
     ElegantOTA.begin(server);
 #endif
     server->begin();
+#ifdef MQTT
     mqtt.setup(config["mqtt_host"], config["mqtt_port"], config["mqtt_prefix"], (config["mqtt_name"] != NULL) ? config["mqtt_name"] : config["label"]);
     mqtt.setUser(config["mqtt_user"], config["mqtt_password"]);
+#endif
     inited = true;
 }
 void Homeware::setup(ESP8266WebServer *externalServer)
@@ -143,7 +153,9 @@ void Homeware::loop()
 #endif
     if (connected)
     {
+#ifdef MQTT
         mqtt.loop();
+#endif
 #ifdef ALEXA
         alexa.loop();
 #endif
@@ -155,41 +167,65 @@ void Homeware::loop()
     }
 }
 
-void Homeware::defaultConfig()
+DynamicJsonDocument baseConfig()
 {
+    DynamicJsonDocument config = DynamicJsonDocument(1024);
     config["label"] = LABEL;
     config["board"] = "esp8266";
     config.createNestedObject("mode");
     config.createNestedObject("trigger");
     config.createNestedObject("stable");
     config.createNestedObject("device");
-    config.createNestedObject("app");
-    config["debug"] = inDebug ? "on" : "off";
+    config.createNestedObject("sensor");
+    config.createNestedObject("default");
+    config["debug"] = homeware.inDebug ? "on" : "off";
     config["interval"] = "500";
     config["adc_min"] = "511";
     config["adc_max"] = "512";
 
+#ifdef MQTT
     config["mqtt_host"] = "none"; //"test.mosquitto.org";
     config["mqtt_port"] = 1883;
     config["mqtt_user"] = "homeware";
     config["mqtt_password"] = "123456780";
     config["mqtt_interval"] = 1;
     config["mqtt_prefix"] = "mesh";
+#endif
     config["ap_ssid"] = "none";
     config["ap_password"] = "123456780";
 #ifdef SINRIC
-    config["app_key"] = "5176f8b7-0e16-429f-8f22-73d4093f7c40";
-    config["app_secret"] = "66c53efa-f3ce-419d-abe5-ac3fdecf71d9-4a0a01d2-5bd0-4ae1-806e-7c7a02438d73";
+    config["app_key"] = "";
+    config["app_secret"] = "";
 #endif
+    return config;
+}
+void Homeware::defaultConfig()
+{
+    DynamicJsonDocument doc = baseConfig();
+    for (JsonPair k : doc.as<JsonObject>())
+    {
+        String key = k.key().c_str();
+        config[key] = doc[key];
+    }
 }
 
 String Homeware::saveConfig()
-{
+{ // TODO: ajustar para gravar somente os alterado e reduzir uso de espaço.
     String rsp = "OK";
-    config["debug"] = inDebug ? "on" : "off"; // volta para o default para sempre ligar com debug desabilitado
-    serializeJson(config, Serial);
+    DynamicJsonDocument doc = baseConfig();
+    DynamicJsonDocument base = DynamicJsonDocument(SIZE_BUFFER);
+
+    for (JsonPair k : config.as<JsonObject>())
+    {
+        String key = k.key().c_str();
+        if (doc[key] != config[key])
+            base[key] = config[key];
+    }
+
+    base["debug"] = inDebug ? "on" : "off"; // volta para o default para sempre ligar com debug desabilitado
+    serializeJson(base, Serial);
     File file = LittleFS.open("/config.json", "w");
-    if (serializeJson(config, file) == 0)
+    if (serializeJson(base, file) == 0)
         rsp = "não gravou /config.json";
     file.close();
     return rsp;
@@ -218,6 +254,10 @@ void Homeware::setupPins()
             initPinMode(trPin, "out");
         }
     }
+    for (JsonPair k : getDefaults())
+    {
+        writePin(String(k.key().c_str()).toInt(), k.value().as<String>().toInt());
+    }
 }
 
 JsonObject Homeware::getTrigger()
@@ -228,9 +268,9 @@ JsonObject Homeware::getDevices()
 {
     return config["device"].as<JsonObject>();
 }
-JsonObject Homeware::getApps()
+JsonObject Homeware::getSensors()
 {
-    return config["app"].as<JsonObject>();
+    return config["sensor"].as<JsonObject>();
 }
 
 JsonObject Homeware::getMode()
@@ -406,21 +446,26 @@ void Homeware::checkTrigger(int pin, int value)
     }
 }
 
+const char HELP[] =
+    "set board <esp8266>\r\n"
+    "show config\r\n"
+    "gpio <pin> mode <in,out,adc,lc,ldr>\r\n"
+    "gpio <pin> defult <n>(usado no setup)\r\n"
+    "gpio <pin> mode gus (groove ultrasonic)\r\n"
+    "gpio <pin> trigger <pin> [monostable,bistable]\r\n"
+    "gpio <pin> device <onoff,dimmable> (usado na alexa)\r\n"
+    "set app_key <x> (SINRIC)\r\n"
+    "set app_secret <x> (SINRIC)\r\n"
+    "gpio <pin> sensor <deviceId> (SINRIC)\r\n"
+    "gpio <pin> get\r\n"
+    "gpio <pin> set <n>\r\n"
+    "set interval 50\r\n"
+    "set adc_min 511\r\n"
+    "set adc_max 512\r\n";
+
 String Homeware::help()
 {
-    String s = "";
-    s += "set board <esp8266>\r\n";
-    s += "show config\r\n";
-    s += "gpio <pin> mode <in,out,adc,lc,ldr>\r\n";
-    s += "gpio <pin> mode gus (groove ultrasonic)\r\n";
-    s += "gpio <pin> trigger <pin> [monostable,monostableNC,bistable,bistableNC]\r\n";
-    s += "gpio <pin> device <onoff,dimmable,color,whitespectrum> (usado na alexa)\r\n";
-    s += "gpio <pin> get\r\n";
-    s += "gpio <pin> set <n>\r\n";
-    s += "set interval 50\r\n";
-    s += "set adc_min 511 \r\n";
-    s += "set adc_max 512 \r\n";
-
+    String s = FPSTR(HELP);
     return s;
 }
 
@@ -510,8 +555,25 @@ String Homeware::print(String msg)
 {
     Serial.print("RSP: ");
     Serial.println(msg);
+#ifdef TELNET
     telnet.println(msg);
+#endif
     return msg;
+}
+
+void Homeware::resetWiFi()
+{
+    WiFiManager wifiManager;
+    WiFi.mode(WIFI_STA);
+    WiFi.persistent(true);
+    WiFi.disconnect(true);
+    WiFi.persistent(false);
+    wifiManager.resetSettings();
+    config.remove("ssid");
+    config.remove("password");
+    saveConfig();
+    ESP.reset();
+    delay(1000);
 }
 
 String Homeware::doCommand(String command)
@@ -552,7 +614,12 @@ String Homeware::doCommand(String command)
         }
         else if (cmd[0] == "reset")
         {
-            if (cmd[1] == "factory")
+            if (cmd[1] == "wifi")
+            {
+                homeware.resetWiFi();
+                return "OK";
+            }
+            else if (cmd[1] == "factory")
             {
                 defaultConfig();
                 return "OK";
@@ -610,7 +677,6 @@ String Homeware::doCommand(String command)
             }
             else if (cmd[2] == "mode")
             {
-                JsonObject mode = config["mode"];
                 initPinMode(pin, cmd[3]);
                 return "OK";
             }
@@ -620,10 +686,16 @@ String Homeware::doCommand(String command)
                 devices[spin] = cmd[3];
                 return "OK";
             }
-            else if (cmd[2] == "app")
+            else if (cmd[2] == "sensor")
             {
-                JsonObject devices = getApps();
+                JsonObject devices = getSensors();
                 devices[spin] = cmd[3];
+                return "OK";
+            }
+            else if (cmd[2] == "default")
+            {
+                JsonObject d = getDefaults();
+                d[spin] = cmd[3];
                 return "OK";
             }
             else if (cmd[2] == "trigger")
@@ -645,6 +717,11 @@ String Homeware::doCommand(String command)
     {
         return String(e);
     }
+}
+
+JsonObject Homeware::getDefaults()
+{
+    return config["default"];
 }
 
 const String optionStable[] = {"monostable", "monostableNC", "bistable", "bistableNC"};
@@ -697,6 +774,10 @@ void Homeware::debug(String txt)
     {
         print(txt);
     }
+    else if (config["debug"] == "term")
+        Serial.println(txt);
+    else if (txt.indexOf("ERRO") > -1)
+        Serial.println(txt);
 }
 
 int Homeware::getAdcState(int pin)
@@ -723,14 +804,14 @@ uint32_t Homeware::getChipId() { return ESP.getChipId(); }
 #ifdef SINRIC
 void sinricTrigger(int pin, int value)
 {
-    if (homeware.getApps()[String(pin)])
+    if (homeware.getSensors()[String(pin)])
     {
         String sType = homeware.getDevices()[String(pin)];
         if (sType.startsWith("motion"))
         {
             bool bValue = value > 0;
             Serial.printf("Motion %s\r\n", bValue ? "detected" : "not detected");
-            SinricProMotionsensor &myMotionsensor = SinricPro[homeware.getApps()[String(pin)]]; // get motion sensor device
+            SinricProMotionsensor &myMotionsensor = SinricPro[homeware.getSensors()[String(pin)]]; // get motion sensor device
             myMotionsensor.sendMotionEvent(bValue);
         }
     }
@@ -848,9 +929,9 @@ void Homeware::setupAlexa()
             alexa.addDevice(sName, dimmableChanged, EspalexaDeviceType::dimmable); // non-dimmable device
         }
 #ifdef SINRIC
-        else if (sValue.startsWith("motion") && getApps()[k.key().c_str()])
+        else if (sValue.startsWith("motion") && getSensors()[k.key().c_str()])
         {
-            SinricProMotionsensor &myMotionsensor = SinricPro[getApps()[k.key().c_str()]];
+            SinricProMotionsensor &myMotionsensor = SinricPro[getSensors()[k.key().c_str()]];
             myMotionsensor.onPowerState(onSinricMotionState);
             sinric_count += 1;
         }

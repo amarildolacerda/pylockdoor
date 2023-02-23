@@ -6,15 +6,16 @@
 #include <ESP8266WiFi.h> //https://github.com/esp8266/Arduino
 #include <ESP8266WebServer.h>
 
+#include <options.h>
+
+#ifdef WIFI_NEW
+#include <WManager.h>
+#else
+#include <WiFiManager.h>
+#endif
+
 #include <ArduinoJson.h>
 
-#define LABEL String(getChipId(), HEX);
-#define VERSION "1.0.0"
-#define ALEXA
-#define SINRIC
-#define TELNET
-#define OTA
-#define GROOVE_ULTRASONIC
 
 #ifdef ALEXA
 #include <Espalexa.h>
@@ -52,14 +53,16 @@ public:
     void defaultConfig();
     String saveConfig();
     void initPinMode(int pin, const String m);
+    void resetWiFi();
 
     JsonObject getTrigger();
     JsonObject getStable();
     JsonObject getMode();
     JsonObject getDevices();
-    JsonObject getApps();
+    JsonObject getSensors();
+    JsonObject getDefaults();
 
-        int writePin(const int pin, const int value);
+    int writePin(const int pin, const int value);
     int readPin(const int pin, const String mode = "");
     int switchPin(const int pin);
     void checkTrigger(int pin, int value);

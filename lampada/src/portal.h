@@ -2,7 +2,13 @@
 #ifndef portal_def
 #define portal_def
 
+#include <options.h>
+
+#ifdef WIFI_NEW
 #include <WManager.h>
+#else
+#include <WiFiManager.h>
+#endif
 
 class Portal
 {
