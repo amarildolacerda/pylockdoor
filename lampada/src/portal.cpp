@@ -33,6 +33,12 @@ void onStationDisconnected(const WiFiEventSoftAPModeStationDisconnected &evt)
     // Serial.println(macToString(evt.mac));
 }
 
+void wifiCallback()
+{
+    // Serial.print("looping [...");
+    homeware.loop();
+    // Serial.println("]");
+}
 void Portal::autoConnect(const String slabel)
 {
     unsigned start = millis();
@@ -63,7 +69,8 @@ void Portal::autoConnect(const String slabel)
     {
         hostname = stringf("%s.local", slabel);
         wifiManager.setConfigPortalTimeout(180);
-        wifiManager.setDebugOutput(false);
+        wifiManager.setDebugOutput(true);
+        wifiManager.setConfigWaitingcallback(wifiCallback);
         if (homeware.config["ap_ssid"] != "none")
         {
             wifiManager.autoConnect(homeware.config["ap_ssid"], homeware.config["ap_password"]);
@@ -74,9 +81,13 @@ void Portal::autoConnect(const String slabel)
     }
 
     if (!connected)
+    {
         ESP.reset();
-
-    homeware.connected = connected;
+    }
+    else
+    {
+        homeware.connected = connected;
+    }
     setupServer();
 }
 

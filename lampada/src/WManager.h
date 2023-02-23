@@ -21,7 +21,9 @@
 
 #include <vector>
 
-#define WM_MDNS            // includes MDNS, also set MDNS with sethostname
+#if defined(ESP8266)
+#define WM_MDNS // includes MDNS, also set MDNS with sethostname
+#endif
 // #define WM_FIXERASECONFIG  // use erase flash fix
 // #define WM_ERASE_NVS       // esp32 erase(true) will erase NVS
 // #define WM_RTC             // esp32 info page will include reset reasons
@@ -309,6 +311,7 @@ public:
 
     // called when config portal is timeout
     void setConfigPortalTimeoutCallback(std::function<void()> func);
+    void setConfigWaitingcallback(std::function<void()> func);
 
     // sets timeout before AP,webserver loop ends and exits even if there has been no setup.
     // useful for devices that failed to connect at some point and got stuck in a webserver loop
@@ -353,7 +356,8 @@ public:
     void setConfigPortalBlocking(boolean shouldBlock);
 
     // add custom html at inside <head> for all pages
-    void setCustomHeadElement(const char *html);
+    void
+    setCustomHeadElement(const char *html);
 
     // if this is set, customise style
     void setCustomMenuHTML(const char *html);
@@ -480,7 +484,7 @@ public:
     String getWiFiHostname();
 
     void pageSend(const String payload);
-    String pageMake(const String stitle,const String payload);
+    String pageMake(const String stitle, const String payload);
 
     std::unique_ptr<DNSServer> dnsServer;
 
@@ -813,6 +817,7 @@ private:
     std::function<void()> _resetcallback;
     std::function<void()> _preotaupdatecallback;
     std::function<void()> _configportaltimeoutcallback;
+    std::function<void()> _configWaitingcallback;
 
     template <class T>
     auto optionalIPFromString(T *obj, const char *s) -> decltype(obj->fromString(s))

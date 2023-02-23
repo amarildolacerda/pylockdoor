@@ -463,8 +463,8 @@ bool WiFiManager::setupHostname(bool restart)
     DEBUG_WM(DEBUG_VERBOSE, F("Setting WiFi hostname"));
 #endif
     res = WiFi.hostname(_hostname.c_str());
-// #ifdef ESP8266MDNS_H
 #ifdef WM_MDNS
+
 #ifdef WM_DEBUG_LEVEL
     DEBUG_WM(DEBUG_VERBOSE, F("Setting MDNS hostname, tcp 80"));
 #endif
@@ -924,6 +924,12 @@ boolean WiFiManager::startConfigPortal(char const *apName, char const *apPasswor
             break;
 
         yield(); // watchdog
+                 // TODO: insert callback here
+        if (_configWaitingcallback)
+        {
+            _configWaitingcallback();
+            yield(); // watchdog
+        }
     }
 
 #ifdef WM_DEBUG_LEVEL
@@ -3242,6 +3248,10 @@ void WiFiManager::setConfigPortalTimeoutCallback(std::function<void()> func)
     _configportaltimeoutcallback = func;
 }
 
+void WiFiManager::setConfigWaitingcallback(std::function<void()> func)
+{
+    _configWaitingcallback = func;
+}
 /**
  * set custom head html
  * custom element will be added to head, eg. new meta,style,script tag etc.
@@ -4525,11 +4535,13 @@ void WiFiManager::handleUpdateDone()
     }
 }
 
-void WiFiManager::pageSend(const String payload){
-    HTTPSend(pageMake(_title,payload));
+void WiFiManager::pageSend(const String payload)
+{
+    HTTPSend(pageMake(_title, payload));
 }
 
-String WiFiManager::pageMake(const String stitle,const String payload){
+String WiFiManager::pageMake(const String stitle, const String payload)
+{
     String page = getHTTPHead(stitle);  // @token options @todo replace options with title
     String str = FPSTR(HTTP_ROOT_MAIN); // @todo custom title
     str.replace(FPSTR(T_t), stitle);
@@ -4539,6 +4551,5 @@ String WiFiManager::pageMake(const String stitle,const String payload){
     page += FPSTR(HTTP_END);
     return page;
 }
-
 
 #endif

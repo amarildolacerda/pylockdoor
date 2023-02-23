@@ -148,9 +148,13 @@ void Homeware::loop()
         begin();
 
     loopEvent();
+
 #ifdef TELNET
+
     telnet.loop(); // se estive AP, pode conectar por telnet ou pelo browser.
 #endif
+
+    //=========================== usado somente quando conectado
     if (connected)
     {
 #ifdef MQTT
@@ -899,11 +903,21 @@ void dimmableChanged(EspalexaDevice *d)
 }
 
 #ifdef SINRIC
-bool mySinricMotionState = false;
+int findSinricPin(String id)
+{
+    for (JsonPair k : homeware.getSensors())
+    {
+        if (k.value().as<String>() == id)
+            return String(k.key().c_str()).toInt();
+    }
+    return -1;
+}
 bool onSinricMotionState(const String &deviceId, bool &state)
 {
     Serial.printf("Device %s turned %s (via SinricPro) \r\n", deviceId.c_str(), state ? "on" : "off");
-    mySinricMotionState = state;
+    int pin = findSinricPin(deviceId.c_str());
+    if (pin > -1)
+        homeware.writePin(pin, state ? HIGH : LOW);
     return true; // req
 }
 #endif

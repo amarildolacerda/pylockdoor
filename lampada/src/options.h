@@ -1,5 +1,6 @@
 
 #define WIFI_NEW
+#include <Arduino.h>
 #define LABEL String(getChipId(), HEX)
 #define VERSION "1.0.0"
 #define ALEXA
@@ -9,7 +10,8 @@
 #define GROOVE_ULTRASONIC
 #define MQTT
 
-#ifdef ESP8285
+
+#if defined(ESP8285)
   #undef SINRIC
   #undef GROOVE_ULTRASONIC
   #undef MQTT
