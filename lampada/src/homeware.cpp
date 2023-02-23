@@ -811,7 +811,7 @@ void Homeware::setupAlexa()
     Serial.println("\r\nDevices\r\n============================\r\n");
     for (JsonPair k : devices)
     {
-        debug(stringf("%s is %s\r\n", k.key().c_str(), k.value().as<String>()));
+        Serial.println(stringf("%s is %s\r\n", k.key().c_str(), k.value().as<String>()));
         String sName = config["label"];
         sName += "-";
         sName += k.key().c_str();
@@ -819,22 +819,18 @@ void Homeware::setupAlexa()
         if (sValue == "onoff")
         {
             alexa.addDevice(sName, onoffChanged, EspalexaDeviceType::onoff); // non-dimmable device
-            debug(stringf("onoff em %s \r\n", sName));
         }
         else if (sValue.startsWith("dim"))
         {
             alexa.addDevice(sName, dimmableChanged, EspalexaDeviceType::dimmable); // non-dimmable device
-            debug(stringf("dimmable em %s \r\n", sName));
         }
         else if (sValue.startsWith("white"))
         {
             alexa.addDevice(sName, whitespectrumChanged, EspalexaDeviceType::whitespectrum); // non-dimmable device
-            debug(stringf("whitespectrum em %s \r\n", sName));
         }
         else if (sValue.startsWith("color"))
         {
             alexa.addDevice(sName, extendedcolorChanged, EspalexaDeviceType::extendedcolor); // color device
-            debug(stringf("extendedcolor em %s \r\n", sName));
         }
     }
     Serial.println("============================");
