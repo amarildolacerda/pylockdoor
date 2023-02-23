@@ -792,7 +792,6 @@ void whitespectrumChanged(EspalexaDevice *d)
     Serial.print(" (");
     Serial.print(d->getKelvin()); // this is more common than the hue mired values
     Serial.println("K)");
-    homeware.writePin(pin, (value > 0) ? HIGH : LOW);
     int pin = findAlexaPin(d);
     if (pin > -1)
         homeware.writePin(pin, d->getValue());
