@@ -59,7 +59,7 @@ String Homeware::restoreConfig()
             return "erro ao abrir /config.json";
         String novo = file.readString();
         DynamicJsonDocument doc = DynamicJsonDocument(1024);
-        auto error =deserializeJson(doc, novo);
+        auto error = deserializeJson(doc, novo);
         if (error)
         {
             config.clear();
@@ -110,7 +110,7 @@ void Homeware::begin()
 }
 void Homeware::setup(ESP8266WebServer *externalServer)
 {
-    analogWriteRange(1023);
+    analogWriteRange(1024);
     setServer(externalServer);
 
     if (!LittleFS.begin())
@@ -161,7 +161,7 @@ void Homeware::defaultConfig()
     config["mqtt_prefix"] = "mesh";
     config["ap_ssid"] = "none";
     config["ap_password"] = "123456780";
-    //config["sleep"] = "1";
+    // config["sleep"] = "1";
 }
 
 String Homeware::saveConfig()
@@ -701,13 +701,16 @@ void alexaTrigger(int pin, int value)
             {
                 if (index == id)
                 {
-                    d->setState(value != 0);
-                    if (value > 0 && k.value().as<String>() == "onoff")
+                    if (String(pin) == k.key().c_str())
                     {
-                        d->setValue(value);
-                        d->setPercent(100);
+                        d->setState(value != 0);
+                        if (value > 0 && k.value().as<String>() == "onoff")
+                        {
+                            d->setValue(value);
+                            d->setPercent(100);
+                        }
+                        homeware.debug(stringf("Alexa Pin %d setValue(%d)", pin, value));
                     }
-                    homeware.debug(stringf("Alexa Pin %d setValue(%d)", pin, value));
                 }
                 index += 1;
             }
