@@ -197,7 +197,8 @@ void Portal::setupServer()
 
         pg += button("GPIO", "/gs");
         pg += button("Reiniciar","/reset");
-        pg += "<div style='height:100'></div><a href=\"/update\" class='D'>firmware</a>";
+        pg += "<div style='height:100'></div><a href=\"/update\" class='D'>firmware</a><div class='msg'> Ver: {ver}</div>";
+        pg.replace("{ver}",VERSION);
 
         if (scp.length() > 0)
         {
