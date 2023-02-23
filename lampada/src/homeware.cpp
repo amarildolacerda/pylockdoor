@@ -708,13 +708,15 @@ void alexaTrigger(int pin, int value)
                         if (value > 0 && sType == "onoff")
                         {
                             d->setValue(value);
-                            d->setPercent( (value>0)? 100:0);
+                            d->setPercent((value > 0) ? 100 : 0);
                         }
-                        else if (sType.startsWith("dimmable")){
+                        else if (sType.startsWith("dimmable"))
+                        {
                             d->setValue(value);
-                            d->setPercent((value/1024)*100);
+                            d->setPercent((value / 1024) * 100);
                         }
-                        else if (sType.startsWith("white")){
+                        else if (sType.startsWith("white"))
+                        {
                             d->setValue(value);
                         }
                         else if (sType.startsWith("color"))
@@ -775,12 +777,14 @@ void dimmableChanged(EspalexaDevice *d)
         Serial.print("B changed to ");
         Serial.print(percent);
         Serial.println("%");
+        homeware.writePin(pin, d->getValue() );
     }
 }
 void whitespectrumChanged(EspalexaDevice *d)
 {
     if (d == nullptr)
         return;
+
     Serial.print("C changed to ");
     Serial.print(d->getValue());
     Serial.print(", colortemp ");
@@ -788,6 +792,10 @@ void whitespectrumChanged(EspalexaDevice *d)
     Serial.print(" (");
     Serial.print(d->getKelvin()); // this is more common than the hue mired values
     Serial.println("K)");
+    homeware.writePin(pin, (value > 0) ? HIGH : LOW);
+    int pin = findAlexaPin(d);
+    if (pin > -1)
+        homeware.writePin(pin, d->getValue());
 }
 
 void extendedcolorChanged(EspalexaDevice *d)
@@ -802,6 +810,9 @@ void extendedcolorChanged(EspalexaDevice *d)
     Serial.print(d->getG());
     Serial.print(", B");
     Serial.println(d->getB());
+    int pin = findAlexaPin(d);
+    if (pin > -1)
+        homeware.writePin(pin, d->getValue());
 }
 
 void Homeware::setupAlexa()
