@@ -2,13 +2,13 @@
 #define WIFI_NEW
 #include <Arduino.h>
 #define LABEL String(getChipId(), HEX)
-#define VERSION "1.0.0"
+#define VERSION "23.02.23"
 #define ALEXA
-#define SINRIC
+//#define SINRIC
 #define TELNET
 #define OTA
-#define GROOVE_ULTRASONIC
-#define MQTT
+//#define GROOVE_ULTRASONIC
+//#define MQTT
 
 
 #if defined(ESP8285)
