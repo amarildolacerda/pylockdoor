@@ -50,6 +50,9 @@ void firstDeviceChanged(uint8_t brightness);
 
 void defaultConfig()
 {
+ // homeware.doCommand("reset factory"); 
+ // homeware.doCommand("save");
+  //homeware.doCommand("reset");
   // homeware.doCommand(stringf("gpio %d mode in", BUTTON_PIN));
   // homeware.doCommand(stringf("gpio %d mode out", RELAY_PIN));
   // homeware.doCommand("gpio 4 trigger 15 monostable");
