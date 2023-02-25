@@ -41,12 +41,6 @@ int tmpAdc = 0;
 int adcState = 0;
 bool isConnected = false;
 
-//=========================================================================================
-// declaracoes
-//=========================================================================================
-void firstDeviceChanged(uint8_t brightness);
-
-//=========================================================================================
 
 void defaultConfig()
 {
@@ -82,7 +76,6 @@ void setup()
 
   setupServer();
   defaultConfig();
-  // homeware.alexa.addDevice(homeware.config["label"], firstDeviceChanged);
   homeware.begin();
 }
 
@@ -90,30 +83,4 @@ void loop()
 {
   portal.loop(); // checa reconecta;
   homeware.loop();
-}
-
-void printCmds(String *cmd)
-{
-  Serial.println("command:");
-  for (unsigned int i = 0; i < sizeof(cmd); i++)
-  {
-    if (cmd[i] != NULL)
-    {
-      Serial.print(cmd[i]);
-      Serial.print(" ");
-    }
-  }
-  Serial.println("");
-}
-
-void firstDeviceChanged(uint8_t brightness)
-{
-  if (brightness)
-  {
-    homeware.writePin(RELAY_PIN, HIGH);
-  }
-  else
-  {
-    homeware.writePin(RELAY_PIN, LOW);
-  }
 }
