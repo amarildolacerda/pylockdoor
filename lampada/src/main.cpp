@@ -16,8 +16,6 @@
 #include <FS.h>
 #include <LittleFS.h>
 
-#include <ESP8266WiFi.h> //https://github.com/esp8266/Arduino
-
 // needed for library
 #include <portal.h>
 #include <homeware.h>
