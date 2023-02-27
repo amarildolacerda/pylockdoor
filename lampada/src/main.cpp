@@ -13,8 +13,6 @@
 #endif
 
 #include <ArduinoJson.h>
-#include <FS.h>
-#include <LittleFS.h>
 
 // needed for library
 #include <portal.h>
@@ -39,12 +37,11 @@ int tmpAdc = 0;
 int adcState = 0;
 bool isConnected = false;
 
-
 void defaultConfig()
 {
- // homeware.doCommand("reset factory"); 
- // homeware.doCommand("save");
-  //homeware.doCommand("reset");
+  // homeware.doCommand("reset factory");
+  // homeware.doCommand("save");
+  // homeware.doCommand("reset");
   // homeware.doCommand(stringf("gpio %d mode in", BUTTON_PIN));
   // homeware.doCommand(stringf("gpio %d mode out", RELAY_PIN));
   // homeware.doCommand("gpio 4 trigger 15 monostable");
