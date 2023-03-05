@@ -13,10 +13,13 @@
 #endif
 
 #include <ArduinoJson.h>
+#include "options.h"
 
 // needed for library
-#include <portal.h>
 #include <homeware.h>
+#ifdef PORTAL
+#include <portal.h>
+#endif
 
 // Include libraries
 #if defined ESP8266 || defined ESP32
@@ -51,11 +54,13 @@ void defaultConfig()
 
 void setupServer()
 {
+#ifdef PORTAL
   homeware.server->on("/clear", []()
                       {
         Serial.println("reiniciando");
         homeware.server->send(200, "text/html", "reiniciando...");
         portal.reset(); });
+#endif
 }
 
 // main setup function
@@ -65,17 +70,20 @@ void setup()
   Serial.begin(BAUD_RATE);
   Serial.printf("\r\n\r\n");
   homeware.setup(&server);
+#ifdef PORTAL
   portal.setup(&server);
   portal.autoConnect(homeware.config["label"]);
+#endif
   Serial.printf("Ver: %s \r\n", VERSION);
 
   setupServer();
   defaultConfig();
-  homeware.begin();
 }
 
 void loop()
 {
+#ifdef PORTAL
   portal.loop(); // checa reconecta;
+#endif
   homeware.loop();
 }
