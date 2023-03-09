@@ -1,5 +1,19 @@
 import socket
 import time
+import urllib.request
+
+
+
+def download(url):
+   try: 
+        response = urllib.request.urlopen(url)
+        data = response.read()
+        return data.decode()
+   except:
+        pass
+
+
+
 
 msg = \
     'M-SEARCH * HTTP/1.1\r\n' \
@@ -30,7 +44,27 @@ print('enviou M-SEARCH, aguardando resposta')
 try:
     while True:
         data, addr = s.recvfrom(65507)
-        print(addr, data)
+        
+        
+        location = None
+        na8080 = None
+        tipo = None
+        headers = data.split(b'\n')
+        for header in headers:
+         if header.startswith(b'LOCATION:'):
+            location = header.split(b':', 1)[1].strip()
+            tipo = "hue"
+         if header.find(b":8080")!=-1:
+            na8080 = location
+            tipo = "mesh"
+        index = data.find(b'hue')
+        if index!=-1 or na8080:
+            print(tipo, location)
+            response = download(str(location))
+            print(response)
+        if (na8080)   : 
+            print(location, data )
         
 except socket.timeout:
     pass
+
