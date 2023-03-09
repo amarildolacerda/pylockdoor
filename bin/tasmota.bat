@@ -1,1 +1,0 @@
-esptool.py --port COM3 write_flash -fs 1MB -fm dout 0x0 tasmota.bin
