@@ -1,47 +1,31 @@
 
 
-#ifdef ENABLE_DEBUG
-#define DEBUG_ESP_PORT Serial
-#define NODEBUG_WEBSOCKETS
-#define NDEBUG
-#endif
-
 #include <Arduino.h>
-#ifdef ESP8266
-#endif
-#ifdef ESP32
-#endif
 
 #include <ArduinoJson.h>
 #include "options.h"
 
 // needed for library
-#include <homeware.h>
+#ifdef ARDUINO_AVR
+#include "protocol.h"
+Protocol prot;
+#else
+#include "homeware.h"
+#endif
+
 #ifdef PORTAL
 #include <portal.h>
 #endif
 
-// Include libraries
-#if defined ESP8266 || defined ESP32
-#endif
-
-#if defined ESP8266
-#endif
-
 #define BAUD_RATE 115200 // Change baudrate to your need
-
-#define BUTTON_PIN 4
-#define RELAY_PIN 15
-#define inDebug false
-unsigned long lastBtnPress;
-int ldrState = 0;
-bool myPowerState = false;
-int tmpAdc = 0;
-int adcState = 0;
-bool isConnected = false;
 
 void defaultConfig()
 {
+  #ifdef SONOFF_BASIC
+    homeware.doCommand("gpio 12 mode out");
+    homeware.doCommand("gpio 14 mode in");
+    homeware.doCommand("gpio 14 trigger 12 bistable");
+  #endif
   // homeware.doCommand("reset factory");
   // homeware.doCommand("save");
   // homeware.doCommand("reset");
@@ -68,13 +52,18 @@ void setup()
 {
 
   Serial.begin(BAUD_RATE);
+#ifdef ARDUINO_AVR
+  prot.setup();
+#else
   Serial.printf("\r\n\r\n");
   homeware.setup(&server);
+#endif
+
 #ifdef PORTAL
   portal.setup(&server);
   portal.autoConnect(homeware.config["label"]);
-#endif
   Serial.printf("Ver: %s \r\n", VERSION);
+#endif
 
   setupServer();
   defaultConfig();
@@ -85,5 +74,9 @@ void loop()
 #ifdef PORTAL
   portal.loop(); // checa reconecta;
 #endif
+#ifdef ARDUINO_AVR
+  prot.loop();
+#else
   homeware.loop();
+#endif
 }
