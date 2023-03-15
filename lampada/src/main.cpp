@@ -21,11 +21,11 @@ Protocol prot;
 
 void defaultConfig()
 {
-  #ifdef SONOFF_BASIC
-    homeware.doCommand("gpio 12 mode out");
-    homeware.doCommand("gpio 14 mode in");
-    homeware.doCommand("gpio 14 trigger 12 bistable");
-  #endif
+#ifdef SONOFF_BASIC
+  homeware.doCommand("gpio 12 mode out");
+  homeware.doCommand("gpio 14 mode in");
+  homeware.doCommand("gpio 14 trigger 12 bistable");
+#endif
   // homeware.doCommand("reset factory");
   // homeware.doCommand("save");
   // homeware.doCommand("reset");

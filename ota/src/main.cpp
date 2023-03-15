@@ -16,7 +16,14 @@
 #include <WiFiClient.h>
 #include <WebServer.h>
 #endif
+
+
+#define WM
+
+
+#ifdef WM
 #include <WiFiManager.h>
+#endif
 #include <ElegantOTA.h>
 
 const char *ssid = "kcasa";
@@ -32,12 +39,16 @@ WebServer server(80);
 
 void setup(void)
 {
+#ifdef WM
   WiFiManager wifiManager;
+#endif
   Serial.begin(115200);
-
+#ifdef WM
   wifiManager.autoConnect("AutoConnectAP");
-  //WiFi.mode(WIFI_STA);
-  //WiFi.begin(ssid, password);
+#else
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+#endif  
   Serial.println("");
 
   // Wait for connection
@@ -53,7 +64,7 @@ void setup(void)
   Serial.println(WiFi.localIP());
 
   server.on("/", []()
-            { server.send(200, "text/plain", "Hi! I am ESP8266."); });
+            { server.send(200, "text/plain", "Hi! I am ESP8266. <a href='/update'>update</a> "); });
 
   ElegantOTA.begin(&server); // Start ElegantOTA
   server.begin();
