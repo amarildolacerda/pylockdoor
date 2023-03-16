@@ -19,23 +19,49 @@ Protocol prot;
 
 #define BAUD_RATE 115200 // Change baudrate to your need
 
-//#define GAZ
+//--------------------------------- modelos de config
+// #define GAZ
+// #define RELAY
+// #define PIR
+// #define INUNDACAO
+//---------------------------------------------------
 
 void defaultConfig()
 {
+#ifdef LCTECHRELAY
+  homeware.doCommand("gpio 17 mode lc");
+  homeware.doCommand("gpio 17 device onoff");
+#endif
+
 #ifdef SONOFF_BASIC
   homeware.doCommand("gpio 12 mode out");
   homeware.doCommand("gpio 14 mode in");
   homeware.doCommand("gpio 14 trigger 12 bistable");
+  homeware.doCommand("gpio 12 device onoff");
+  homeware.config["board"] = "SONOFF";
 #endif
-// homeware.doCommand("reset factory");
-// homeware.doCommand("save");
-// homeware.doCommand("reset");
-// homeware.doCommand(stringf("gpio %d mode in", BUTTON_PIN));
-// homeware.doCommand(stringf("gpio %d mode out", RELAY_PIN));
-// homeware.doCommand("gpio 4 trigger 15 monostable");
-// homeware.doCommand("gpio 15 device onoff");
-// homeware.printConfig();
+
+#ifdef RELAY
+  homeware.doCommand(stringf("gpio %d mode in", 4));
+  homeware.doCommand(stringf("gpio %d mode out", 15));
+  homeware.doCommand("gpio 4 trigger 15 bistable");
+  homeware.doCommand("gpio 15 device onoff");
+#endif
+#ifdef INUNDACAO
+  homeware.doCommand(stringf("gpio %s mode adc", A0));
+  homeware.doCommand(stringf("gpio %d mode srn", 2));
+  homeware.doCommand("gpio 0 trigger 2 monostable");
+  homeware.doCommand("gpio 2 device onoff");
+  homeware.setKey("adc_min", "0");
+  homeware.setKeyIfNull("adc_max", "125");
+#endif
+#ifdef PIR
+  homeware.doCommand(stringf("gpio %d mode in", 4));
+  homeware.doCommand(stringf("gpio %d mode srn", 2));
+  homeware.doCommand("gpio 4 trigger 2 monostable");
+  homeware.doCommand("gpio 2 device onoff");
+#endif
+
 #ifdef GAZ
   homeware.doCommand("gpio A0 mode adc");
   homeware.setKey("adc_min", "0");
@@ -43,7 +69,6 @@ void defaultConfig()
   homeware.doCommand("gpio 15 mode out");
   homeware.doCommand("gpio A0 trigger 15 monostable");
   homeware.doCommand("gpio 15 device onoff");
-  homeware.doCommand("show config");
 #endif
 }
 
