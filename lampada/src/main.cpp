@@ -63,12 +63,20 @@ void defaultConfig()
 #endif
 
 #ifdef GAZ
+  // homeware.doCommand("reset factory");
+  homeware.doCommand("set label gaz");
   homeware.doCommand("gpio A0 mode adc");
+  homeware.doCommand("gpio 2 mode srn");
+  homeware.doCommand("gpio 4 mode ok");
   homeware.setKey("adc_min", "0");
-  homeware.setKeyIfNull("adc_max", "240");
-  homeware.doCommand("gpio 15 mode out");
-  homeware.doCommand("gpio A0 trigger 15 monostable");
-  homeware.doCommand("gpio 15 device onoff");
+  homeware.setKeyIfNull("adc_max", "126");
+  homeware.doCommand("gpio A0 trigger 2 monostable");
+  homeware.doCommand("gpio 2 device motion");
+  homeware.doCommand("gpio 2 sensor xxxx");
+  homeware.doCommand("set app_key xxx");
+  homeware.doCommand("set app_secret xxx");
+  // homeware.doCommand("debug off");
+  // homeware.doCommand("save");
 #endif
 }
 
@@ -93,7 +101,6 @@ void setup()
 #else
   Serial.printf("\r\n\r\n");
   homeware.prepare();
-  defaultConfig();
   homeware.setup(&server);
 #endif
 
@@ -103,7 +110,9 @@ void setup()
   Serial.printf("Ver: %s \r\n", VERSION);
 #endif
 
+
   setupServer();
+  defaultConfig();
 }
 
 void loop()
