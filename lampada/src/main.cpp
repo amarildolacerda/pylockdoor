@@ -1,7 +1,7 @@
 
 
 #include <Arduino.h>
-
+//#include "SinricPro.h"
 #include <ArduinoJson.h>
 #include "options.h"
 
@@ -23,9 +23,9 @@ Protocol prot;
 Espalexa alexa = Espalexa();
 #endif
 
-#ifdef SINRICPRO
-#include "SinricPro.h"
-#endif
+//#ifdef SINRICPRO
+//#include "SinricPro.h"
+//#endif
 
 #define BAUD_RATE 115200 // Change baudrate to your need
 
@@ -142,9 +142,9 @@ void loop()
   alexa.loop();
 #endif
 
-#ifdef SINRICPRO
-  SinricPro.handle();
-#endif
+//#ifdef SINRICPRO
+//  SinricPro.handle();
+//#endif
 
 #endif
 }
