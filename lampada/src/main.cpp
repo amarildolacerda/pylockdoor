@@ -17,6 +17,16 @@ Protocol prot;
 #include <portal.h>
 #endif
 
+#ifdef ALEXA
+#include <Espalexa.h>
+#include "api/alexa.h"
+Espalexa alexa = Espalexa();
+#endif
+
+#ifdef SINRICPRO
+#include "SinricPro.h"
+#endif
+
 #define BAUD_RATE 115200 // Change baudrate to your need
 
 //--------------------------------- modelos de config
@@ -110,9 +120,13 @@ void setup()
   Serial.printf("Ver: %s \r\n", VERSION);
 #endif
 
-
   setupServer();
   defaultConfig();
+#ifdef ALEXA
+
+  Alexa::begin(alexa);
+  alexa.begin(&server);
+#endif
 }
 
 void loop()
@@ -124,5 +138,13 @@ void loop()
   prot.loop();
 #else
   homeware.loop();
+#ifdef ALEXA
+  alexa.loop();
+#endif
+
+#ifdef SINRICPRO
+  SinricPro.handle();
+#endif
+
 #endif
 }
