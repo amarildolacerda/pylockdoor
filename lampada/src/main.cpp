@@ -4,7 +4,7 @@
 //#include "SinricPro.h"
 #include <ArduinoJson.h>
 #include "options.h"
-
+#include <ESP8266WiFi.h>
 // needed for library
 #ifdef ARDUINO_AVR
 #include "protocol.h"
@@ -139,7 +139,8 @@ void loop()
 #else
   homeware.loop();
 #ifdef ALEXA
-  alexa.loop();
+  if (WiFi.isConnected())
+    alexa.loop();
 #endif
 
 //#ifdef SINRICPRO
