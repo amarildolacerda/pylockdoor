@@ -1,7 +1,7 @@
 
 
 #include <Arduino.h>
-//#include "SinricPro.h"
+// #include "SinricPro.h"
 #include <ArduinoJson.h>
 #include "options.h"
 #include <ESP8266WiFi.h>
@@ -23,9 +23,9 @@ Protocol prot;
 Espalexa alexa = Espalexa();
 #endif
 
-//#ifdef SINRICPRO
-//#include "SinricPro.h"
-//#endif
+// #ifdef SINRICPRO
+// #include "SinricPro.h"
+// #endif
 
 #define BAUD_RATE 115200 // Change baudrate to your need
 
@@ -140,12 +140,15 @@ void loop()
   homeware.loop();
 #ifdef ALEXA
   if (WiFi.isConnected())
+  {
+    alexa.setFriendlyName(homeware.config["label"].as<String>().c_str());
     alexa.loop();
+  }
 #endif
 
-//#ifdef SINRICPRO
-//  SinricPro.handle();
-//#endif
+  // #ifdef SINRICPRO
+  //   SinricPro.handle();
+  // #endif
 
 #endif
 }
