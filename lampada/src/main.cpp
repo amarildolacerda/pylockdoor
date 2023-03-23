@@ -111,6 +111,11 @@ void setup()
 #else
   Serial.printf("\r\n\r\n");
   homeware.prepare();
+
+#ifdef ALEXA
+  Alexa::init(&alexa);
+#endif
+
   homeware.setup(&server);
 #endif
 
@@ -123,8 +128,6 @@ void setup()
   setupServer();
   defaultConfig();
 #ifdef ALEXA
-
-  Alexa::begin(alexa);
   alexa.begin(&server);
 #endif
 }
@@ -138,17 +141,5 @@ void loop()
   prot.loop();
 #else
   homeware.loop();
-#ifdef ALEXA
-  if (WiFi.isConnected())
-  {
-    alexa.setFriendlyName(homeware.config["label"].as<String>().c_str());
-    alexa.loop();
-  }
-#endif
-
-  // #ifdef SINRICPRO
-  //   SinricPro.handle();
-  // #endif
-
 #endif
 }
