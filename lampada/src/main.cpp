@@ -1,7 +1,6 @@
 
 
 #include <Arduino.h>
-// #include "SinricPro.h"
 #include <ArduinoJson.h>
 #include "options.h"
 #include <ESP8266WiFi.h>
