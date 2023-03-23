@@ -3,13 +3,13 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "options.h"
-#include <ESP8266WiFi.h>
-// needed for library
 #ifdef ARDUINO_AVR
 #include "protocol.h"
 Protocol prot;
 #else
 #include "homeware.h"
+#include <ESP8266WiFi.h>
+// needed for library
 #endif
 
 #ifdef PORTAL
