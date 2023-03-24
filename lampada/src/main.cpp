@@ -141,4 +141,7 @@ void loop()
 #else
   homeware.loop();
 #endif
+#ifdef ALEXA
+  Alexa::handle();
+#endif
 }
