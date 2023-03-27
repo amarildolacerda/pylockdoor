@@ -125,6 +125,7 @@ void setup()
   portal.autoConnect(homeware.config["label"]);
   Serial.printf("Ver: %s \r\n", VERSION);
 #endif
+  timer.update();
 
   setupServer();
   defaultConfig();
@@ -132,7 +133,7 @@ void setup()
 #ifdef ALEXA
   alexa.begin(&server);
 #endif
- Serial.println(timer.getNow());
+  Serial.println(timer.getNow());
 }
 
 void loop()
