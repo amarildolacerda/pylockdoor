@@ -10,7 +10,12 @@
 Protocol prot;
 #else
 #include "homeware.h"
+
+#ifdef ESP32
+#include "WiFi.h"
+#else
 #include <ESP8266WiFi.h>
+#endif
 // needed for library
 #endif
 
