@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "options.h"
+#include "timer.h"
+
 #ifdef ARDUINO_AVR
 #include "protocol.h"
 Protocol prot;
@@ -126,9 +128,11 @@ void setup()
 
   setupServer();
   defaultConfig();
+
 #ifdef ALEXA
   alexa.begin(&server);
 #endif
+ Serial.println(timer.getNow());
 }
 
 void loop()
@@ -144,4 +148,5 @@ void loop()
 #ifdef ALEXA
   Alexa::handle();
 #endif
+  timer.update();
 }
