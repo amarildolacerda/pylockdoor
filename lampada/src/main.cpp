@@ -2,36 +2,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include "options.h"
-#include "timer.h"
-
-#ifdef ARDUINO_AVR
-#include "protocol.h"
-Protocol prot;
-#else
-#include "homeware.h"
-
-#ifdef ESP32
-#include "WiFi.h"
-#else
-#include <ESP8266WiFi.h>
-#endif
-// needed for library
-#endif
-
-#ifdef PORTAL
-#include <portal.h>
-#endif
-
-#ifdef ALEXA
-#include <Espalexa.h>
-#include "api/alexa.h"
-Espalexa alexa = Espalexa();
-#endif
-
-// #ifdef SINRICPRO
-// #include "SinricPro.h"
-// #endif
+#include "homeware_setup.h"
 
 #define BAUD_RATE 115200 // Change baudrate to your need
 
@@ -98,13 +69,6 @@ void defaultConfig()
 
 void setupServer()
 {
-#ifdef PORTAL
-  homeware.server->on("/clear", []()
-                      {
-        Serial.println("reiniciando");
-        homeware.server->send(200, "text/html", "reiniciando...");
-        portal.reset(); });
-#endif
 }
 
 // main setup function
@@ -112,47 +76,17 @@ void setup()
 {
 
   Serial.begin(BAUD_RATE);
-#ifdef ARDUINO_AVR
-  prot.setup();
-#else
-  Serial.printf("\r\n\r\n");
-  homeware.prepare();
 
-#ifdef ALEXA
-  Alexa::init(&alexa);
-#endif
-
-  homeware.setup(&server);
-#endif
-
-#ifdef PORTAL
-  portal.setup(&server);
-  portal.autoConnect(homeware.config["label"]);
-  Serial.printf("Ver: %s \r\n", VERSION);
-#endif
-  timer.update();
+  homeware_setup();
 
   setupServer();
   defaultConfig();
 
-#ifdef ALEXA
-  alexa.begin(&server);
-#endif
   Serial.println(timer.getNow());
 }
 
 void loop()
 {
-#ifdef PORTAL
-  portal.loop(); // checa reconecta;
-#endif
-#ifdef ARDUINO_AVR
-  prot.loop();
-#else
-  homeware.loop();
-#endif
-#ifdef ALEXA
-  Alexa::handle();
-#endif
-  timer.update();
+
+  homeware_loop();
 }
