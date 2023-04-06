@@ -82,7 +82,9 @@ void setup()
   setupServer();
   defaultConfig();
 
+#ifndef BASIC
   Serial.println(timer.getNow());
+#endif
 }
 
 void loop()
