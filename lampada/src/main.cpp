@@ -1,4 +1,4 @@
-
+#include <ESP8266WiFi.h> // precisa ser a primeira linha para fixar: ISR not in IRAM!
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
