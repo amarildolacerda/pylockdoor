@@ -1,4 +1,8 @@
+#ifdef ESP32
+#include <WiFi.h>
+#else
 #include <ESP8266WiFi.h> // precisa ser a primeira linha para fixar: ISR not in IRAM!
+#endif
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
