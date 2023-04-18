@@ -22,13 +22,15 @@ void defaultConfig()
 #ifdef LCTECHRELAY
   homeware.doCommand("gpio 17 mode lc");
   homeware.doCommand("gpio 17 device onoff");
+  homeware.config["board"] = "LCTECHRELAY";
 #endif
 
 #ifdef SONOFF_BASIC
   homeware.doCommand("gpio 12 mode out");
-  homeware.doCommand("gpio 14 mode in");
-  homeware.doCommand("gpio 14 trigger 12 bistable");
+  homeware.doCommand("gpio 0 mode in");
+  homeware.doCommand("gpio 0 trigger 12 bistable");
   homeware.doCommand("gpio 12 device onoff");
+  homeware.doCommand("gpio 13 mode led");
   homeware.config["board"] = "SONOFF";
 #endif
 
