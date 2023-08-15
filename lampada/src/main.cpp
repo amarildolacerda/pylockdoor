@@ -1,14 +1,48 @@
+#define BAUD_RATE 115200 // Change baudrate to your need
+
+#ifdef UPLOAD_ONLY
+
+#include <Arduino.h>
 #ifdef ESP32
 #include <WiFi.h>
 #else
 #include <ESP8266WiFi.h> // precisa ser a primeira linha para fixar: ISR not in IRAM!
 #endif
+#include <ArduinoJson.h>
+
+
+
+void setup(){
+Serial.begin(BAUD_RATE);
+}
+
+unsigned int timer = millis();
+unsigned int value = 0;
+
+void loop(){
+  if (millis()-timer > 1000){
+    Serial.println(value);
+    value = 1-value;
+    timer=millis();
+  }
+}
+
+
+#else
 
 #include <Arduino.h>
+
+#ifndef NO_WIFI
+#ifdef ESP32
+#include <WiFi.h>
+#else
+#include <ESP8266WiFi.h> // precisa ser a primeira linha para fixar: ISR not in IRAM!
+#endif
+#endif
+
 #include <ArduinoJson.h>
 #include "homeware_setup.h"
 
-#define BAUD_RATE 115200 // Change baudrate to your need
 
 //--------------------------------- modelos de config
 // #define GAZ
@@ -88,7 +122,7 @@ void setup()
   setupServer();
   defaultConfig();
 
-#ifndef BASIC
+#ifdef WIFI_ENABLED
   Serial.println(timer.getNow());
 #endif
 }
@@ -98,3 +132,4 @@ void loop()
 
   homeware_loop();
 }
+#endif
