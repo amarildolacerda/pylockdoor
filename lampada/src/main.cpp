@@ -122,7 +122,7 @@ void setup()
   setupServer();
   defaultConfig();
 
-#ifdef WIFI_ENABLED
+#ifndef NO_TIMER
   Serial.println(timer.getNow());
 #endif
 }
