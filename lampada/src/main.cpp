@@ -1,19 +1,19 @@
 #define BAUD_RATE 115200 // Change baudrate to your need
 
-
 #ifdef AVR
 #include <Arduino.h>
 #include "protocol_base.h"
-void setup(){
-     Serial.begin(BAUD_RATE);
-     hwavr.setup();
-}
-
-void loop(){
+void setup()
 {
-  hwavr.loop();
-
+  Serial.begin(BAUD_RATE);
+  hwavr.setup();
 }
+
+void loop()
+{
+  {
+    hwavr.loop();
+  }
 
 #elif UPLOAD_ONLY
 
@@ -25,23 +25,23 @@ void loop(){
 #endif
 #include <ArduinoJson.h>
 
-
-
-void setup(){
-Serial.begin(BAUD_RATE);
+void setup()
+{
+  Serial.begin(BAUD_RATE);
 }
 
 unsigned int timer = millis();
 unsigned int value = 0;
 
-void loop(){
-  if (millis()-timer > 1000){
+void loop()
+{
+  if (millis() - timer > 1000)
+  {
     Serial.println(value);
-    value = 1-value;
-    timer=millis();
+    value = 1 - value;
+    timer = millis();
   }
 }
-
 
 #else
 
@@ -57,7 +57,6 @@ void loop(){
 
 #include <ArduinoJson.h>
 #include "homeware_setup.h"
-
 
 //--------------------------------- modelos de config
 // #define GAZ
@@ -124,6 +123,10 @@ void defaultConfig()
 
 void setupServer()
 {
+#ifdef RESET
+  homeware.doCommand("reset wifi");
+  homeware.doCommand("save");
+#endif
 }
 
 // main setup function
