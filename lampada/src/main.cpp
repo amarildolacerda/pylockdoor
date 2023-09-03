@@ -1,6 +1,21 @@
 #define BAUD_RATE 115200 // Change baudrate to your need
 
-#ifdef UPLOAD_ONLY
+
+#ifdef AVR
+#include <Arduino.h>
+#include "protocol_base.h"
+void setup(){
+     Serial.begin(BAUD_RATE);
+     hwavr.setup();
+}
+
+void loop(){
+{
+  hwavr.loop();
+
+}
+
+#elif UPLOAD_ONLY
 
 #include <Arduino.h>
 #ifdef ESP32
